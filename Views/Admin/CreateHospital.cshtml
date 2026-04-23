@@ -1,0 +1,41 @@
+﻿@model LaudaryMis.ViewModels.HospitalVM
+
+<div class="container mt-4">
+    <h3>Add Hospital</h3>
+
+    <form method="post">
+
+        <div class="mb-3">
+            <label>Name</label>
+            <input asp-for="HospitalName" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label>City</label>
+            <input asp-for="City" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label>Address</label>
+            <input asp-for="Address" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label>Contact Person</label>
+            <input asp-for="ContactPerson" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label>Phone</label>
+            <input asp-for="Phone" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label>Email</label>
+            <input asp-for="Email" class="form-control" />
+        </div>
+
+        <button class="btn btn-success">Save</button>
+
+    </form>
+</div>
