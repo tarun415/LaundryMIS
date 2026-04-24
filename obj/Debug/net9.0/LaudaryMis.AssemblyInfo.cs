@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LaudaryMis")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f47e25e485fcbe5af12ae2ee6501866cca2fa495")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3813e58f0aca7c0af24525a2ae788489a7d66242")]
 [assembly: System.Reflection.AssemblyProductAttribute("LaudaryMis")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LaudaryMis")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
