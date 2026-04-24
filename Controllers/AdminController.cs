@@ -86,5 +86,19 @@ namespace LaudaryMis.Controllers
 
             return RedirectToAction("CreateAgreement");
         }
+
+
+
+        // LIST of Provider
+        public async Task<IActionResult> Providers()
+        {
+            var data = await _service.GetAllAsync();
+            return View(data);
+        }
+        // CREATE Provider
+        public IActionResult CreateProvider()
+        {
+            return View();
+        }
     }
 }

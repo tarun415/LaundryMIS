@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Laundry MIS</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/Custom.css" />
+
+
+</head>
+
+<body>
+
+    <!-- 🔷 TOP NAVBAR -->
+    <nav class="navbar navbar-dark bg-dark px-3">
+        <span class="navbar-brand">Laundry MIS</span>
+
+        <div class="text-white">
+            👤 @User.Identity?.Name
+            <a href="/Account/Logout" class="btn btn-sm btn-danger ms-3">Logout</a>
+        </div>
+    </nav>
+
+    <div class="d-flex">
+
+        <!-- 🔷 SIDEBAR -->
+        <nav class="sidebar" id="sidebarNav"></nav>
+
+        <!-- 🔷 MAIN -->
+        <div class="flex-grow-1 p-4">
+            @RenderBody()
+        </div>
+
+    </div>
+
+    <script>
+        /* ================= ROLE + ROUTES ================= */
+
+        const userRole = "@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value";
+
+        const routes = {
+            admin: {
+                dashboard: '@Url.Action("Dashboard", "Admin")',
+                Hospitals: '@Url.Action("Hospitals", "Admin")',
+                CreateAgreement: '@Url.Action("CreateAgreement", "Admin")',
+                CreateProvider: '@Url.Action("CreateProvider", "Admin")',
+            },
+            hospital: {
+                dashboard: '@Url.Action("Dashboard", "Hospital")',
+                wpr: '@Url.Action("VerificationList", "Hospital")'
+            },
+            provider: {
+                dashboard: '@Url.Action("Dashboard", "Provider")',
+                linen: '@Url.Action("DailyEntry", "Provider")',
+                Pending: '@Url.Action("Pending", "Provider")',
+                Deliver: '@Url.Action("Deliver", "Provider")',
+                wpr: '@Url.Action("WPREntry", "Provider")',
+                reports: '@Url.Action("DailyEntryList", "Provider")'
+            }
+        };
+
+        /* ================= MENU CONFIG ================= */
+
+        const MENU_CONFIG = {
+            Admin: [
+                { section: "Overview" },
+                { id: "dashboard", icon: "📊", label: "Dashboard", route: () => routes.admin.dashboard },
+                { id: "hospitals", icon: "🏥", label: "Hospitals", route: () => routes.admin.Hospitals },
+                { id: "createAgreement", icon: "📄", label: "Create Agreement", route: () => routes.admin.CreateAgreement },
+                 { id: "createProvider", icon: "📄", label: "Create Provider", route: () => routes.admin.CreateProvider },
+                  ],
+
+            Hospital: [
+                { section: "Overview" },
+                { id: "dashboard", icon: "🏥", label: "Dashboard", route: () => routes.hospital.dashboard },
+
+                { section: "Work" },
+                { id: "wpr", icon: "📋", label: "WPR Entry", route: () => routes.hospital.wpr },
+            ],
+
+            Provider: [
+                { section: "Overview" },
+                { id: "dashboard", icon: "🚚", label: "Dashboard", route: () => routes.provider.dashboard },
+
+                { section: "Operations" },
+                { id: "linen", icon: "🧺", label: "Daily Linen Log", route: () => routes.provider.linen },
+                { id: "Pending", icon: "🧺", label: "Pending", route: () => routes.provider.Pending },
+                { id: "Deliver", icon: "🧺", label: "Deliver", route: () => routes.provider.Deliver },
+                { id: "wpr", icon: "📋", label: "Submit WPR", route: () => routes.provider.wpr },
+                { id: "reports", icon: "📊", label: "Reports", route: () => routes.provider.reports },
+            ]
+        };
+
+        /* ================= BUILD SIDEBAR ================= */
+
+        function buildSidebar() {
+            const nav = document.getElementById("sidebarNav");
+            const menu = MENU_CONFIG[userRole];
+
+            if (!menu) return;
+
+            const currentPath = window.location.pathname.toLowerCase();
+
+            nav.innerHTML = "";
+
+            menu.forEach(item => {
+                if (item.section) {
+                    nav.innerHTML += `<div class="sidebar-section">${item.section}</div>`;
+                } else {
+                    const url = item.route();
+                    const isActive = currentPath === url.toLowerCase();
+
+                          nav.innerHTML += `
+                          <a href="${url}" class="nav-item ${isActive ? 'active' : ''}">
+                          <span class="icon">${item.icon}</span>
+                          <span>${item.label}</span>
+                          </a>
+                          `;
+                }
+            });
+        }
+
+        /* ================= NAVIGATION ================= */
+
+        // function navigate(url) {
+        //     if (window.location.pathname.toLowerCase() !== url.toLowerCase()) {
+        //         window.location.href = url;
+        //     }
+        // }
+
+        /* ================= INIT ================= */
+
+        document.addEventListener("DOMContentLoaded", buildSidebar);
+
+    </script>
+    @RenderSection("Scripts", required: false)
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
