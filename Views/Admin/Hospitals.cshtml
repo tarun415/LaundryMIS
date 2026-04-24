@@ -208,32 +208,3 @@
     });
 </script>
 
-
-@* @model IEnumerable<LaudaryMis.ViewModels.HospitalVM>
-
-<div class="container mt-4">
-    <h3>🏥 Hospitals</h3>
-
-    <a href="/Admin/CreateHospital" class="btn btn-primary mb-3">
-        Add Hospital
-    </a>
-
-    <table class="table table-bordered">
-        <tr>
-            <th>Name</th>
-            <th>City</th>
-            <th>Phone</th>
-            <th>Status</th>
-        </tr>
-
-        @foreach (var h in Model)
-        {
-            <tr>
-                <td>@h.HospitalName</td>
-                <td>@h.City</td>
-                <td>@h.Phone</td>
-                <td>@(h.IsActive ? "Active" : "Inactive")</td>
-            </tr>
-        }
-    </table>
-</div> *@
