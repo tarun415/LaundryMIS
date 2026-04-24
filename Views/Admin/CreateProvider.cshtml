@@ -1,0 +1,70 @@
+﻿@model LaudaryMis.ViewModels.HospitalVM
+
+<div class="main-container mt-2">
+
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">➕ Add Provider</h4>
+
+                <a href="/Admin/Hospitals" class="btn btn-outline-secondary rounded-pill px-3">
+                    ← Back to List
+                </a>
+            </div>
+
+            <!-- Form -->
+            <form method="post">
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Provider Name</label>
+                        <input asp-for="HospitalName" class="form-control" placeholder="Enter provider name" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">District</label>
+                        <input asp-for="City" class="form-control" placeholder="Enter district" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">City</label>
+                        <input asp-for="City" class="form-control" placeholder="Enter city" />
+                    </div>
+                  
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Phone</label>
+                        <input asp-for="Phone" class="form-control" placeholder="Enter phone number" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Email</label>
+                        <input asp-for="Email" class="form-control" placeholder="Enter email" />
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter address"></textarea>
+                    </div>
+                </div>
+
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <a href="/Admin/Providers" class="btn btn-light border rounded-pill px-4">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        💾 Save
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
