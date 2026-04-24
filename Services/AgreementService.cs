@@ -1,17 +1,20 @@
-﻿using LaudaryMis.ViewModels;
+﻿using LaudaryMis.Services.Interfaces;
+using LaudaryMis.ViewModels;
+using LaudaryMis.Repositories.Interfaces;  // 🔥 ADD THIS
 
 namespace LaudaryMis.Services
 {
-    public class AgreementService
+    public class AgreementService: IAgreementService
     {
-        private readonly AgreementRepository _repo;
+        private readonly IAgreementRepository _repo;
 
-        public AgreementService(AgreementRepository repo)
+        public AgreementService(IAgreementRepository repo)
         {
             _repo = repo;
         }
+       
 
-        public async Task SaveAsync(AgreementVM model, string? filePath)
+public async Task SaveAsync(AgreementVM model, string? filePath)
         {
             if (model.BedCount <= 0)
                 throw new Exception("Invalid Bed Count");

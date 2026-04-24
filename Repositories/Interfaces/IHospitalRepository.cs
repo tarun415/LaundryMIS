@@ -1,4 +1,5 @@
-﻿using LaudaryMis.ViewModels;
+﻿using LaudaryMis.Models;
+using LaudaryMis.ViewModels;
 
 namespace LaudaryMis.Repositories.Interfaces
 {

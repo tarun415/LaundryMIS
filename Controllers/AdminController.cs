@@ -67,7 +67,7 @@ namespace LaudaryMis.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAgreement(AgreementVM model)
         {
-            string filePath = null;
+            string? filePath = null;
 
             if (model.AgreementFile != null)
             {

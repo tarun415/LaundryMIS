@@ -51,14 +51,13 @@
             },
             hospital: {
                 dashboard: '@Url.Action("Dashboard", "Hospital")',
-                wpr: '@Url.Action("VerificationList", "Hospital")'
+                WPREntry: '@Url.Action("WPREntry", "Hospital")'
             },
             provider: {
                 dashboard: '@Url.Action("Dashboard", "Provider")',
                 linen: '@Url.Action("DailyEntry", "Provider")',
                 Pending: '@Url.Action("Pending", "Provider")',
                 Deliver: '@Url.Action("Deliver", "Provider")',
-                wpr: '@Url.Action("WPREntry", "Provider")',
                 reports: '@Url.Action("DailyEntryList", "Provider")'
             }
         };
@@ -77,9 +76,7 @@
             Hospital: [
                 { section: "Overview" },
                 { id: "dashboard", icon: "🏥", label: "Dashboard", route: () => routes.hospital.dashboard },
-
-                { section: "Work" },
-                { id: "wpr", icon: "📋", label: "WPR Entry", route: () => routes.hospital.wpr },
+                { id: "WPREntry", icon: "📋", label: "WPR Entry", route: () => routes.hospital.WPREntry },
             ],
 
             Provider: [
@@ -90,7 +87,6 @@
                 { id: "linen", icon: "🧺", label: "Daily Linen Log", route: () => routes.provider.linen },
                 { id: "Pending", icon: "🧺", label: "Pending", route: () => routes.provider.Pending },
                 { id: "Deliver", icon: "🧺", label: "Deliver", route: () => routes.provider.Deliver },
-                { id: "wpr", icon: "📋", label: "Submit WPR", route: () => routes.provider.wpr },
                 { id: "reports", icon: "📊", label: "Reports", route: () => routes.provider.reports },
             ]
         };

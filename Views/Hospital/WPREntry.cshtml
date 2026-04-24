@@ -1,0 +1,177 @@
+﻿@model LaudaryMis.ViewModels.WPRVM
+
+<div class="container mt-4">
+
+    <h3>📊 Weekly Performance Report</h3>
+
+    <form asp-action="WPREntry" method="post" onsubmit="return validateForm()">
+
+        <!-- AGREEMENT -->
+        <div class="mb-3">
+            <label>Select Hospital</label>
+            <select asp-for="AgreementId" class="form-control" required>
+                <option value="">-- Select --</option>
+                @foreach (var a in Model.Agreements)
+                {
+                    <option value="@a.Id">@a.HospitalName</option>
+                }
+            </select>
+        </div>
+
+        <!-- WEEK / MONTH / YEAR -->
+        <div class="row mb-3">
+
+            <!-- WEEK -->
+            <div class="col-md-4">
+                <label>Week</label>
+                <select asp-for="Week" class="form-control" required>
+                    <option value="">Select</option>
+                    <option value="1">Week 1</option>
+                    <option value="2">Week 2</option>
+                    <option value="3">Week 3</option>
+                    <option value="4">Week 4</option>
+                </select>
+            </div>
+
+            <!-- MONTH (AUTO LOCKED) -->
+            <div class="col-md-4">
+                <label>Month</label>
+                <input type="text" class="form-control"
+                       value="@DateTime.Now.ToString("MMMM")"
+                       disabled />
+
+                <input type="hidden" asp-for="Month" value="@DateTime.Now.Month" />
+            </div>
+
+            <!-- YEAR (AUTO LOCKED) -->
+            <div class="col-md-4">
+                <label>Year</label>
+                <input type="text" class="form-control"
+                       value="@DateTime.Now.Year"
+                       disabled />
+
+                <input type="hidden" asp-for="Year" value="@DateTime.Now.Year" />
+            </div>
+
+        </div>
+
+        <!-- STAFF -->
+        <div class="mb-3">
+            <label>Designated Staff</label>
+            <input asp-for="StaffName" class="form-control" />
+        </div>
+
+        <!-- 🔥 LIVE SCORE -->
+        <div class="mb-3">
+            <h4>Total Score: <span id="totalScore">0</span> / 100</h4>
+        </div>
+
+        <!-- 🔥 PARAMETERS TABLE -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Rating</th>
+                    <th>Score</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (int i = 0; i < Model.Parameters.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            @Model.Parameters[i].ParameterName
+                            <input type="hidden" name="Details[@i].ParameterId" value="@Model.Parameters[i].Id" />
+                        </td>
+
+                        <!-- RATING -->
+                        <td>
+                            <button type="button" class="btn btn-success btn-sm"
+                                    onclick="setScore(@i,10,'Good')">
+                                Good
+                            </button>
+
+                            <button type="button" class="btn btn-warning btn-sm"
+                                    onclick="setScore(@i,5,'Avg')">
+                                Avg
+                            </button>
+
+                            <button type="button" class="btn btn-danger btn-sm"
+                                    onclick="setScore(@i,2,'Poor')">
+                                Poor
+                            </button>
+                        </td>
+
+                        <!-- SCORE -->
+                        <td>
+                            <span id="scoreText_@i">-</span>
+                            <input type="hidden" name="Details[@i].Score" id="score_@i" />
+                        </td>
+
+                        <!-- REMARK -->
+                        <td>
+                            <input name="Details[@i].Remarks" class="form-control" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- FINAL REMARK -->
+        <div class="mb-3">
+            <label>Final Remarks</label>
+            <textarea asp-for="Remarks" class="form-control"></textarea>
+        </div>
+
+        <button class="btn btn-success">Submit WPR</button>
+
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+
+        let scores = {};
+
+        function setScore(i, val, label) {
+
+            // set hidden score
+            document.getElementById("score_" + i).value = val;
+
+            // show score
+            document.getElementById("scoreText_" + i).innerText = val + " (" + label + ")";
+
+            scores[i] = val;
+
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let total = 0;
+
+            Object.values(scores).forEach(x => total += x);
+
+            document.getElementById("totalScore").innerText = total;
+        }
+
+        // ✅ VALIDATION
+        function validateForm() {
+
+            let totalParams = document.querySelectorAll("[id^='score_']").length;
+
+            for (let i = 0; i < totalParams; i++) {
+                let val = document.getElementById("score_" + i).value;
+
+                if (!val) {
+                    alert("Please select rating for all parameters");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+    </script>
+}

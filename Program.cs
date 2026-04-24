@@ -18,11 +18,12 @@ builder.Services.AddScoped<IDailyService, DailyService>();
 builder.Services.AddScoped<IDailyRepository, DailyRepository>();
 builder.Services.AddScoped<HospitalRepository>();
 builder.Services.AddScoped<HospitalService>();
-builder.Services.AddScoped<AgreementRepository>();
-builder.Services.AddScoped<AgreementService>();
-builder.Services.AddScoped<ProviderRepository>();
-builder.Services.AddScoped<ProviderService>();
-
+builder.Services.AddScoped<IAgreementRepository, AgreementRepository>();
+builder.Services.AddScoped<IAgreementService, AgreementService>();
+builder.Services.AddScoped<IProviderRepository, ProviderRepository>();
+builder.Services.AddScoped<IProviderService, ProviderService>();
+builder.Services.AddScoped<IWPRRepository, WPRRepository>();
+builder.Services.AddScoped<IWPRService, WPRService>();
 // 🔥 FIX (IMPORTANT)
 builder.Services.AddScoped<IDbConnection>(sp =>
     new SqlConnection(builder.Configuration.GetConnectionString("DefaultConnection")));

@@ -1,12 +1,13 @@
 ﻿
 
 using Dapper;
-using System.Data;
 using LaudaryMis.Models;
+using LaudaryMis.Repositories.Interfaces;
+using System.Data;
 
 namespace LaudaryMis.Repositories
 {
-    public class ProviderRepository
+    public class ProviderRepository: IProviderRepository
     {
         private readonly IDbConnection _db;
 
