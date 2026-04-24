@@ -1,0 +1,176 @@
+﻿@model LaudaryMis.ViewModels.DailyEntryVM
+
+<div class="container mt-4">
+    <h3>🧺 Daily Linen Entry</h3>
+
+    <!-- Hospital -->
+    <div class="mb-3">
+        <label>Hospital</label>
+        <select id="ln-hospital" class="form-control">
+            <option value="">Select Hospital</option>
+            @foreach (var h in Model.Hospitals)
+            {
+                <option value="@h.HospitalId">@h.HospitalName</option>
+            }
+        </select>
+    </div>
+
+    <!-- Date -->
+    <div class="mb-3">
+        <label>Date</label>
+        <input type="date" id="ln-date" class="form-control" value="@Model.EntryDate.ToString("yyyy-MM-dd")" />
+    </div>
+
+    <!-- Ward -->
+    <div class="mb-3">
+        <label>Ward</label>
+        <input type="text" id="ln-ward" class="form-control" />
+    </div>
+
+    <!-- SHIFT -->
+    <div class="mb-3">
+        <label>Shift</label>
+        <select id="ln-shift" class="form-control">
+            <option>Morning</option>
+            <option>Evening</option>
+        </select>
+    </div>
+
+    <hr />
+
+    <!-- 🔥 LINEN TABLE -->
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Linen Type</th>
+                <th>Dirty Count</th>
+            </tr>
+        </thead>
+        <tbody id="linenTable"></tbody>
+    </table>
+
+    <hr />
+
+    <!-- Tracking -->
+    <div class="row">
+        <div class="col-md-4">
+            <label>Collected By</label>
+            <input type="text" id="ln-collected" class="form-control" />
+        </div>
+
+        <div class="col-md-4">
+            <label>Received By</label>
+            <input type="text" id="ln-received" class="form-control" />
+        </div>
+
+        <div class="col-md-4">
+            <label>Supervisor</label>
+            <input type="text" id="ln-supervisor" class="form-control" />
+        </div>
+    </div>
+
+    <br />
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <label>Remarks</label>
+            <input type="text" id="ln-remarks" class="form-control" />
+        </div>
+
+        <div class="col-md-6">
+            <label>
+                <input type="checkbox" id="ln-infected" /> Is Infected
+            </label>
+        </div>
+    </div>
+    <button class="btn btn-success" onclick="saveEntry()">Save Entry</button>
+</div>
+
+<!-- 🔥 Razor → JS Array -->
+<script>
+    const linenTypes = @Html.Raw(
+                System.Text.Json.JsonSerializer.Serialize(
+                    Model.LinenTypes.Select(x => x.LinenName)
+                )
+        )
+
+    function generateTable() {
+        let html = "";
+
+        linenTypes.forEach((name, i) => {
+            html += `
+                <tr>
+                    <td>${name}</td>
+                    <td>
+                        <input type="number"
+                               class="dirty form-control"
+                               data-type="${name}" />
+                    </td>
+                </tr>
+            `;
+        });
+
+        document.getElementById("linenTable").innerHTML = html;
+    }
+
+    document.addEventListener("DOMContentLoaded", generateTable);
+
+    async function saveEntry() {
+
+        const rows = document.querySelectorAll("#linenTable tr");
+
+        let items = [];
+
+        rows.forEach(r => {
+            const input = r.querySelector(".dirty");
+            const type = input.dataset.type;
+            const dirty = parseInt(input.value) || 0;
+
+            if (dirty > 0) {
+                items.push({
+                    linenType: type,
+                    dirtyCount: dirty
+                });
+            }
+        });
+
+    const hospitalId = parseInt(document.getElementById("ln-hospital").value);
+
+    if (!hospitalId) {
+        alert("Select hospital");
+        return;
+    }
+
+    if (items.length === 0) {
+        alert("Enter at least one item");
+        return;
+    }
+
+    const data = {
+        entryDate: document.getElementById("ln-date").value,
+        ward: document.getElementById("ln-ward").value,
+        shift: document.getElementById("ln-shift").value,
+        hospitalId: hospitalId,
+
+        collectedBy: document.getElementById("ln-collected").value,
+        receivedBy: document.getElementById("ln-received").value,
+        supervisor: document.getElementById("ln-supervisor").value,
+
+        isInfected: document.getElementById("ln-infected").checked,
+        remarks: document.getElementById("ln-remarks").value || "",
+
+        items: items
+    };
+        const res = await fetch('/Provider/Save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+            alert("Saved Successfully");
+            location.reload();
+        }
+    }
+</script>

@@ -1,0 +1,37 @@
+﻿@model IEnumerable<dynamic>
+
+<h3>Pending Deliveries</h3>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Date</th>
+        <th>Hospital</th>
+        <th>Status</th>   <!-- 🔥 NEW -->
+
+        <th>Action</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.EntryDate</td>
+            <td>@item.HospitalName</td>
+
+            <!-- 🔥 STATUS BADGE -->
+            <td>
+                <span class="badge
+                @(item.Status == "Delivered" ? "bg-success" :
+                                    item.Status == "Partial" ? "bg-warning text-dark" :
+                                    "bg-danger")">
+                @item.Status
+            </span>
+        </td>
+
+            <td>
+                <a href="/Provider/Deliver/@item.EntryId" class="btn btn-success">
+                    Deliver
+                </a>
+            </td>
+        </tr>
+    }
+</table>

@@ -1,0 +1,238 @@
+﻿<div class="content" id="mainContent">
+    <div class="page-hdr"><h2>Submit Weekly Performance Report</h2><p>SBD District Hospital (Male) · Score parameters and submit for payment processing</p></div>
+    <div class="g2">
+        <div class="card">
+            <div class="card-hdr"><div class="card-title"><div class="card-icon">📝</div>Report Details</div></div>
+            <div class="g2">
+                <div class="form-group">
+                    <label class="form-label">Week</label>
+                    <select class="form-control" id="w-week"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Month</label>
+                    <select class="form-control" id="w-month"><option>January</option><option>February</option><option>March</option><option selected="">April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select>
+                </div>
+            </div>
+            <div class="g2">
+                <div class="form-group">
+                    <label class="form-label">Year</label>
+                    <input class="form-control" type="number" id="w-year" value="2026">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Designated Staff</label>
+                    <input class="form-control" id="w-staff" placeholder="Staff name">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Remarks</label>
+                <textarea class="form-control" id="w-remarks" rows="2" placeholder="Optional..."></textarea>
+            </div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+                <div class="card-hdr"><div class="card-title"><div class="card-icon">🎯</div>Live Score</div></div>
+                <div style="text-align:center;padding:12px 0;">
+                    <div style="font-family:'Playfair Display',serif;font-size:56px;color:var(--navy);line-height:1;" id="wprLiveScore">0</div>
+                    <div style="font-size:13px;color:var(--slate);margin-top:4px;">out of 100</div>
+                    <div class="score-meter" style="margin:14px 0 8px;"><div class="score-fill" id="wprScoreFill" style="width:0%"></div></div>
+                    <div id="wprScoreLabel" style="font-size:13px;font-weight:600;color:var(--slate);">Score parameters below</div>
+                </div>
+            </div>
+            <div class="notice-banner notice-warn" style="margin:0 0 12px;">
+                📅 WPR must be uploaded by 5th day of the succeeding week
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-ghost" onclick="resetHospWPR()">↺ Reset</button>
+                <button class="btn btn-gold" style="flex:1;" onclick="submitHospWPR()">✓ Submit WPR</button>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-hdr">
+            <div class="card-title"><div class="card-icon">📊</div>10 Performance Parameters</div>
+            <span style="font-size:12px;color:var(--slate);">0/10 scored</span>
+        </div>
+        <div style="font-size:11px;color:var(--slate);margin-bottom:12px;">Click <b>Good / Avg / Poor</b> for each parameter to auto-calculate score</div>
+        <div class="kpi-row">
+            <div class="kpi-n">1</div>
+            <div class="kpi-lbl">Hospital linen quality after wash<br><span style="font-size:10px;color:var(--slate);">Max: 10 marks</span></div>
+            <div class="kpi-btns">
+                <div style="text-align:center">
+                    <button class="kb " id="kb1g" onclick="setHospScore(1,10,'g',10)" title="Good">Good</button>
+                    <div style="font-size:9px;color:var(--ok);margin-top:2px;">Good (10)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb1a" onclick="setHospScore(1,5,'a',10)" title="Average">Average</button>
+                    <div style="font-size:9px;color:var(--warn);margin-top:2px;">Avg (5)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb1p" onclick="setHospScore(1,2,'p',10)" title="Poor">Poor</button>
+                    <div style="font-size:9px;color:var(--danger);margin-top:2px;">Poor (2)</div>
+                </div>
+            </div>
+            <div class="kpi-sc" id="ks1">—</div>
+        </div><div class="kpi-row">
+            <div class="kpi-n">2</div>
+            <div class="kpi-lbl">Timely supply of clean and washed linen<br><span style="font-size:10px;color:var(--slate);">Max: 10 marks</span></div>
+            <div class="kpi-btns">
+                <div style="text-align:center">
+                    <button class="kb " id="kb2g" onclick="setHospScore(2,10,'g',10)" title="Good">Good</button>
+                    <div style="font-size:9px;color:var(--ok);margin-top:2px;">Good (10)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb2a" onclick="setHospScore(2,5,'a',10)" title="Average">Average</button>
+                    <div style="font-size:9px;color:var(--warn);margin-top:2px;">Avg (5)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb2p" onclick="setHospScore(2,2,'p',10)" title="Poor">Poor</button>
+                    <div style="font-size:9px;color:var(--danger);margin-top:2px;">Poor (2)</div>
+                </div>
+            </div>
+            <div class="kpi-sc" id="ks2">—</div>
+        </div><div class="kpi-row">
+            <div class="kpi-n">3</div>
+            <div class="kpi-lbl">Washing procedure/formula followed; quality consumables used<br><span style="font-size:10px;color:var(--slate);">Max: 10 marks</span></div>
+            <div class="kpi-btns">
+                <div style="text-align:center">
+                    <button class="kb " id="kb3g" onclick="setHospScore(3,10,'g',10)" title="Strictly Followed">Strictly..</button>
+                    <div style="font-size:9px;color:var(--ok);margin-top:2px;">Good (10)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb3a" onclick="setHospScore(3,5,'a',10)" title="Normally Followed">Normally..</button>
+                    <div style="font-size:9px;color:var(--warn);margin-top:2px;">Avg (5)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb3p" onclick="setHospScore(3,2,'p',10)" title="Not Followed">Not Foll..</button>
+                    <div style="font-size:9px;color:var(--danger);margin-top:2px;">Poor (2)</div>
+                </div>
+            </div>
+            <div class="kpi-sc" id="ks3">—</div>
+        </div><div class="kpi-row">
+            <div class="kpi-n">4</div>
+            <div class="kpi-lbl">Laundry personnel displaying photo identity card<br><span style="font-size:10px;color:var(--slate);">Max: 10 marks</span></div>
+            <div class="kpi-btns">
+                <div style="text-align:center">
+                    <button class="kb " id="kb4g" onclick="setHospScore(4,10,'g',10)" title="Strictly Followed">Strictly..</button>
+                    <div style="font-size:9px;color:var(--ok);margin-top:2px;">Good (10)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb4a" onclick="setHospScore(4,5,'a',10)" title="Normally Followed">Normally..</button>
+                    <div style="font-size:9px;color:var(--warn);margin-top:2px;">Avg (5)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb4p" onclick="setHospScore(4,2,'p',10)" title="Not Followed">Not Foll..</button>
+                    <div style="font-size:9px;color:var(--danger);margin-top:2px;">Poor (2)</div>
+                </div>
+            </div>
+            <div class="kpi-sc" id="ks4">—</div>
+        </div><div class="kpi-row">
+            <div class="kpi-n">5</div>
+            <div class="kpi-lbl">Behavior of laundry personnel towards hospital staff/patients<br><span style="font-size:10px;color:var(--slate);">Max: 10 marks</span></div>
+            <div class="kpi-btns">
+                <div style="text-align:center">
+                    <button class="kb " id="kb5g" onclick="setHospScore(5,10,'g',10)" title="Good">Good</button>
+                    <div style="font-size:9px;color:var(--ok);margin-top:2px;">Good (10)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb5a" onclick="setHospScore(5,5,'a',10)" title="Average">Average</button>
+                    <div style="font-size:9px;color:var(--warn);margin-top:2px;">Avg (5)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb5p" onclick="setHospScore(5,2,'p',10)" title="Poor">Poor</button>
+                    <div style="font-size:9px;color:var(--danger);margin-top:2px;">Poor (2)</div>
+                </div>
+            </div>
+            <div class="kpi-sc" id="ks5">—</div>
+        </div><div class="kpi-row">
+            <div class="kpi-n">6</div>
+            <div class="kpi-lbl">Personnel NOT found smoking/drinking/sleeping during duty<br><span style="font-size:10px;color:var(--slate);">Max: 10 marks</span></div>
+            <div class="kpi-btns">
+                <div style="text-align:center">
+                    <button class="kb " id="kb6g" onclick="setHospScore(6,10,'g',10)" title="Never">Never</button>
+                    <div style="font-size:9px;color:var(--ok);margin-top:2px;">Good (10)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb6a" onclick="setHospScore(6,5,'a',10)" title="Sometimes">Sometime..</button>
+                    <div style="font-size:9px;color:var(--warn);margin-top:2px;">Avg (5)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb6p" onclick="setHospScore(6,2,'p',10)" title="Mostly">Mostly</button>
+                    <div style="font-size:9px;color:var(--danger);margin-top:2px;">Poor (2)</div>
+                </div>
+            </div>
+            <div class="kpi-sc" id="ks6">—</div>
+        </div><div class="kpi-row">
+            <div class="kpi-n">7</div>
+            <div class="kpi-lbl">Only approved personnel on duty (per approved list)<br><span style="font-size:10px;color:var(--slate);">Max: 10 marks</span></div>
+            <div class="kpi-btns">
+                <div style="text-align:center">
+                    <button class="kb " id="kb7g" onclick="setHospScore(7,10,'g',10)" title="Never Violated">Never Vi..</button>
+                    <div style="font-size:9px;color:var(--ok);margin-top:2px;">Good (10)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb7a" onclick="setHospScore(7,5,'a',10)" title="Sometimes">Sometime..</button>
+                    <div style="font-size:9px;color:var(--warn);margin-top:2px;">Avg (5)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb7p" onclick="setHospScore(7,2,'p',10)" title="Mostly Violated">Mostly V..</button>
+                    <div style="font-size:9px;color:var(--danger);margin-top:2px;">Poor (2)</div>
+                </div>
+            </div>
+            <div class="kpi-sc" id="ks7">—</div>
+        </div><div class="kpi-row">
+            <div class="kpi-n">8</div>
+            <div class="kpi-lbl">Breakdown of equipment (lower is better)<br><span style="font-size:10px;color:var(--slate);">Max: 10 marks</span></div>
+            <div class="kpi-btns">
+                <div style="text-align:center">
+                    <button class="kb " id="kb8g" onclick="setHospScore(8,10,'g',10)" title="Never">Never</button>
+                    <div style="font-size:9px;color:var(--ok);margin-top:2px;">Good (10)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb8a" onclick="setHospScore(8,5,'a',10)" title="Sometimes">Sometime..</button>
+                    <div style="font-size:9px;color:var(--warn);margin-top:2px;">Avg (5)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb8p" onclick="setHospScore(8,2,'p',10)" title="Mostly">Mostly</button>
+                    <div style="font-size:9px;color:var(--danger);margin-top:2px;">Poor (2)</div>
+                </div>
+            </div>
+            <div class="kpi-sc" id="ks8">—</div>
+        </div><div class="kpi-row">
+            <div class="kpi-n">9</div>
+            <div class="kpi-lbl">Alternate arrangement done during breakdown<br><span style="font-size:10px;color:var(--slate);">Max: 10 marks</span></div>
+            <div class="kpi-btns">
+                <div style="text-align:center">
+                    <button class="kb " id="kb9g" onclick="setHospScore(9,10,'g',10)" title="Mostly">Mostly</button>
+                    <div style="font-size:9px;color:var(--ok);margin-top:2px;">Good (10)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb9a" onclick="setHospScore(9,5,'a',10)" title="Sometimes">Sometime..</button>
+                    <div style="font-size:9px;color:var(--warn);margin-top:2px;">Avg (5)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb9p" onclick="setHospScore(9,2,'p',10)" title="Never">Never</button>
+                    <div style="font-size:9px;color:var(--danger);margin-top:2px;">Poor (2)</div>
+                </div>
+            </div>
+            <div class="kpi-sc" id="ks9">—</div>
+        </div><div class="kpi-row">
+            <div class="kpi-n">10</div>
+            <div class="kpi-lbl">Number of warning letters issued by Hospital Authority<br><span style="font-size:10px;color:var(--slate);">Max: 10 marks</span></div>
+            <div class="kpi-btns">
+                <div style="text-align:center">
+                    <button class="kb " id="kb10g" onclick="setHospScore(10,10,'g',10)" title="1 letter">1 letter</button>
+                    <div style="font-size:9px;color:var(--ok);margin-top:2px;">Good (10)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb10a" onclick="setHospScore(10,5,'a',10)" title="2 letters">2 letter..</button>
+                    <div style="font-size:9px;color:var(--warn);margin-top:2px;">Avg (5)</div>
+                </div>
+                <div style="text-align:center">
+                    <button class="kb " id="kb10p" onclick="setHospScore(10,2,'p',10)" title="3+ letters">3+ lette..</button>
+                    <div style="font-size:9px;color:var(--danger);margin-top:2px;">Poor (2)</div>
+                </div>
+            </div>
+            <div class="kpi-sc" id="ks10">—</div>
+        </div>
+    </div>
+</div>

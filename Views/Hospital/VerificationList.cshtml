@@ -1,0 +1,53 @@
+﻿@using LaudaryMis.ViewModels
+@model List<DailyEntryListVM>
+
+<div class="container mt-4">
+
+    <h4>Pending Verification</h4>
+
+    <table class="table table-bordered">
+
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Ward</th>
+                <th>Linen</th>
+                <th>Pickup</th>
+                <th>Delivered</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.EntryDate.ToShortDateString()</td>
+                    <td>@item.WardName</td>
+                    <td>@item.LinenTypeName</td>
+                    <td>@item.TotalPickupQty</td>
+                    <td>@item.CleanDeliveredQty</td>
+
+                    <td>
+                        <!-- VERIFY -->
+                        <form method="post" action="/Hospital/Verify" style="display:inline;">
+                            <input type="hidden" name="id" value="@item.EntryId" />
+                            <button class="btn btn-success btn-sm">Verify</button>
+                        </form>
+
+                        <!-- REJECT -->
+                        <form method="post" action="/Hospital/Reject" style="display:inline;">
+                            <input type="hidden" name="id" value="@item.EntryId" />
+                            <input type="text" name="reason" placeholder="Reason" required />
+                            <button class="btn btn-danger btn-sm">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+
+</div>

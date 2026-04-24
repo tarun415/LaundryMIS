@@ -1,0 +1,96 @@
+﻿@model dynamic
+
+<div class="container mt-4">
+    <h3>🚚 Deliver Clean Linen</h3>
+
+    <input type="hidden" id="entryId" value="@Model.Entry.Id" />
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Linen</th>
+                <th>Dirty</th>
+                <th>Delivered</th>
+                <th>Remaining</th>
+                <th>Enter Clean</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                var remaining = item.DirtyCount - item.DeliveredCount;
+
+                <tr>
+                    <td>@item.LinenType</td>
+                    <td>@item.DirtyCount</td>
+                    <td>@item.DeliveredCount</td>
+                    <td class="@(remaining == 0 ? "text-success" : "text-danger")">
+                        @remaining
+                    </td>
+                    <td>
+                        <input type="number"
+                               class="clean form-control"
+                               data-type="@item.LinenType"
+                               data-remaining="@remaining"
+                               @(remaining == 0 ? "disabled" : "") />
+                </tr>
+            }
+        </tbody>
+    </table>
+    <input type="text" id="deliveredBy" placeholder="Delivered By" />
+    <input type="text" id="receivedBackBy" placeholder="Received Back By" />
+    <input type="text" id="remarks" placeholder="Remarks" />
+
+    <button onclick="saveDelivery()">Save</button>
+</div>
+
+<script>
+    async function saveDelivery(){
+
+        let items = [];
+
+        for (let i of document.querySelectorAll(".clean")) {
+
+            let clean = parseInt(i.value) || 0;
+            let remaining = parseInt(i.dataset.remaining);
+
+            if (clean > remaining) {
+                alert(`Cannot exceed remaining (${remaining})`);
+                return;
+            }
+
+            if (clean > 0) {
+                items.push({
+                    linenType: i.dataset.type,
+                    cleanCount: clean
+                });
+            }
+        }
+
+        if (items.length === 0) {
+            alert("Enter at least one item");
+            return;
+        }
+
+        const data = {
+            entryId: parseInt(document.getElementById("entryId").value),
+            deliveredBy: document.getElementById("deliveredBy").value,
+            receivedBackBy: document.getElementById("receivedBackBy").value,
+            remarks: document.getElementById("remarks").value,
+            items: items
+        };
+
+        const res = await fetch('/Provider/Deliver',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        const r = await res.json();
+
+        if(r.success){
+            alert("Delivery Saved");
+            window.location.href="/Provider/Pending";
+        }
+    }</script>
