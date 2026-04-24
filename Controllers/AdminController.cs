@@ -92,13 +92,44 @@ namespace LaudaryMis.Controllers
         // LIST of Provider
         public async Task<IActionResult> Providers()
         {
-            var data = await _service.GetAllAsync();
+            var data = await _providerService.GetProviderAsync();
             return View(data);
         }
         // CREATE Provider
         public IActionResult CreateProvider()
         {
             return View();
+        }
+        // SAVE Provider
+        [HttpPost]
+        public async Task<IActionResult> CreateProvider(ProvidersVM model)
+        {
+            await _providerService.SaveAsync(model);
+            return RedirectToAction("Providers");
+        }
+
+        public async Task<IActionResult> EditProvider(int id)
+        {
+            var data = await _providerService.GetProviderByIdAsync(id);
+
+            return View("CreateProvider", data); 
+        }
+        [HttpPost]
+        public async Task<JsonResult> DeleteProvider(int id)
+        {
+            try
+            {
+                var result = await _providerService.DeleteAsync(id);
+
+                if (!result)
+                    return Json(new { success = false, message = "Provider not found" });
+
+                return Json(new { success = true, message = "Deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 }
