@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LaudaryMis.ViewModels.HospitalVM>
+﻿@model IEnumerable<LaudaryMis.ViewModels.ProvidersVM>
 
 @{
     ViewBag.Title = "Provider List";
@@ -111,21 +111,21 @@
         <div class="card-body">
 
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">🏥 Hospital Management</h4>
+                <h4 class="mb-0">🏥 Provider List</h4>
 
-                <a href="/Admin/CreateHospital" class="btn btn-primary rounded-pill px-4">
-                    + Add Hospital
+                <a href="/Admin/CreateProvider" class="btn btn-primary rounded-pill px-4">
+                    + Add Providers
                 </a>
             </div>
 
             <div class="table-responsive">
-                <table id="hospitalTable" class="table table-hover align-middle">
+                <table id="providerTable" class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>Hospital Name</th>
-                            <th>City</th>
-                            <th>Phone</th>
+                            <th>Provider Name</th>
+                            <th>Rate</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
 
@@ -133,9 +133,8 @@
                         @foreach (var h in Model)
                         {
                             <tr>
-                                <td class="fw-semibold">@h.HospitalName</td>
-                                <td>@h.City</td>
-                                <td>@h.Phone</td>
+                                <td class="fw-semibold">@h.ProviderName</td>
+                                <td>@h.RatePerBed</td>
                                 <td>
                                     @if (h.IsActive)
                                     {
@@ -150,6 +149,19 @@
                                         </span>
                                     }
                                 </td>
+                                <td>
+                                    <!-- Edit -->
+                                    <a href="/Admin/EditProvider/@h.ProviderId"
+                                       class="btn btn-sm btn-warning rounded-pill px-3 me-1">
+                                        <i class="fa fa-edit"></i>
+                                    </a>
+
+                                    <!-- Delete -->
+                                    <button class="btn btn-sm btn-danger rounded-pill px-3"
+                                            onclick="deleteProvider(@h.ProviderId, this)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -163,7 +175,7 @@
 <!-- 🔥 DataTable Script -->
 <script>
     $(document).ready(function () {
-        $('#hospitalTable').DataTable({
+        $('#providerTable').DataTable({
             pageLength: 10,
             responsive: true,
             autoWidth: false,
@@ -206,4 +218,21 @@
             }
         });
     });
+</script>
+<script>
+    function deleteProvider(id, btn) {
+        if (confirm("Are you sure you want to delete this provider?")) {
+
+            $.post('/Admin/DeleteProvider', { id: id }, function (res) {
+
+                if (res.success) {
+                    $(btn).closest('tr').fadeOut(); // remove row smoothly
+                } else {
+                    alert(res.message || "Delete failed");
+                }
+
+            });
+
+        }
+    }
 </script>
