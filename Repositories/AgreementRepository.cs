@@ -1,8 +1,9 @@
 ﻿using Dapper;
 using LaudaryMis.ViewModels;
 using System.Data;
+using LaudaryMis.Repositories.Interfaces;
 
-public class AgreementRepository
+public class AgreementRepository: IAgreementRepository
 {
     private readonly IDbConnection _db;
 
@@ -11,7 +12,7 @@ public class AgreementRepository
         _db = db;
     }
 
-    public async Task InsertAsync(AgreementVM model, string filePath)
+    public async Task InsertAsync(AgreementVM model, string? filePath)
     {
         if (_db.State == ConnectionState.Closed)
             _db.Open();

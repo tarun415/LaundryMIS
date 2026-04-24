@@ -4,6 +4,8 @@ namespace LaudaryMis.ViewModels
 {
     public class AgreementVM
     {
+        public int Id { get; set; }
+        public string? HospitalName { get; set; }
         public int ProviderId { get; set; }
         public int HospitalId { get; set; }
 

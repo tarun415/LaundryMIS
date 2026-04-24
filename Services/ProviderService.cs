@@ -1,14 +1,15 @@
 ﻿using LaudaryMis.Models;
 using LaudaryMis.Repositories;
+using LaudaryMis.Repositories.Interfaces;
+using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 
 namespace LaudaryMis.Services
 {
-    public class ProviderService
+    public class ProviderService: IProviderService
     {
-        private readonly ProviderRepository _repo;
-
-        public ProviderService(ProviderRepository repo)
+        private readonly IProviderRepository _repo;
+        public ProviderService(IProviderRepository repo)
         {
             _repo = repo;
         }

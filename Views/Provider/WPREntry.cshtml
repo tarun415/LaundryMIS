@@ -236,3 +236,13 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("input", () => {
+        let total = 0;
+        document.querySelectorAll("input[type=number]").forEach(x => {
+            total += parseInt(x.value) || 0;
+        });
+        console.log("Total:", total);
+    });
+</script>
