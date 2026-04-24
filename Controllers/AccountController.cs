@@ -59,5 +59,11 @@ new Claim("ProviderId", user.ProviderId.ToString())  // 🔥 ADD THIS
                 _ => RedirectToAction("Login")
             };
         }
+
+        public IActionResult Logout()
+        {
+            //HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Account");
+        }
     }
 }

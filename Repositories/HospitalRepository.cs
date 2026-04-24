@@ -26,6 +26,6 @@ public class HospitalRepository
 
     public async Task<IEnumerable<HospitalVM>> GetAllAsync()
     {
-        return await _db.QueryAsync<HospitalVM>("SELECT * FROM tbl_Hospitals");
+        return await _db.QueryAsync<HospitalVM>("SELECT HospitalId , HospitalName , Address , City , ContactPerson , Phone , Email, isnull(IsActive,0) [IsActive], CreatedOn , HospitalCode  FROM tbl_Hospitals order by HospitalId desc ");
     }
 }
