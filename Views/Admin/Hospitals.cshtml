@@ -115,6 +115,7 @@
 
                 <a href="/Admin/CreateHospital" class="btn btn-primary rounded-pill px-4">
                     + Add Hospital
+                   
                 </a>
             </div>
 
@@ -126,6 +127,7 @@
                             <th>City</th>
                             <th>Phone</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
 
@@ -149,6 +151,19 @@
                                             Inactive
                                         </span>
                                     }
+                                </td>
+                                <td>
+                                    <!-- Edit -->
+                                    <a href="/Admin/EditHospital/@h.HospitalId"
+                                       class="btn btn-sm btn-warning rounded-pill px-3 me-1">
+                                        <i class="fa fa-edit"></i>
+                                    </a>
+
+                                    <!-- Delete -->
+                                    <button class="btn btn-sm btn-danger rounded-pill px-3"
+                                            onclick="deleteHospital(@h.HospitalId, this)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
                         }
@@ -206,5 +221,22 @@
             }
         });
     });
+</script>
+<script>
+    function deleteHospital(id, btn) {
+        if (confirm("Are you sure you want to delete this provider?")) {
+
+            $.post('/Admin/DeleteHospital', { id: id }, function (res) {
+
+                if (res.success) {
+                    $(btn).closest('tr').fadeOut(); // remove row smoothly
+                } else {
+                    alert(res.message || "Delete failed");
+                }
+
+            });
+
+        }
+    }
 </script>
 
