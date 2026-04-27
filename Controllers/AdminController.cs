@@ -10,14 +10,14 @@ namespace LaudaryMis.Controllers
     public class AdminController : Controller
     {
         private readonly HospitalService _service;
-        private readonly ProviderService _providerService;
-        private readonly AgreementService _agreementService;
+        private readonly IProviderService _providerService;
+        private readonly IAgreementService _agreementService;
 
 
         public AdminController(
-        HospitalService service,
-        ProviderService providerService,
-        AgreementService agreementService)
+      HospitalService service,
+      IProviderService providerService,
+      IAgreementService agreementService)
         {
             _service = service;
             _providerService = providerService;
