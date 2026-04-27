@@ -73,20 +73,29 @@ namespace LaudaryMis.Controllers
             {
                 var fileName = Guid.NewGuid() + Path.GetExtension(model.AgreementFile.FileName);
 
-                var path = Path.Combine(Directory.GetCurrentDirectory(),
-                    "wwwroot/uploads/agreements", fileName);
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(),
+                    "wwwroot/uploads/agreements");
 
-                using var stream = new FileStream(path, FileMode.Create);
-                await model.AgreementFile.CopyToAsync(stream);
+                //  Folder create if not exists
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                var fullPath = Path.Combine(folderPath, fileName);
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    await model.AgreementFile.CopyToAsync(stream);
+                }
 
                 filePath = "/uploads/agreements/" + fileName;
             }
 
             await _agreementService.SaveAsync(model, filePath);
 
-            return RedirectToAction("CreateAgreement");
+            return RedirectToAction("Agreements");
         }
-
 
 
         // LIST of Provider
@@ -146,6 +155,39 @@ namespace LaudaryMis.Controllers
 
                 if (!result)
                     return Json(new { success = false, message = "Hospital not found" });
+
+                return Json(new { success = true, message = "Deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
+        public async Task<IActionResult> Agreements()
+        {
+            var data = await _agreementService.GetAllAsync();
+            return View(data);
+        }
+        public async Task<IActionResult> EditAgreement(int id)
+        {
+            var data = await _agreementService.GetAgreementByIdAsync(id);
+
+            data.Providers = (await _providerService.GetAll()).ToList();
+            data.Hospitals = (await _service.GetAllAsync()).ToList();
+
+            return View("CreateAgreement", data);
+        }
+        [HttpPost]
+        public async Task<JsonResult> DeleteAgreement(int id)
+        {
+            try
+            {
+                var result = await _agreementService.DeleteAsync(id);
+
+                if (!result)
+                    return Json(new { success = false, message = "Not found" });
 
                 return Json(new { success = true, message = "Deleted successfully" });
             }
