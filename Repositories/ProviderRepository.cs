@@ -52,6 +52,16 @@ namespace LaudaryMis.Repositories
         WHERE ProviderId = @ProviderId
     ", model);
         }
+
+
+        public async Task SaveAsync(ProvidersVM model)
+        {
+            if (model.ProviderId == 0)
+                await InsertAsync(model);
+            else
+                await UpdateAsync(model);
+        }
+
         public async Task<IEnumerable<ProvidersVM>> GetProviderAsync()
         {
             return await _db.QueryAsync<ProvidersVM>(
