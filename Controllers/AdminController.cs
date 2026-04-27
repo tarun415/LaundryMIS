@@ -131,5 +131,28 @@ namespace LaudaryMis.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        public async Task<IActionResult> EditHospital(int id)
+        {
+            var data = await _service.GetHospitalByIdAsync(id);
+
+            return View("CreateHospital", data);
+        }
+        [HttpPost]
+        public async Task<JsonResult> DeleteHospital(int id)
+        {
+            try
+            {
+                var result = await _service.DeleteAsync(id);
+
+                if (!result)
+                    return Json(new { success = false, message = "Hospital not found" });
+
+                return Json(new { success = true, message = "Deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
     }
 }
