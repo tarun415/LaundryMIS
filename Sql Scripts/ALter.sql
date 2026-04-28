@@ -29,6 +29,7 @@ ADD DEFAULT GETDATE() FOR CreatedDate;
 Alter Table tbl_Wards Add CreatedDate DateTime default getdate()
 
 Alter Table tbl_Wards  Add IsActive bit default 1 
+Alter Table  DistrictMaster  Add DistrictNameHI nvarchar(250) null;
 
 
 
