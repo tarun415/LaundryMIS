@@ -123,6 +123,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Ward Name</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
 
@@ -131,7 +132,19 @@
                         {
                             <tr>
                                 <td class="fw-semibold">@h.WardName</td>
-                              
+                                <td>
+                                    <!-- Edit -->
+                                    <a href="/Admin/EditWard/@h.WardId"
+                                       class="btn btn-sm btn-warning rounded-pill px-3 me-1">
+                                        <i class="fa fa-edit"></i>
+                                    </a>
+
+                                    <!-- Delete -->
+                                    <button class="btn btn-sm btn-danger rounded-pill px-3"
+                                            onclick="deleteWard(@h.WardId, this)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -188,4 +201,21 @@
             }
         });
     });
+</script>
+<script>
+    function deleteWard(id, btn) {
+        if (confirm("Are you sure you want to delete this ward?")) {
+
+            $.post('/Admin/DeleteWard', { id: id }, function (res) {
+
+                if (res.success) {
+                    $(btn).closest('tr').fadeOut(); // remove row smoothly
+                } else {
+                    alert(res.message || "Delete failed");
+                }
+
+            });
+
+        }
+    }
 </script>

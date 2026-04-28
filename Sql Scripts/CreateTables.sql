@@ -14,11 +14,3 @@ CREATE TABLE DistrictMaster (
     FOREIGN KEY (StateID) REFERENCES StateMaster(StateID)
 );
 
-CREATE TABLE CityMaster (
-    CityID INT IDENTITY(1,1) PRIMARY KEY,
-    CityName NVARCHAR(100) NOT NULL,
-    DistrictID INT NOT NULL,
-    IsActive BIT DEFAULT 1,
-    CreatedDate DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (DistrictID) REFERENCES DistrictMaster(DistrictID)
-);
