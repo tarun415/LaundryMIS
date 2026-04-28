@@ -9,7 +9,6 @@ namespace LaudaryMis.Services.Interfaces
 
         Task SaveAsync(HospitalVM model);
 
-        Task<HospitalVM?> GetHospitalByIdAsync(int id);
 
         Task<List<Hospital>> GetHospitalsByDistrict(int districtId);
 
