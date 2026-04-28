@@ -26,6 +26,10 @@ ALTER TABLE tbl_Providers
 ALTER TABLE tbl_Providers
 ADD DEFAULT GETDATE() FOR CreatedDate;
 
+Alter Table tbl_Wards Add CreatedDate DateTime default getdate()
+
+Alter Table tbl_Wards  Add IsActive bit default 1 
+
 
 
 
