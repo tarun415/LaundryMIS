@@ -8,6 +8,8 @@ namespace LaudaryMis.Repositories.Interfaces
         Task<IEnumerable<HospitalVM>> GetAllAsync();
 
         Task InsertAsync(HospitalVM model);
+
+        Task CreateHospitalWithLogin(HospitalVM model);
         Task UpdateAsync(HospitalVM model);
 
         Task<HospitalVM?> GetHospitalByIdAsync(int id);

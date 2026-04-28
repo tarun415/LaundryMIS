@@ -2,6 +2,7 @@
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
+using System.Reflection;
 
 namespace LaudaryMis.Services
 {
@@ -24,8 +25,18 @@ namespace LaudaryMis.Services
             if (string.IsNullOrWhiteSpace(model.HospitalName))
                 throw new Exception("Hospital name required");
 
-            if (model.HospitalId == 0)
+            if (model.HospitalId == null || model.HospitalId == 0)
                 await _repo.InsertAsync(model);
+            else
+                await _repo.UpdateAsync(model);
+        }
+        public async Task CreateHospitalWithLogin(HospitalVM model)
+        {
+          if (string.IsNullOrWhiteSpace(model.HospitalName))
+                throw new Exception("Hospital name required");
+
+            if (model.HospitalId == null ||model.HospitalId == 0)
+                await _repo.CreateHospitalWithLogin(model);
             else
                 await _repo.UpdateAsync(model);
         }

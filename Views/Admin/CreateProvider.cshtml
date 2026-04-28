@@ -21,17 +21,17 @@
                 <input type="hidden" asp-for="ProviderId" />
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Provider Name</label>
+                        <label class="form-label">Provider Name<span class="text-danger">*</span></label>
                         <input asp-for="ProviderName" class="form-control" placeholder="Enter provider name" />
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Rate</label>
+                        <label class="form-label">Rate<span class="text-danger">*</span></label>
                         <input asp-for="RatePerBed" class="form-control" placeholder="Enter provider rate" />
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Phone</label>
-                        <input asp-for="Phone" class="form-control" placeholder="Enter phone number" />
+                        <input asp-for="Phone" maxlength="10" class="form-control" placeholder="Enter phone number" />
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -45,7 +45,7 @@
                     </div>
                     <div class="col-md-12 mb-3">
                         <label class="form-label">Status</label>
-                        <input class="form-check-input" type="checkbox" asp-for="IsActive" />
+                        <input class="form-check-input" type="checkbox" asp-for="IsActive" checked="checked" />
                         <label class="form-check-label">
                             @(Model != null && Model.ProviderId > 0
                                                         ? (Model.IsActive ? "Active" : "Inactive")
@@ -72,3 +72,53 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+                 //  Restrict Phone (only digits + max 10)
+        $('#Phone').on('input', function () {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+        });
+        });
+    </script>
+    <script>
+        $("form").submit(function (e) {
+
+            let name = $("#ProviderName").val();
+            let rate = $("#RatePerBed").val();
+            let phone = $("#Phone").val();
+            let email = $("#Email").val();
+
+            // ❌ Provider Name validation
+            if (!name || name.trim() === "") {
+                e.preventDefault();
+                Swal.fire("Validation Error", "Provider Name is required", "warning");
+                return false;
+            }
+
+            // ❌ Rate validation
+            if (!rate || rate <= 0) {
+                e.preventDefault();
+                Swal.fire("Validation Error", "Enter valid Rate", "warning");
+                return false;
+            }
+
+            // ❌ Phone validation
+            // if (!phone || phone.length < 10) {
+            //     e.preventDefault();
+            //     Swal.fire("Validation Error", "Enter valid Phone number", "warning");
+            //     return false;
+            // }
+
+            // // ❌ Email validation (basic)
+            // if (!email || !email.includes("@@")) {
+            //     e.preventDefault();
+            //     Swal.fire("Validation Error", "Enter valid Email", "warning");
+            //     return false;
+            // }
+
+         
+
+        });
+    </script>
+}

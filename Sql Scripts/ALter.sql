@@ -31,6 +31,11 @@ Alter Table tbl_Wards Add CreatedDate DateTime default getdate()
 Alter Table tbl_Wards  Add IsActive bit default 1 
 Alter Table  DistrictMaster  Add DistrictNameHI nvarchar(250) null;
 
+Alter Table Tbl_Users Add Username nvarchar(150) null;
+
+Alter Table Tbl_Hospitals  drop column city
+Alter Table Tbl_Hospitals Add DistrictId int null 
+
 
 
 

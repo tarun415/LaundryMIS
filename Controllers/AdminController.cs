@@ -3,6 +3,7 @@ using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace LaudaryMis.Controllers
 {
@@ -13,17 +14,20 @@ namespace LaudaryMis.Controllers
         private readonly IProviderService _providerService;
         private readonly IAgreementService _agreementService;
         private readonly IWardService _wardService;
+        private readonly ILocationService _locationService;
 
         public AdminController(
-     IHospitalService service,
-     IProviderService providerService,
-     IAgreementService agreementService,
-     IWardService wardService)
+            IHospitalService service,
+            IProviderService providerService,
+            IAgreementService agreementService,
+            IWardService wardService,
+            ILocationService locationService)
         {
             _service = service;
             _providerService = providerService;
             _agreementService = agreementService;
             _wardService = wardService;
+            _locationService = locationService;
         }
 
         public IActionResult Dashboard()
@@ -32,6 +36,12 @@ namespace LaudaryMis.Controllers
         }
 
         #region Hospital
+        // LIST
+        public async Task<IActionResult> Hospitals()
+        {
+            var data = await _service.GetAllAsync();
+            return View(data);
+        }
         // CREATE Hospital
         public IActionResult CreateHospital()
         {
@@ -41,11 +51,20 @@ namespace LaudaryMis.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateHospital(HospitalVM model)
         {
-            await _service.SaveAsync(model);
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+           .SelectMany(v => v.Errors)
+           .Select(e => e.ErrorMessage)
+           .ToList();
+                return View(model); // validation fail
+            }
+
+            await _service.CreateHospitalWithLogin(model);
             return RedirectToAction("Hospitals");
         }
-      
-       //Edit
+
+        //Edit
         public async Task<IActionResult> EditHospital(int id)
         {
             var data = await _service.GetHospitalByIdAsync(id);
@@ -72,12 +91,7 @@ namespace LaudaryMis.Controllers
             }
         }
 
-        // LIST
-        public async Task<IActionResult> Hospitals()
-        {
-            var data = await _service.GetAllAsync();
-            return View(data);
-        }
+        
         #endregion
 
         #region Provider
@@ -255,13 +269,21 @@ namespace LaudaryMis.Controllers
 
         #endregion
 
-
-
-
-
-
-
-
+        #region Location 
+        [HttpGet]
+        public async Task<JsonResult> GetStates()
+        {
+            var data = await _locationService.GetStates();
+            return Json(data);
+        }
+        [HttpGet]
+        public async Task<JsonResult> GetDistricts(int stateId)
+        {
+            var data = await _locationService.GetDistrictsByState(stateId);
+            return Json(data);
+        }
+     
+        #endregion
 
 
 
