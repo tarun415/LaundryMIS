@@ -9,7 +9,6 @@
     <title>Laundry MIS Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Google Font (IMPORTANT for same look) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
@@ -32,35 +31,6 @@
             text-align: center;
         }
 
-        .logo-box {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #0c6b75, #083b5c);
-            border-radius: 16px;
-            margin: auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-
-            .logo-box img {
-                width: 40px;
-            }
-
-        h2 {
-            margin-top: 15px;
-            font-weight: 600;
-            color: #1a2b3c;
-        }
-
-        .sub {
-            font-size: 12px;
-            color: #6c7a89;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-        }
-
         .role-container {
             display: flex;
             gap: 12px;
@@ -73,7 +43,6 @@
             border-radius: 12px;
             border: 2px solid #dce3e8;
             cursor: pointer;
-            transition: 0.3s;
         }
 
             .role.active {
@@ -81,65 +50,34 @@
                 background: #e6f3f5;
             }
 
-            .role img {
-                width: 28px;
-                margin-bottom: 5px;
-            }
-
-            .role span {
-                display: block;
-                font-weight: 600;
-                color: #1a2b3c;
-            }
-
-            .role small {
-                font-size: 11px;
-                color: #6c7a89;
-            }
-
         .label {
             text-align: left;
             font-size: 12px;
             font-weight: 600;
             margin-top: 10px;
-            color: #1a2b3c;
         }
 
-        input {
+        input, select {
             width: 100%;
             padding: 12px;
             border-radius: 10px;
             border: 1px solid #ccd6dd;
             margin-top: 5px;
-            font-size: 14px;
-        }
-
-        .hint {
-            text-align: left;
-            font-size: 11px;
-            color: #6c7a89;
         }
 
         button {
             width: 100%;
             padding: 12px;
             margin-top: 20px;
-            border: none;
             border-radius: 12px;
-            background: linear-gradient(135deg, #0c6b75, #083b5c);
+            background: #0c6b75;
             color: white;
-            font-size: 15px;
-            cursor: pointer;
+            border: none;
         }
-
-            button:hover {
-                opacity: 0.9;
-            }
 
         .error {
             color: red;
             font-size: 12px;
-            margin-top: 10px;
         }
     </style>
 </head>
@@ -148,49 +86,53 @@
 
     <div class="container">
 
-        <!-- LOGO -->
-        <div class="logo-box">
-            <img src="https://cdn-icons-png.flaticon.com/512/2966/2966481.png" />
-        </div>
+        <h2>Laundry MIS</h2>
 
-        <h2>DGMH UP — Laundry MIS</h2>
-        <div class="sub">GOVERNMENT OF UTTAR PRADESH · 197 DISTRICT HOSPITALS</div>
+        <form method="post" asp-action="Login">
 
-        <form method="post">
+            @Html.AntiForgeryToken()
 
-            <!-- ROLE SELECT -->
+            <!-- ROLE -->
             <div class="role-container">
-                <div class="role active" onclick="setRole(1,this)">
-                    <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png">
-                    <span>Admin</span>
-                    <small>DGMH / Authority</small>
-                </div>
-
-                <div class="role" onclick="setRole(2,this)">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png">
-                    <span>Hospital</span>
-                    <small>CMS / SIC Staff</small>
-                </div>
-                <div class="role" onclick="setRole(3,this)">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png">
-                    <span>Provider</span>
-                    <small>Provider </small>
-                </div>
+                <div class="role active" onclick="setRole(1,this)">Admin</div>
+                <div class="role" onclick="setRole(2,this)">Hospital</div>
+                <div class="role" onclick="setRole(3,this)">Provider</div>
             </div>
 
             <input type="hidden" id="RoleId" name="RoleId" value="1" />
 
-            <!-- USERNAME -->
-            <div class="label">USERNAME</div>
-            <input type="text" name="RoleName" placeholder="Enter username" />
-            <div class="hint">Username: admin</div>
+            <!-- ADMIN -->
+            <div id="adminFields">
+                <div class="label">Username</div>
+                <input type="text" name="Username" />
+            </div>
 
-            <!-- PASSWORD -->
-            <div class="label">PASSWORD</div>
-            <input type="password" name="Password" placeholder="Enter password" />
-            <div class="hint">Demo password: pass123</div>
+            <!-- HOSPITAL -->
+            <div id="hospitalFields" style="display:none;">
+                <div class="label">District</div>
+                <select id="DistrictId" name="DistrictId" onchange="loadHospitals(this.value)">
+                    <option value="">Select District</option>
+                </select>
 
-            <button type="submit">Sign In →</button>
+                <div class="label">Hospital</div>
+                <select id="HospitalId" name="HospitalId">
+                    <option value="">Select Hospital</option>
+                </select>
+            </div>
+
+            <!-- PROVIDER -->
+            <div id="providerFields" style="display:none;">
+                <div class="label">Provider</div>
+                <select id="ProviderId" name="ProviderId">
+                    <option value="">Select Provider</option>
+                </select>
+            </div>
+
+            <!-- COMMON PASSWORD -->
+            <div class="label">Password</div>
+            <input type="password" name="Password" required />
+
+            <button type="submit">Login</button>
 
             <div class="error">
                 @Html.ValidationSummary()
@@ -200,11 +142,87 @@
     </div>
 
     <script>
+
+        let districtLoaded = false;
+        let providerLoaded = false;
+
         function setRole(roleId, el) {
+
             document.getElementById("RoleId").value = roleId;
+
             document.querySelectorAll(".role").forEach(r => r.classList.remove("active"));
             el.classList.add("active");
+
+            // clear values
+            document.querySelectorAll("input, select").forEach(e => {
+                if (e.type !== "hidden") e.value = "";
+            });
+
+            // hide all
+            document.getElementById("adminFields").style.display = "none";
+            document.getElementById("hospitalFields").style.display = "none";
+            document.getElementById("providerFields").style.display = "none";
+
+            if (roleId == 1) {
+                document.getElementById("adminFields").style.display = "block";
+            }
+            else if (roleId == 2) {
+                document.getElementById("hospitalFields").style.display = "block";
+                loadDistricts();
+            }
+            else if (roleId == 3) {
+                document.getElementById("providerFields").style.display = "block";
+                loadProviders();
+            }
         }
+
+        function loadDistricts() {
+            if (districtLoaded) return;
+
+            fetch('/User/GetDistricts')
+                .then(res => res.json())
+                .then(data => {
+                    let ddl = document.getElementById("DistrictId");
+                    ddl.innerHTML = '<option value="">Select District</option>';
+
+                    data.forEach(d => {
+                        ddl.innerHTML += `<option value="${d.districtId}">${d.districtName}</option>`;
+                    });
+
+                    districtLoaded = true;
+                });
+        }
+
+        function loadHospitals(districtId) {
+            fetch('/User/GetHospitalsByDistrict?districtId=' + districtId)
+                .then(res => res.json())
+                .then(data => {
+                    let ddl = document.getElementById("HospitalId");
+                    ddl.innerHTML = '<option value="">Select Hospital</option>';
+
+                    data.forEach(h => {
+                        ddl.innerHTML += `<option value="${h.hospitalId}">${h.hospitalName}</option>`;
+                    });
+                });
+        }
+
+        function loadProviders() {
+            if (providerLoaded) return;
+
+            fetch('/User/GetProviders')
+                .then(res => res.json())
+                .then(data => {
+                    let ddl = document.getElementById("ProviderId");
+                    ddl.innerHTML = '<option value="">Select Provider</option>';
+
+                    data.forEach(p => {
+                        ddl.innerHTML += `<option value="${p.providerId}">${p.providerName}</option>`;
+                    });
+
+                    providerLoaded = true;
+                });
+        }
+
     </script>
 
 </body>

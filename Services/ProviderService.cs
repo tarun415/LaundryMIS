@@ -51,5 +51,8 @@ namespace LaudaryMis.Services
             await _repo.DeleteAsync(id);
             return true;
         }
+
+     
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using LaudaryMis.Services.Interfaces;
+﻿using LaudaryMis.Models;
+using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -16,8 +17,6 @@ namespace LaudaryMis.Controllers
             _service = service;
         }
 
-
-
         [HttpGet]
         public IActionResult Login()
         {
@@ -30,40 +29,38 @@ namespace LaudaryMis.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = await _service.Login(model.RoleName, model.Password, model.RoleId);
+            User? user = null;
+
+            if (model.RoleId == 1)
+                user = await _service.Login(model.Username ?? "", model.Password, model.RoleId);
+
+            else if (model.RoleId == 2)
+                user = await _service.LoginHospital(model.HospitalId, model.Password);
+
+            else if (model.RoleId == 3)
+                user = await _service.LoginProvider(model.ProviderId, model.Password);
 
             if (user == null)
             {
-                ModelState.AddModelError("", "Invalid credentials");
+                ModelState.AddModelError("", "Invalid login");
                 return View(model);
             }
 
             var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.Name, user.FullName ?? ""),
-        new Claim(ClaimTypes.Role, user.RoleName ?? ""),
-        new Claim("UserId", user.UserId.ToString()),
-        new Claim("HospitalId", user.HospitalId?.ToString() ?? ""),
-new Claim("ProviderId", user.ProviderId.ToString())  // 🔥 ADD THIS
-    };
+            {
+                new Claim(ClaimTypes.Name, user.FullName ?? ""),
+                new Claim(ClaimTypes.Role, user.RoleName ?? ""),
+                new Claim("HospitalId", user.HospitalId?.ToString() ?? ""),
+                new Claim("ProviderId", user.ProviderId?.ToString() ?? "")
+            };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
-            // 🔥 ROLE BASED REDIRECT
-            return user.RoleName switch
-            {
-                "Admin" => RedirectToAction("Dashboard", "Admin"),
-                "Hospital" => RedirectToAction("Dashboard", "Hospital"),
-                "Provider" => RedirectToAction("Dashboard", "Provider"),
-                _ => RedirectToAction("Login")
-            };
-        }
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(identity));
 
-        public IActionResult Logout()
-        {
-            //HttpContext.Session.Clear();
-            return RedirectToAction("Login", "Account");
+            return RedirectToAction("Dashboard", user.RoleName);
         }
     }
 }

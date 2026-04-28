@@ -5,6 +5,8 @@
         public int HospitalId { get; set; }
         public string HospitalName { get; set; } = string.Empty;
 
+        public int DistrictId { get; set; }   // 🔥 ADD THIS
+
         public string? Address { get; set; }
         public string? City { get; set; }
         public string? ContactPerson { get; set; }
