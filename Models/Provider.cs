@@ -2,9 +2,8 @@
 {
     public class Provider
     {
-
         public int ProviderId { get; set; }
-        public string? ProviderName { get; set; }
+        public string ProviderName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using LaudaryMis.Services.Interfaces;
+﻿using LaudaryMis.Services;
+using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,10 +10,12 @@ namespace LaudaryMis.Controllers
     public class ProviderController : Controller
     {
         private readonly IDailyService _service;
+        private readonly IProviderService _ProviderService;
 
-        public ProviderController(IDailyService service)
+        public ProviderController(IDailyService service, IProviderService providerService)
         {
             _service = service;
+            _ProviderService = providerService;
         }
 
         private int GetProviderId()
@@ -116,5 +119,13 @@ namespace LaudaryMis.Controllers
             var id = await _service.DeliverAsync(model);
             return Ok(new { success = true, id });
         }
+
+        [HttpGet]
+        public async Task<JsonResult> GetProviders()
+        {
+            var data = await _ProviderService.GetAll();
+            return Json(data);
+        }
+
     }
 }
