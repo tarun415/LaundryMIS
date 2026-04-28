@@ -14,16 +14,6 @@ namespace LaudaryMis.Services
         }
 
 
-        public async Task SaveAsync(AgreementVM model, string? filePath)
-        {
-            if (model.BedCount <= 0)
-                throw new Exception("Invalid Bed Count");
-
-            if (model.RatePerBed <= 0)
-                throw new Exception("Invalid Rate");
-
-            await _repo.InsertAsync(model, filePath);
-        }
         //public async Task SaveAsync(AgreementVM model, string? filePath)
         //{
         //    if (model.BedCount <= 0)
@@ -31,16 +21,25 @@ namespace LaudaryMis.Services
 
         //    if (model.RatePerBed <= 0)
         //        throw new Exception("Invalid Rate");
-        //    if (model.Id > 0)
-        //    {
-        //        var existing = await _repo.GetByIdAsync(model.Id);
 
-        //        if (filePath == null)
-        //            filePath = existing.FilePath;
-        //    }
-
-        //    await _repo.SaveAsync(model, filePath);
+        //    await _repo.InsertAsync(model, filePath);
         //}
+        public async Task SaveAsync(AgreementVM model, string? filePath)
+        {
+            if (model.BedCount <= 0)
+                throw new Exception("Invalid Bed Count");
+
+            if (model.RatePerBed <= 0)
+                throw new Exception("Invalid Rate");
+            if (model.Id > 0)
+            {
+                var existing = await _repo.GetByIdAsync(model.Id);
+
+                if (filePath == null)
+                    filePath = existing.FilePath;
+            }
+            await _repo.SaveAsync(model, filePath);
+        }
 
         public async Task<IEnumerable<AgreementVM>> GetAllAsync()
         {

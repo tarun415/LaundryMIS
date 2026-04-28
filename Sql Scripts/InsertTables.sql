@@ -21,6 +21,13 @@ VALUES
 ('Kalyanpur', 2),
 ('Agra City', 3),
 ('Varanasi City', 4);
+INSERT INTO DistrictMaster(DistrictName, StateID, IsActive, CreatedDate)
+VALUES
+('Lucknow', 1, 1, GETDATE()),
+('Kanpur Nagar', 1, 1, GETDATE()),
+('Agra', 1, 1, GETDATE()),
+('Varanasi', 1, 1, GETDATE()),
+('Prayagraj', 1, 1, GETDATE());
 
 
 ------------------------
