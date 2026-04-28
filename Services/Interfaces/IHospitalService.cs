@@ -8,7 +8,7 @@ namespace LaudaryMis.Services.Interfaces
         Task<IEnumerable<HospitalVM>> GetAllAsync();
 
         Task SaveAsync(HospitalVM model);
-
+        Task CreateHospitalWithLogin(HospitalVM model);
 
         Task<List<Hospital>> GetHospitalsByDistrict(int districtId);
 

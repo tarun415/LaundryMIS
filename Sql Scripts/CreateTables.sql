@@ -1,8 +1,11 @@
-CREATE TABLE StateMaster (
-    StateID INT IDENTITY(1,1) PRIMARY KEY,
-    StateName NVARCHAR(100) NOT NULL,
-    IsActive BIT DEFAULT 1,
-    CreatedDate DATETIME DEFAULT GETDATE()
+DROP TABLE StateMaster
+
+CREATE TABLE StateMaster
+(
+    StateId INT IDENTITY(1,1) PRIMARY KEY,
+    StateName NVARCHAR(150),
+    CountryId INT,
+    StateNameHI NVARCHAR(150)
 );
 
 CREATE TABLE DistrictMaster (

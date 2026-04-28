@@ -2,6 +2,7 @@
 using LaudaryMis.Models;
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.ViewModels;
+using Microsoft.Data.SqlClient;
 using System.Data;
 
 namespace LaudaryMis.Repositories
@@ -9,15 +10,17 @@ namespace LaudaryMis.Repositories
     public class HospitalRepository : IHospitalRepository
     {
         private readonly IDbConnection _db;
+        private readonly IConfiguration _config;
 
-        public HospitalRepository(IDbConnection db)
+        public HospitalRepository(IDbConnection db, IConfiguration config)
         {
             _db = db;
+            _config = config;
         }
 
         public async Task<IEnumerable<HospitalVM>> GetAllAsync()
         {
-            return await _db.QueryAsync<HospitalVM>("SELECT * FROM Tbl_Hospitals WHERE IsActive = 1");
+            return await _db.QueryAsync<HospitalVM>("SELECT hs.HospitalId ,hs.HospitalName,hs.Address,hs.ContactPerson,hs.Phone,hs.Email,hs.IsActive,dm.DistrictID, dm.DistrictName FROM Tbl_Hospitals as hs left join DistrictMaster as dm on hs.DistrictId=dm.DistrictID WHERE hs.IsActive = 1");
         }
 
         public async Task InsertAsync(HospitalVM model)
@@ -29,14 +32,63 @@ namespace LaudaryMis.Repositories
 
             await _db.ExecuteAsync(sql, model);
         }
+        public async Task CreateHospitalWithLogin(HospitalVM model)
+        {
+            using var con = new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+            await con.OpenAsync();
 
+            using var tran = con.BeginTransaction();
+
+            try
+            {
+                // 1️⃣ Insert Hospital
+                var hospitalId = await con.ExecuteScalarAsync<int>(@"
+            INSERT INTO Tbl_Hospitals
+            (HospitalName, DistrictId, Address, ContactPerson, Phone, Email, IsActive)
+            VALUES
+            (@HospitalName, @DistrictId, @Address, @ContactPerson, @Phone, @Email, 1);
+
+            SELECT CAST(SCOPE_IDENTITY() as int);
+        ", model, tran);
+
+                // 2️⃣ Generate Username (safe)
+                var username = "HO_" + model.HospitalName?.Split('@')[0]?.ToLower() ?? "hospital";
+
+                // 3️⃣ Generate Password
+                var rawPassword = model.Password; // default
+                var hashedPassword = rawPassword; 
+                // var hashedPassword = HashPassword(rawPassword);
+
+                // 4️⃣ Insert User
+                await con.ExecuteAsync(@"
+            INSERT INTO Tbl_Users
+            (ProviderId, FullName, Email, PasswordHash, RoleId, HospitalId, IsActive, Username)
+            VALUES
+            (Null, @FullName, @Email, @PasswordHash, 2, @HospitalId, 1, @Username)
+        ", new
+                {
+                    FullName = model.ContactPerson,
+                    Email = model.Email,
+                    PasswordHash = hashedPassword,
+                    HospitalId = hospitalId,
+                    Username = username
+                }, tran);
+
+                tran.Commit();
+            }
+            catch (Exception)
+            {
+                tran.Rollback();
+                throw;
+            }
+        }
         public async Task UpdateAsync(HospitalVM model)
         {
             var sql = @"UPDATE Tbl_Hospitals
                         SET HospitalName=@HospitalName,
                             DistrictId=@DistrictId,
                             Address=@Address,
-                            City=@City,
+                            
                             ContactPerson=@ContactPerson,
                             Phone=@Phone,
                             Email=@Email
@@ -48,7 +100,7 @@ namespace LaudaryMis.Repositories
         public async Task<HospitalVM?> GetHospitalByIdAsync(int id)
         {
             return await _db.QueryFirstOrDefaultAsync<HospitalVM>(
-                "SELECT * FROM Tbl_Hospitals WHERE HospitalId=@id",
+                "SELECT hs.HospitalId ,hs.HospitalName,hs.Address,hs.ContactPerson,hs.Phone,hs.Email,hs.IsActive,dm.DistrictID, dm.DistrictName,us.PasswordHash as [Password] FROM Tbl_Hospitals as hs left join DistrictMaster as dm on hs.DistrictId=dm.DistrictID left join Tbl_Users us on us.HospitalId=hs.HospitalId  WHERE hs.HospitalId=@id",
                 new { id });
         }
 
@@ -64,7 +116,7 @@ namespace LaudaryMis.Repositories
         public async Task<List<District>> GetDistricts()
         {
             var data = await _db.QueryAsync<District>(
-                "SELECT DistrictId, DistrictName FROM DistrictMaster");
+                "SELECT DistrictId, DistrictName FROM DistrictMaster where StateID=34");
 
             return data.ToList();
         }

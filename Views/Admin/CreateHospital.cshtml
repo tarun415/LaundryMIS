@@ -15,33 +15,39 @@
             </div>
 
             <!-- Form -->
-            <form  asp-action="CreateHospital" asp-controller="Admin" method="post">
+            <form id="hospitalForm" asp-action="CreateHospital" asp-controller="Admin" method="post">
                 <input type="hidden" asp-for="HospitalId" />
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Hospital Name</label>
+                        <label class="form-label">Hospital Name<span class="text-danger">*</span></label>
                         <input asp-for="HospitalName" class="form-control" placeholder="Enter hospital name" />
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">City</label>
-                        <input asp-for="City" class="form-control" placeholder="Enter city" />
+                        <label class="form-label">District<span class="text-danger">*</span></label>
+                        <select asp-for="DistrictId" id="DistrictId" class="form-control">
+                            <option value="">--Select District--</option>
+                        </select>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Contact Person</label>
+                        <label class="form-label">Contact Person<span class="text-danger">*</span></label>
                         <input asp-for="ContactPerson" class="form-control" placeholder="Enter contact person" />
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Phone</label>
-                        <input asp-for="Phone" class="form-control" placeholder="Enter phone number" />
+                        <label class="form-label">Phone<span class="text-danger">*</span></label>
+                        <input asp-for="Phone" class="form-control" maxlength="10"  placeholder="Enter phone number" />
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Email</label>
+                        <label class="form-label">Email<span class="text-danger">*</span></label>
                         <input asp-for="Email" class="form-control" placeholder="Enter email" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Password<span class="text-danger">*</span></label>
+                        <input asp-for="Password" class="form-control" placeholder="Enter Password" />
                     </div>
 
                     <div class="col-md-12 mb-3">
@@ -49,8 +55,8 @@
                         <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter address"></textarea>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="form-label">Status</label>
-                        <input class="form-check-input" type="checkbox" asp-for="IsActive" />
+                        <label class="form-label">Status<span class="text-danger">*</span></label>
+                        <input class="form-check-input" type="checkbox" asp-for="IsActive" checked="checked" />
                         <label class="form-check-label">
                             @(Model != null && Model.HospitalId > 0
                                                         ? (Model.IsActive ? "Active" : "Inactive")
@@ -77,45 +83,101 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+                 //  Restrict Phone (only digits + max 10)
+        $('#Phone').on('input', function () {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+        });
+        });
+    </script>
+    <script>
+        $(function () {
+            
+            console.log("JS Loaded");
 
-@* @model LaudaryMis.ViewModels.HospitalVM
+            // Load districts
+                 $(function () {
 
-<div class="container mt-4">
-    <h3>Add Hospital</h3>
+            console.log("JS Loaded");
 
-    <form method="post">
+            var selectedDistrictId = '@Model?.DistrictId';
 
-        <div class="mb-3">
-            <label>Name</label>
-            <input asp-for="HospitalName" class="form-control" />
-        </div>
+            $.get('/Admin/GetDistricts', { stateId: 34 }, function (data) {
 
-        <div class="mb-3">
-            <label>City</label>
-            <input asp-for="City" class="form-control" />
-        </div>
+                $('#DistrictId').html('<option value="">--Select District--</option>');
 
-        <div class="mb-3">
-            <label>Address</label>
-            <input asp-for="Address" class="form-control" />
-        </div>
+                $.each(data, function (i, item) {
 
-        <div class="mb-3">
-            <label>Contact Person</label>
-            <input asp-for="ContactPerson" class="form-control" />
-        </div>
+                    var selected = item.districtId == selectedDistrictId ? 'selected' : '';
 
-        <div class="mb-3">
-            <label>Phone</label>
-            <input asp-for="Phone" class="form-control" />
-        </div>
+                    $('#DistrictId').append(
+                        `<option value="${item.districtId}" ${selected}>
+                            ${item.districtName}
+                        </option>`
+                    );
+                });
+            });
 
-        <div class="mb-3">
-            <label>Email</label>
-            <input asp-for="Email" class="form-control" />
-        </div>
+        });
 
-        <button class="btn btn-success">Save</button>
+            // FORM VALIDATION
+            $('#hospitalForm').submit(function (e) {
 
-    </form>
-</div> *@
+                let hospitalName = $('#HospitalName').val();
+                let district = $('#DistrictId').val();
+                let contact = $('#ContactPerson').val();
+                let phone = $('#Phone').val();
+                let email = $('#Email').val();
+                let password = $('#Password').val();
+
+                if (!hospitalName) {
+                    e.preventDefault();
+                    Swal.fire("Error", "Hospital Name is required", "error");
+                    return;
+                }
+
+                if (!district) {
+                    e.preventDefault();
+                    Swal.fire("Error", "Select District", "error");
+                    return;
+                }
+
+                if (!contact) {
+                    e.preventDefault();
+                    Swal.fire("Error", "Contact Person is required", "error");
+                    return;
+                }
+
+                if (!phone) {
+                    e.preventDefault();
+                    Swal.fire("Error", "Phone is required", "error");
+                    return;
+                }
+
+                if (!/^[0-9]{10}$/.test(phone)) {
+                    e.preventDefault();
+                    Swal.fire("Error", "Enter valid 10 digit phone", "error");
+                    return;
+                }
+
+                if (!email) {
+                    e.preventDefault();
+                    Swal.fire("Error", "Email is required", "error");
+                    return;
+                }
+
+                if (!password) {
+                    e.preventDefault();
+                    Swal.fire("Error", "Password is required", "error");
+                    return;
+                }
+                       
+                // ✅ If all valid → DO NOTHING → form will submit automatically
+            });
+
+        });
+    </script>
+}
+

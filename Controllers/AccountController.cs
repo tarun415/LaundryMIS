@@ -62,5 +62,13 @@ namespace LaudaryMis.Controllers
 
             return RedirectToAction("Dashboard", user.RoleName);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            return RedirectToAction("Login", "Account");
+        }
     }
 }

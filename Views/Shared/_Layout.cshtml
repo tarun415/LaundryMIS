@@ -5,21 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Laundry MIS</title>
 
+    <!-- Fonts & CSS -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/css/Custom.css" />
-    <!-- ✅ Font Awesome -->
+
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-    <!-- ✅ SweetAlert -->
+    <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- DataTables CSS (GLOBAL) -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css" />
 </head>
 
 <body>
 
-    <!-- 🔷 TOP NAVBAR -->
+    <!-- TOP BAR -->
     <nav class="navbar navbar-dark bg-dark px-3">
         <span class="navbar-brand">Laundry MIS</span>
 
@@ -31,19 +36,40 @@
 
     <div class="d-flex">
 
-        <!-- 🔷 SIDEBAR -->
+        <!-- SIDEBAR -->
         <nav class="sidebar" id="sidebarNav"></nav>
 
-        <!-- 🔷 MAIN -->
+        <!-- MAIN CONTENT -->
         <div class="flex-grow-1 p-4">
             @RenderBody()
         </div>
 
     </div>
 
-    <script>
-        /* ================= ROLE + ROUTES ================= */
+    <!-- ================= SCRIPTS ================= -->
+    <!-- 1. jQuery (ONLY ONCE) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+    <!-- 2. Bootstrap -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 3. DataTables (GLOBAL - IMPORTANT) -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- DataTables Buttons -->
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
+    <!-- Export dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+    <!-- ================= SIDEBAR SCRIPT ================= -->
+    <script>
         const userRole = "@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value";
 
         const routes = {
@@ -52,22 +78,18 @@
                 Hospitals: '@Url.Action("Hospitals", "Admin")',
                 Agreements: '@Url.Action("Agreements", "Admin")',
                 Providers: '@Url.Action("Providers", "Admin")',
-                 Wards: '@Url.Action("Wards", "Admin")',
+                Wards: '@Url.Action("Wards", "Admin")'
             },
-            hospital: {
-                dashboard: '@Url.Action("Dashboard", "Hospital")',
-                WPREntry: '@Url.Action("WPREntry", "Hospital")'
-            },
-            provider: {
-                dashboard: '@Url.Action("Dashboard", "Provider")',
-                linen: '@Url.Action("DailyEntry", "Provider")',
-                Pending: '@Url.Action("Pending", "Provider")',
-                Deliver: '@Url.Action("Deliver", "Provider")',
-                reports: '@Url.Action("DailyEntryList", "Provider")'
+            hospital: { 
+            dashboard: '@Url.Action("Dashboard", "Hospital")',
+            WPREntry: '@Url.Action("WPREntry", "Hospital")' },
+            provider: { dashboard: '@Url.Action("Dashboard", "Provider")',
+            linen: '@Url.Action("DailyEntry", "Provider")',
+            Pending: '@Url.Action("Pending", "Provider")', 
+            Deliver: '@Url.Action("Deliver", "Provider")', 
+            reports: '@Url.Action("DailyEntryList", "Provider")'
             }
         };
-
-        /* ================= MENU CONFIG ================= */
 
         const MENU_CONFIG = {
             Admin: [
@@ -75,20 +97,17 @@
                 { id: "dashboard", icon: "📊", label: "Dashboard", route: () => routes.admin.dashboard },
                 { id: "hospitals", icon: "🏥", label: "Hospitals", route: () => routes.admin.Hospitals },
                 { id: "agreements", icon: "📄", label: "Agreements", route: () => routes.admin.Agreements },
-                 { id: "providers", icon: "📄", label: "Providers", route: () => routes.admin.Providers },
-                   { id: "wards", icon: "📄", label: "Wards", route: () => routes.admin.Wards },
-                  ],
-
-            Hospital: [
-                { section: "Overview" },
-                { id: "dashboard", icon: "🏥", label: "Dashboard", route: () => routes.hospital.dashboard },
-                { id: "WPREntry", icon: "📋", label: "WPR Entry", route: () => routes.hospital.WPREntry },
+                { id: "providers", icon: "📄", label: "Providers", route: () => routes.admin.Providers },
+                { id: "wards", icon: "📄", label: "Wards", route: () => routes.admin.Wards }
             ],
-
-            Provider: [
-                { section: "Overview" },
+            Hospital: [
+             { section: "Overview" },
+            { id: "dashboard", icon: "🏥", label: "Dashboard", route: () => routes.hospital.dashboard },
+            { id: "WPREntry", icon: "📋", label: "WPR Entry", route: () => routes.hospital.WPREntry },
+            ],
+            Provider: [ 
+                { section: "Overview" }, 
                 { id: "dashboard", icon: "🚚", label: "Dashboard", route: () => routes.provider.dashboard },
-
                 { section: "Operations" },
                 { id: "linen", icon: "🧺", label: "Daily Linen Log", route: () => routes.provider.linen },
                 { id: "Pending", icon: "🧺", label: "Pending", route: () => routes.provider.Pending },
@@ -97,15 +116,11 @@
             ]
         };
 
-        /* ================= BUILD SIDEBAR ================= */
-
         function buildSidebar() {
             const nav = document.getElementById("sidebarNav");
             const menu = MENU_CONFIG[userRole];
 
             if (!menu) return;
-
-            const currentPath = window.location.pathname.toLowerCase();
 
             nav.innerHTML = "";
 
@@ -113,35 +128,21 @@
                 if (item.section) {
                     nav.innerHTML += `<div class="sidebar-section">${item.section}</div>`;
                 } else {
-                    const url = item.route();
-                    const isActive = currentPath === url.toLowerCase();
-
-                          nav.innerHTML += `
-                          <a href="${url}" class="nav-item ${isActive ? 'active' : ''}">
-                          <span class="icon">${item.icon}</span>
-                          <span>${item.label}</span>
-                          </a>
-                          `;
+                    nav.innerHTML += `
+                        <a href="${item.route()}" class="nav-item">
+                            <span>${item.icon}</span> ${item.label}
+                        </a>
+                    `;
                 }
             });
         }
 
-        /* ================= NAVIGATION ================= */
-
-        // function navigate(url) {
-        //     if (window.location.pathname.toLowerCase() !== url.toLowerCase()) {
-        //         window.location.href = url;
-        //     }
-        // }
-
-        /* ================= INIT ================= */
-
-        document.addEventListener("DOMContentLoaded", buildSidebar);
-
+        $(document).ready(function () {
+            buildSidebar();
+        });
     </script>
-    @RenderSection("Scripts", required: false)
 
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
 
 </body>
 </html>
