@@ -9,7 +9,11 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/css/Custom.css" />
+    <!-- ✅ Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
+    <!-- ✅ SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </head>
 
@@ -46,8 +50,9 @@
             admin: {
                 dashboard: '@Url.Action("Dashboard", "Admin")',
                 Hospitals: '@Url.Action("Hospitals", "Admin")',
-                CreateAgreement: '@Url.Action("CreateAgreement", "Admin")',
+                Agreements: '@Url.Action("Agreements", "Admin")',
                 Providers: '@Url.Action("Providers", "Admin")',
+                 Wards: '@Url.Action("Wards", "Admin")',
             },
             hospital: {
                 dashboard: '@Url.Action("Dashboard", "Hospital")',
@@ -69,8 +74,9 @@
                 { section: "Overview" },
                 { id: "dashboard", icon: "📊", label: "Dashboard", route: () => routes.admin.dashboard },
                 { id: "hospitals", icon: "🏥", label: "Hospitals", route: () => routes.admin.Hospitals },
-                { id: "createAgreement", icon: "📄", label: "Create Agreement", route: () => routes.admin.CreateAgreement },
+                { id: "agreements", icon: "📄", label: "Agreements", route: () => routes.admin.Agreements },
                  { id: "providers", icon: "📄", label: "Providers", route: () => routes.admin.Providers },
+                   { id: "wards", icon: "📄", label: "Wards", route: () => routes.admin.Wards },
                   ],
 
             Hospital: [

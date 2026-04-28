@@ -1,0 +1,44 @@
+﻿@model LaudaryMis.ViewModels.WardVM
+
+<div class="main-container mt-2">
+
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                @(Model == null || Model.WardId == 0 ? "➕ Add Ward" : "✏️ Edit Ward")
+
+                <a href="/Admin/Wards" class="btn btn-outline-secondary rounded-pill px-3">
+                    ← Back to List
+                </a>
+            </div>
+
+            <!-- Form -->
+            <form asp-action="CreateWard" asp-controller="Admin" method="post">
+                <input type="hidden" asp-for="WardId" />
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Hospital Name</label>
+                        <input asp-for="WardName" class="form-control" placeholder="Enter ward name" />
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <a href="/Admin/Wards" class="btn btn-light border rounded-pill px-4">
+                        Cancel
+                    </a>
+
+
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        @(Model == null || Model.WardId == 0 ? "💾 Save" : "✏️ Update")
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>

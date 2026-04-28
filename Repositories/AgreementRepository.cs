@@ -82,34 +82,49 @@ WHERE a.IsActive = 1
         if (_db.State == ConnectionState.Closed)
             _db.Open();
 
-        //  STEP 1: deactivate old agreement
-        await _db.ExecuteAsync(@"
-        UPDATE ProviderHospitalAgreements
-        SET IsActive = 0
-        WHERE ProviderId = @ProviderId
-        AND HospitalId = @HospitalId
-        AND IsActive = 1
-    ", new
+        if (model.Id == 0)
         {
-            model.ProviderId,
-            model.HospitalId
-        });
-
-        // STEP 2: insert new agreement
-        await _db.ExecuteAsync(@"
-        INSERT INTO ProviderHospitalAgreements
-        (ProviderId, HospitalId, BedCount, RatePerBed, StartDate, EndDate, AgreementFile, IsActive)
-        VALUES
-        (@ProviderId, @HospitalId, @BedCount, @RatePerBed, @StartDate, @EndDate, @AgreementFile, 1)
-    ", new
+            //  INSERT
+            await _db.ExecuteAsync(@"
+            INSERT INTO ProviderHospitalAgreements
+            (ProviderId, HospitalId, BedCount, RatePerBed, StartDate, EndDate, AgreementFile, IsActive)
+            VALUES
+            (@ProviderId, @HospitalId, @BedCount, @RatePerBed, @StartDate, @EndDate, @AgreementFile, 1)
+        ", new
+            {
+                model.ProviderId,
+                model.HospitalId,
+                model.BedCount,
+                model.RatePerBed,
+                model.StartDate,
+                model.EndDate,
+                AgreementFile = filePath
+            });
+        }
+        else
         {
-            model.ProviderId,
-            model.HospitalId,
-            model.BedCount,
-            model.RatePerBed,
-            model.StartDate,
-            model.EndDate,
-            AgreementFile = filePath
-        });
+            //  UPDATE
+            await _db.ExecuteAsync(@"
+            UPDATE ProviderHospitalAgreements SET
+                ProviderId = @ProviderId,
+                HospitalId = @HospitalId,
+                BedCount = @BedCount,
+                RatePerBed = @RatePerBed,
+                StartDate = @StartDate,
+                EndDate = @EndDate,
+                AgreementFile = @AgreementFile
+            WHERE Id = @Id
+        ", new
+            {
+                model.Id,
+                model.ProviderId,
+                model.HospitalId,
+                model.BedCount,
+                model.RatePerBed,
+                model.StartDate,
+                model.EndDate,
+                AgreementFile = filePath
+            });
+        }
     }
 }

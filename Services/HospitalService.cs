@@ -1,8 +1,9 @@
-﻿using LaudaryMis.ViewModels;
+﻿using LaudaryMis.Services.Interfaces;
+using LaudaryMis.ViewModels;
 
 namespace LaudaryMis.Services
 {
-    public class HospitalService
+    public class HospitalService : IHospitalService
     {
         private readonly HospitalRepository _repo;
 
