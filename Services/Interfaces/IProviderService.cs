@@ -8,6 +8,7 @@ namespace LaudaryMis.Services.Interfaces
         Task<IEnumerable<Provider>> GetAll();
 
         Task SaveAsync(ProvidersVM model);
+        Task CreateProviderWithLogin(ProvidersVM model);
         Task<IEnumerable<ProvidersVM>> GetProviderAsync();
         Task<ProvidersVM> GetProviderByIdAsync(int id);
         Task<bool> DeleteAsync(int id);

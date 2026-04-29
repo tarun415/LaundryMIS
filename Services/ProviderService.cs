@@ -33,6 +33,20 @@ namespace LaudaryMis.Services
                 await _repo.UpdateAsync(model);   // Edit
             }
         }
+        public async Task CreateProviderWithLogin(ProvidersVM model)
+        {
+            if (string.IsNullOrWhiteSpace(model.ProviderName))
+                throw new Exception("Provider name required");
+
+            if (model.ProviderId == 0)
+            {
+                await _repo.CreateProviderWithLogin(model);   // New
+            }
+            else
+            {
+                await _repo.UpdateAsync(model);   // Edit
+            }
+        }
         public async Task<IEnumerable<ProvidersVM>> GetProviderAsync()
         {
             return await _repo.GetProviderAsync();
