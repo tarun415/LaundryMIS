@@ -104,7 +104,8 @@ namespace LaudaryMis.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateProvider(ProvidersVM model)
         {
-            await _providerService.SaveAsync(model);
+           // await _providerService.SaveAsync(model);
+            await _providerService.CreateProviderWithLogin(model);
             return RedirectToAction("Providers");
         }
         //Edit

@@ -82,19 +82,71 @@ namespace LaudaryMis.Repositories
                 throw;
             }
         }
+        //public async Task UpdateAsync(HospitalVM model)
+        //{
+        //    var sql = @"UPDATE Tbl_Hospitals
+        //                SET HospitalName=@HospitalName,
+        //                    DistrictId=@DistrictId,
+        //                    Address=@Address,
+
+        //                    ContactPerson=@ContactPerson,
+        //                    Phone=@Phone,
+        //                    Email=@Email
+        //                WHERE HospitalId=@HospitalId";
+
+        //    await _db.ExecuteAsync(sql, model);
+        //}
         public async Task UpdateAsync(HospitalVM model)
         {
-            var sql = @"UPDATE Tbl_Hospitals
-                        SET HospitalName=@HospitalName,
-                            DistrictId=@DistrictId,
-                            Address=@Address,
-                            
-                            ContactPerson=@ContactPerson,
-                            Phone=@Phone,
-                            Email=@Email
-                        WHERE HospitalId=@HospitalId";
+            if (_db.State == ConnectionState.Closed)
+                _db.Open();
 
-            await _db.ExecuteAsync(sql, model);
+            using (var tran = _db.BeginTransaction())
+            {
+                try
+                {
+                    // 1️⃣ Update Hospital
+                    await _db.ExecuteAsync(@"
+                UPDATE Tbl_Hospitals
+                SET 
+                    HospitalName = @HospitalName,
+                    DistrictId = @DistrictId,
+                    Address = @Address,
+                    ContactPerson = @ContactPerson,
+                    Phone = @Phone,
+                    Email = @Email
+                WHERE HospitalId = @HospitalId
+            ", model, tran);
+
+                    // 2️ Update User linked with Hospital
+                    await _db.ExecuteAsync(@"
+                UPDATE Tbl_Users
+                SET 
+                    FullName = @HospitalName,
+                    Email = @Email,
+                    PasswordHash = CASE 
+                        WHEN @PasswordHash IS NULL OR @PasswordHash = '' 
+                        THEN PasswordHash 
+                        ELSE @PasswordHash 
+                    END
+                WHERE HospitalId = @HospitalId
+                  AND RoleId = 2
+            ", new
+                    {
+                        model.HospitalName,
+                        model.Email,
+                        model.HospitalId,
+                        PasswordHash = model.Password // null if not changing
+                    }, tran);
+
+                    tran.Commit();
+                }
+                catch
+                {
+                    tran.Rollback();
+                    throw;
+                }
+            }
         }
 
         public async Task<HospitalVM?> GetHospitalByIdAsync(int id)
