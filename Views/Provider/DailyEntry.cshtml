@@ -24,7 +24,13 @@
     <!-- Ward -->
     <div class="mb-3">
         <label>Ward</label>
-        <input type="text" id="ln-ward" class="form-control" />
+        <select id="ln-ward" class="form-control">
+            <option value="">Select Ward</option>
+            @foreach (var h in Model.Wards)
+            {
+                <option value="@h.WardId">@h.WardName</option>
+            }
+        </select>
     </div>
 
     <!-- SHIFT -->
@@ -139,6 +145,12 @@
         alert("Select hospital");
         return;
     }
+    const wardId = parseInt(document.getElementById("ln-ward").value);
+
+    if (!wardId) {
+        alert("Select ward");
+        return;
+    }
 
     if (items.length === 0) {
         alert("Enter at least one item");
@@ -147,9 +159,10 @@
 
     const data = {
         entryDate: document.getElementById("ln-date").value,
-        ward: document.getElementById("ln-ward").value,
+        //ward: document.getElementById("ln-ward").value,
         shift: document.getElementById("ln-shift").value,
         hospitalId: hospitalId,
+        ward: wardId,
 
         collectedBy: document.getElementById("ln-collected").value,
         receivedBy: document.getElementById("ln-received").value,

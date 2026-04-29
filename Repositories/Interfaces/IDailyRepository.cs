@@ -9,6 +9,8 @@ namespace LaudaryMis.Repositories.Interfaces
         Task<List<DailyEntryVM>> GetAllEntries();
         Task<List<Hospital>> GetHospitalsByProvider(int providerId);
 
+        Task<List<WardVM>> GetWards();
+
         Task UpdateStatus(int id, string status);
 
         Task<List<LinenType>> GetLinenTypes();

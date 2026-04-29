@@ -43,6 +43,7 @@ namespace LaudaryMis.Controllers
             vm.EntryDate = DateTime.Now;
 
             vm.Hospitals = await _service.GetHospitalsByProvider(providerId);
+            vm.Wards = await _service.GetWards();
 
             // 🔥 ADD THIS LINE (MISSING)
             vm.LinenTypes = await _service.GetLinenTypes();
