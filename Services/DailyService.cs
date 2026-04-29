@@ -31,7 +31,10 @@ namespace LaudaryMis.Services
         {
             return await _repo.GetHospitalsByProvider(providerId);
         }
-
+        public async Task<List<WardVM>> GetWards()
+        {
+            return await _repo.GetWards();
+        }
         public async Task UpdateStatus(int id, string status)
         {
             await _repo.UpdateStatus(id, status);
