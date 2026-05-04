@@ -12,5 +12,6 @@ namespace LaudaryMis.Repositories.Interfaces
         Task InsertAsync(ProvidersVM model);
         Task SaveAsync(ProvidersVM model);
         Task UpdateAsync(ProvidersVM model);
+        Task CreateProviderWithLogin(ProvidersVM model);
     }
 }

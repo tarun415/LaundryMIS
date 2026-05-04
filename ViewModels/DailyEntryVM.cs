@@ -22,6 +22,7 @@ namespace LaudaryMis.ViewModels
         public string? Remarks { get; set; }   // ✅ ADD
         public List<LinenItemVM> Items { get; set; } = new();
         public List<Hospital> Hospitals { get; set; } = new();
+        public List<WardVM> Wards { get; set; } = new();
 
         // 🔥 ADD THIS (IMPORTANT)
         public List<LinenType> LinenTypes { get; set; } = new();

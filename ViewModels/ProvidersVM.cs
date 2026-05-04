@@ -10,5 +10,6 @@
         public string? Phone { get; set; }
         public string? Email { get; set; }
         public bool IsActive { get; set; } = true;
+        public string Password { get; set; }
     }
 }

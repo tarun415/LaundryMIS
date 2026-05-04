@@ -76,13 +76,18 @@ SELECT CAST(SCOPE_IDENTITY() as int);
         {
             var sql = @"
         SELECT h.HospitalId, h.HospitalName
-        FROM ProviderHospitals ph
+        FROM ProviderHospitalAgreements ph
         JOIN tbl_Hospitals h ON ph.HospitalId = h.HospitalId
         WHERE ph.ProviderId = @ProviderId";
 
             return (await _db.QueryAsync<Hospital>(sql, new { ProviderId = providerId })).ToList();
         }
+        public async Task<List<WardVM>>GetWards()
+        {
+            var sql = @"Select WardId , WardName from tbl_Wards where IsActive=1";
 
+            return (await _db.QueryAsync<WardVM>(sql)).ToList();
+        }
         public async Task<List<DailyEntryVM>> GetAllEntries()
         {
             var sql = @"SELECT * FROM DailyEntries ORDER BY Id DESC";
