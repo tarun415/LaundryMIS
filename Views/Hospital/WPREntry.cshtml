@@ -1,177 +1,302 @@
 ﻿@model LaudaryMis.ViewModels.WPRVM
 
-<div class="container mt-4">
+<div class="wrap">
 
-    <h3>📊 Weekly Performance Report</h3>
+    <div class="page-hdr">
+        <h2>Submit Weekly Performance Report</h2>
+        <p>Score parameters and submit for payment processing</p>
+    </div>
 
-    <form asp-action="WPREntry" method="post" onsubmit="return validateForm()">
+    <form id="wprForm" onsubmit="return validateForm()">
 
-        <!-- AGREEMENT -->
-        <div class="mb-3">
-            <label>Select Hospital</label>
-            <select asp-for="AgreementId" class="form-control" required>
-                <option value="">-- Select --</option>
-                @foreach (var a in Model.Agreements)
-                {
-                    <option value="@a.Id">@a.HospitalName</option>
-                }
-            </select>
-        </div>
+        <input type="hidden" id="totalScoreHidden" name="TotalScore" />
 
-        <!-- WEEK / MONTH / YEAR -->
-        <div class="row mb-3">
+        <!-- TOP GRID: Details + Live Score -->
+        <div class="g2">
 
-            <!-- WEEK -->
-            <div class="col-md-4">
-                <label>Week</label>
-                <select asp-for="Week" class="form-control" required>
-                    <option value="">Select</option>
-                    <option value="1">Week 1</option>
-                    <option value="2">Week 2</option>
-                    <option value="3">Week 3</option>
-                    <option value="4">Week 4</option>
-                </select>
+            <!-- Report Details -->
+            <div class="card">
+                <div class="card-hdr">
+                    <div class="card-title"><span class="card-icon">📝</span> Report Details</div>
+                </div>
+
+                <div class="g2">
+                    <div class="form-group">
+                        <label class="form-label">Week</label>
+                        <select name="Week" class="form-control">
+                            <option value="1">Week 1</option>
+                            <option value="2">Week 2</option>
+                            <option value="3">Week 3</option>
+                            <option value="4">Week 4</option>
+                            <option value="5">Week 5</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Month</label>
+                        <input name="Month" id="fMonth" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="g2">
+                    <div class="form-group">
+                        <label class="form-label">Year</label>
+                        <input name="Year" id="fYear" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Staff Name</label>
+                        <input name="StaffName" class="form-control" placeholder="Enter name" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Remarks</label>
+                    <textarea name="Remarks" class="form-control" placeholder="Optional remarks..."></textarea>
+                </div>
             </div>
 
-            <!-- MONTH (AUTO LOCKED) -->
-            <div class="col-md-4">
-                <label>Month</label>
-                <input type="text" class="form-control"
-                       value="@DateTime.Now.ToString("MMMM")"
-                       disabled />
+            <!-- Live Score -->
+            <div class="card">
+                <div class="card-hdr">
+                    <div class="card-title"><span class="card-icon">📊</span> Live Score</div>
+                </div>
 
-                <input type="hidden" asp-for="Month" value="@DateTime.Now.Month" />
+                <div style="text-align:center;margin-bottom:6px;">
+                    <div class="score-big" id="scoreDisplay">0</div>
+                    <div class="score-sub">out of 100</div>
+                </div>
+
+                <div class="score-meter">
+                    <div class="score-fill" id="bar" style="width:0%"></div>
+                </div>
+
+                <div style="text-align:center;margin-top:6px;">
+                    <span class="badge badge-none" id="paymentBadge">0% Payment — No Payment</span>
+                </div>
+
+                <!-- Slab table -->
+                <div style="margin-top:14px;border:1px solid #f0ede8;border-radius:8px;overflow:hidden;">
+                    <table style="width:100%;font-size:11px;border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f8f6f2;">
+                                <th style="padding:6px 10px;text-align:left;color:#888;font-weight:600;">Score</th>
+                                <th style="padding:6px 10px;text-align:right;color:#888;font-weight:600;">Payment %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="slabTable">
+                            <tr id="slab0"><td style="padding:5px 10px;color:#c0392b;">0 – 20</td><td style="text-align:right;padding:5px 10px;color:#c0392b;">No Payment</td></tr>
+                            <tr id="slab21"><td style="padding:5px 10px;">21 – 40</td><td style="text-align:right;padding:5px 10px;">40%</td></tr>
+                            <tr id="slab41"><td style="padding:5px 10px;">41 – 60</td><td style="text-align:right;padding:5px 10px;">60%</td></tr>
+                            <tr id="slab61"><td style="padding:5px 10px;">61 – 70</td><td style="text-align:right;padding:5px 10px;">80%</td></tr>
+                            <tr id="slab71"><td style="padding:5px 10px;">71 – 80</td><td style="text-align:right;padding:5px 10px;">90%</td></tr>
+                            <tr id="slab81"><td style="padding:5px 10px;">81 – 100</td><td style="text-align:right;padding:5px 10px;">100%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="notice-warn">⚠ WPR must be uploaded by 5th day of next week</div>
+
+                <div style="display:flex;gap:10px;margin-top:14px;">
+                    <button type="button" class="btn btn-ghost" onclick="resetForm()">Reset</button>
+                    <button type="submit" class="btn btn-gold">Submit WPR</button>
+                </div>
             </div>
 
-            <!-- YEAR (AUTO LOCKED) -->
-            <div class="col-md-4">
-                <label>Year</label>
-                <input type="text" class="form-control"
-                       value="@DateTime.Now.Year"
-                       disabled />
+        </div>
 
-                <input type="hidden" asp-for="Year" value="@DateTime.Now.Year" />
+        <!-- PARAMETERS -->
+        <div class="card kpi-section">
+            <div class="card-hdr">
+                <div class="card-title"><span class="card-icon">📋</span> Performance Parameters</div>
+                <div id="countText">0 / 10 scored</div>
             </div>
 
+            <div id="kpiRows"></div>
         </div>
-
-        <!-- STAFF -->
-        <div class="mb-3">
-            <label>Designated Staff</label>
-            <input asp-for="StaffName" class="form-control" />
-        </div>
-
-        <!-- 🔥 LIVE SCORE -->
-        <div class="mb-3">
-            <h4>Total Score: <span id="totalScore">0</span> / 100</h4>
-        </div>
-
-        <!-- 🔥 PARAMETERS TABLE -->
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Parameter</th>
-                    <th>Rating</th>
-                    <th>Score</th>
-                    <th>Remarks</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @for (int i = 0; i < Model.Parameters.Count; i++)
-                {
-                    <tr>
-                        <td>
-                            @Model.Parameters[i].ParameterName
-                            <input type="hidden" name="Details[@i].ParameterId" value="@Model.Parameters[i].Id" />
-                        </td>
-
-                        <!-- RATING -->
-                        <td>
-                            <button type="button" class="btn btn-success btn-sm"
-                                    onclick="setScore(@i,10,'Good')">
-                                Good
-                            </button>
-
-                            <button type="button" class="btn btn-warning btn-sm"
-                                    onclick="setScore(@i,5,'Avg')">
-                                Avg
-                            </button>
-
-                            <button type="button" class="btn btn-danger btn-sm"
-                                    onclick="setScore(@i,2,'Poor')">
-                                Poor
-                            </button>
-                        </td>
-
-                        <!-- SCORE -->
-                        <td>
-                            <span id="scoreText_@i">-</span>
-                            <input type="hidden" name="Details[@i].Score" id="score_@i" />
-                        </td>
-
-                        <!-- REMARK -->
-                        <td>
-                            <input name="Details[@i].Remarks" class="form-control" />
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-
-        <!-- FINAL REMARK -->
-        <div class="mb-3">
-            <label>Final Remarks</label>
-            <textarea asp-for="Remarks" class="form-control"></textarea>
-        </div>
-
-        <button class="btn btn-success">Submit WPR</button>
 
     </form>
 </div>
+<script>
+    const PARAMS = [
+      "Collection Timeliness",
+      "Delivery Timeliness",
+      "Linen Quality",
+      "Infection Control",
+      "Stain / Odour Removal",
+      "Damage / Loss",
+      "SOP Compliance",
+      "Staff Behavior",
+      "Overall Satisfaction",
+      "Warning Letters"
+    ];
 
-@section Scripts {
-    <script>
+    // Auto-fill month & year
+    const now = new Date();
+    document.getElementById("fMonth").value = now.toLocaleString("default",{month:"long"});
+    document.getElementById("fYear").value = now.getFullYear();
 
-        let scores = {};
+    // Build KPI rows
+    const kpiContainer = document.getElementById("kpiRows");
+    PARAMS.forEach((name, idx) => {
+      const i = idx + 1;
+      const row = document.createElement("div");
+      row.className = "kpi-row";
+      row.id = "row_" + i;
 
-        function setScore(i, val, label) {
+      // Number
+      const num = document.createElement("div");
+      num.className = "kpi-n";
+      num.textContent = i;
 
-            // set hidden score
-            document.getElementById("score_" + i).value = val;
+      // Label
+      const lbl = document.createElement("div");
+      lbl.className = "kpi-lbl";
+      lbl.textContent = name;
 
-            // show score
-            document.getElementById("scoreText_" + i).innerText = val + " (" + label + ")";
+      // Hidden param id
+      const hidP = document.createElement("input");
+      hidP.type = "hidden";
+      hidP.name = `Details[${idx}].ParameterId`;
+      hidP.value = i;
+      lbl.appendChild(hidP);
 
-            scores[i] = val;
+      // Buttons
+      const btns = document.createElement("div");
+      btns.className = "kpi-btns";
+      for (let s = 1; s <= 10; s++) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "kb";
+        btn.id = `btn_${i}_${s}`;
+        btn.textContent = s;
+        btn.onclick = () => setScore(i, s);
+        btns.appendChild(btn);
+      }
 
-            calculateTotal();
+      // Score badge
+      const sc = document.createElement("div");
+      sc.className = "kpi-sc";
+      sc.id = "s" + i;
+      sc.innerHTML = "<span>—</span>";
+
+      // Hidden score value
+      const hidS = document.createElement("input");
+      hidS.type = "hidden";
+      hidS.name = `Details[${idx}].Score`;
+      hidS.id = "score_" + i;
+
+      row.appendChild(num);
+      row.appendChild(lbl);
+      row.appendChild(btns);
+      row.appendChild(sc);
+      row.appendChild(hidS);
+      kpiContainer.appendChild(row);
+    });
+
+    let scores = {};
+
+    function setScore(i, val) {
+      scores[i] = val;
+      document.getElementById("score_" + i).value = val;
+
+      // Label
+      let label, cls;
+      if (val >= 7)      { label = "Good";    cls = "sc-good"; }
+      else if (val >= 3) { label = "Average"; cls = "sc-avg"; }
+      else               { label = "Poor";    cls = "sc-poor"; }
+
+      document.getElementById("s" + i).innerHTML =
+        `<span class="sc-badge ${cls}">${label} (${val}/10)</span>`;
+
+      // Highlight buttons
+      for (let s = 1; s <= 10; s++) {
+        const btn = document.getElementById(`btn_${i}_${s}`);
+        if (!btn) continue;
+        btn.classList.remove("sg", "sa", "sp");
+      }
+      const sel = document.getElementById(`btn_${i}_${val}`);
+      if (val >= 7)      sel.classList.add("sg");
+      else if (val >= 3) sel.classList.add("sa");
+      else               sel.classList.add("sp");
+
+      calc();
+    }
+
+    function calc() {
+      let total = 0, count = 0;
+      for (let k in scores) { total += scores[k]; count++; }
+
+      document.getElementById("scoreDisplay").textContent = total;
+      document.getElementById("bar").style.width = total + "%";
+      document.getElementById("totalScoreHidden").value = total;
+      document.getElementById("countText").textContent = count + " / 10 scored";
+
+      // Payment slab
+      let pay, label, badgeCls;
+      if      (total === 0)  { pay = 0;   label = "0% — No Payment";   badgeCls = "badge-none"; }
+      else if (total <= 20)  { pay = 0;   label = "0% — No Payment";   badgeCls = "badge-none"; }
+      else if (total <= 40)  { pay = 40;  label = "40% Payment";        badgeCls = "badge-low"; }
+      else if (total <= 60)  { pay = 60;  label = "60% Payment";        badgeCls = "badge-mid"; }
+      else if (total <= 70)  { pay = 80;  label = "80% Payment";        badgeCls = "badge-good"; }
+      else if (total <= 80)  { pay = 90;  label = "90% Payment";        badgeCls = "badge-good"; }
+      else                   { pay = 100; label = "100% Payment";       badgeCls = "badge-full"; }
+
+      const el = document.getElementById("paymentBadge");
+      el.textContent = label;
+      el.className = "badge " + badgeCls;
+
+      // Highlight slab table row
+      const slabs = ["slab0","slab21","slab41","slab61","slab71","slab81"];
+      slabs.forEach(id => {
+        const r = document.getElementById(id);
+        r.style.background = "";
+        r.style.fontWeight = "";
+      });
+
+      let activeId = null;
+      if      (total <= 20) activeId = "slab0";
+      else if (total <= 40) activeId = "slab21";
+      else if (total <= 60) activeId = "slab41";
+      else if (total <= 70) activeId = "slab61";
+      else if (total <= 80) activeId = "slab71";
+      else                  activeId = "slab81";
+
+      const active = document.getElementById(activeId);
+      active.style.background = "#fffbf0";
+      active.style.fontWeight = "600";
+    }
+
+    function resetForm() {
+      scores = {};
+
+      for (let i = 1; i <= 10; i++) {
+        document.getElementById("score_" + i).value = "";
+        document.getElementById("s" + i).innerHTML = "<span>—</span>";
+        for (let s = 1; s <= 10; s++) {
+          const btn = document.getElementById(`btn_${i}_${s}`);
+          if (btn) btn.classList.remove("sg","sa","sp");
         }
+      }
 
-        function calculateTotal() {
-            let total = 0;
+      document.getElementById("scoreDisplay").textContent = "0";
+      document.getElementById("bar").style.width = "0%";
+      document.getElementById("paymentBadge").textContent = "0% Payment — No Payment";
+      document.getElementById("paymentBadge").className = "badge badge-none";
+      document.getElementById("countText").textContent = "0 / 10 scored";
 
-            Object.values(scores).forEach(x => total += x);
+      const slabs = ["slab0","slab21","slab41","slab61","slab71","slab81"];
+      slabs.forEach(id => {
+        document.getElementById(id).style.background = "";
+        document.getElementById(id).style.fontWeight = "";
+      });
+    }
 
-            document.getElementById("totalScore").innerText = total;
+    function validateForm() {
+      for (let i = 1; i <= 10; i++) {
+        if (!document.getElementById("score_" + i).value) {
+          alert("Please score all 10 parameters before submitting.");
+          return false;
         }
-
-        // ✅ VALIDATION
-        function validateForm() {
-
-            let totalParams = document.querySelectorAll("[id^='score_']").length;
-
-            for (let i = 0; i < totalParams; i++) {
-                let val = document.getElementById("score_" + i).value;
-
-                if (!val) {
-                    alert("Please select rating for all parameters");
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-    </script>
-}
+      }
+      return true;
+    }
+</script>

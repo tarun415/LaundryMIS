@@ -1,26 +1,25 @@
-﻿using LaudaryMis.Models;
-
-namespace LaudaryMis.ViewModels
+﻿namespace LaudaryMis.ViewModels
 {
     public class WPRVM
     {
-        public int AgreementId { get; set; }
-
-        // ✅ REQUIRED FOR UI
         public int Week { get; set; }
-        public int Month { get; set; }
+        public string Month { get; set; } = string.Empty;
         public int Year { get; set; }
-
-        public string? StaffName { get; set; }
+        public string StaffName { get; set; } = string.Empty;
         public string? Remarks { get; set; }
-
-        public List<WPRParameter> Parameters { get; set; } = new();
-        public List<WPRDetail> Details { get; set; } = new();
-
-        public List<AgreementVM> Agreements { get; set; } = new();
-
         public int TotalScore { get; set; }
 
-        public int ParameterCount => Parameters?.Count ?? 0;
+        public List<WPRDetailVM> Details { get; set; } = new();
+    }
+
+    public class WPRDetailVM
+    {
+        public int ParameterId { get; set; }
+        public int Score { get; set; }
+    }
+    public class ParameterVM
+    {
+        public int Id { get; set; }
+        public string ParameterName { get; set; } = "";
     }
 }

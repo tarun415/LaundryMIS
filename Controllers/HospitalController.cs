@@ -39,47 +39,6 @@ namespace LaudaryMis.Controllers
         }
 
 
-        public async Task<IActionResult> WPREntry()
-        {
-            var vm = new WPRVM();
 
-            vm.Parameters = await _wprService.GetParameters();
-            vm.Agreements = await _wprService.GetHospitalAgreements(GetHospitalId());
-
-            // ✅ DEFAULT VALUES (important)
-            vm.Month = DateTime.Now.Month;
-            vm.Year = DateTime.Now.Year;
-
-            // 👉 optional: default week (current week logic simple)
-            vm.Week = 1;
-
-            // ✅ IMPORTANT: initialize details (binding fix)
-            vm.Details = vm.Parameters.Select(p => new WPRDetail
-            {
-                ParameterId = p.Id
-            }).ToList();
-
-            return View(vm);
-        }
-
-        [HttpPost]
-        [HttpPost]
-        public async Task<IActionResult> WPREntry(WPRVM model)
-        {
-            try
-            {
-                var hospitalId = GetHospitalId();
-
-                await _wprService.SaveAsync(model, hospitalId);
-
-                TempData["msg"] = "WPR Saved Successfully";
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = ex.Message;
-            }
-
-            return RedirectToAction("WPREntry");
-        }
     }
 }

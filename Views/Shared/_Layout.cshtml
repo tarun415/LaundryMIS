@@ -13,6 +13,7 @@
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 
     <!-- SweetAlert -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -25,15 +26,31 @@
 <body>
 
     <!-- TOP BAR -->
-    <nav class="navbar navbar-dark bg-dark px-3">
-        <span class="navbar-brand">Laundry MIS</span>
+    <div class="topbar-custom">
 
-        <div class="text-white">
-            👤 @User.Identity?.Name
-            <a href="/Account/Logout" class="btn btn-sm btn-danger ms-3">Logout</a>
+        <div class="topbar-left">
+            <div>
+                <div class="topbar-brand">DGMH UP <span>Laundry MIS</span></div>
+                <div class="topbar-sub">Mechanized Laundry Services · 197 Hospitals</div>
+            </div>
         </div>
-    </nav>
 
+        <div class="topbar-right">
+
+            <div class="user-pill">
+                <span>👤 @User.Identity?.Name</span>
+                <span class="role-tag">
+                    @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                </span>
+            </div>
+
+            <a href="/Account/Logout" class="btn-logout">
+                Logout
+            </a>
+
+        </div>
+
+    </div>
     <div class="d-flex">
 
         <!-- SIDEBAR -->
@@ -82,7 +99,7 @@
             },
             hospital: { 
             dashboard: '@Url.Action("Dashboard", "Hospital")',
-            WPREntry: '@Url.Action("WPREntry", "Hospital")' },
+            WPREntry: '@Url.Action("WPREntry", "WPR")' },
             provider: { dashboard: '@Url.Action("Dashboard", "Provider")',
             linen: '@Url.Action("DailyEntry", "Provider")',
             Pending: '@Url.Action("Pending", "Provider")', 
