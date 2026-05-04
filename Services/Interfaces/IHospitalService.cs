@@ -14,7 +14,7 @@ namespace LaudaryMis.Services.Interfaces
 
         Task<List<District>> GetDistricts();
 
-        Task<HospitalVM> GetHospitalByIdAsync(int id);
+        Task<HospitalVM?> GetHospitalByIdAsync(int id);
         Task<bool> DeleteAsync(int id);
     }
 }

@@ -5,8 +5,12 @@ namespace LaudaryMis.Repositories.Interfaces
 {
     public interface IWPRRepository
     {
-        Task<int> InsertAsync(WPRVM model, int hospitalId);
-        Task<IEnumerable<WPRParameter>> GetParameters();
+        // AGREEMENTS
         Task<IEnumerable<AgreementVM>> GetHospitalAgreements(int hospitalId);
+
+        // WPR
+        Task<bool> WPRExistsAsync(int week, string month, int year, string staffName);
+        Task<int> InsertWPRAsync(WeeklyPerformanceReport wpr);
+        Task InsertWPRDetailsAsync(IEnumerable<WPRDetail> details);
     }
 }
