@@ -90,22 +90,26 @@
         const userRole = "@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value";
 
         const routes = {
-            admin: {
-                dashboard: '@Url.Action("Dashboard", "Admin")',
-                Hospitals: '@Url.Action("Hospitals", "Admin")',
-                Agreements: '@Url.Action("Agreements", "Admin")',
-                Providers: '@Url.Action("Providers", "Admin")',
-                Wards: '@Url.Action("Wards", "Admin")'
-            },
-            hospital: { 
-            dashboard: '@Url.Action("Dashboard", "Hospital")',
-            WPREntry: '@Url.Action("WPREntry", "WPR")' },
-            provider: { dashboard: '@Url.Action("Dashboard", "Provider")',
-            linen: '@Url.Action("DailyEntry", "Provider")',
-            Pending: '@Url.Action("Pending", "Provider")', 
-            Deliver: '@Url.Action("Deliver", "Provider")', 
-            reports: '@Url.Action("DailyEntryList", "Provider")'
-            }
+                admin: {
+            dashboard:  '@Url.Action("Dashboard", "Admin")',
+            Hospitals:  '@Url.Action("Hospitals", "Admin")',
+            Agreements: '@Url.Action("Agreements", "Admin")',
+            Providers:  '@Url.Action("Providers", "Admin")',
+            Wards:      '@Url.Action("Wards", "Admin")',
+            allBills:   '@Url.Action("Index", "MonthlyBill")',  // ← ADD
+        },
+        hospital: {
+            dashboard:  '@Url.Action("Dashboard", "Hospital")',
+            WPREntry:   '@Url.Action("WPREntry", "WPR")',
+            billQueue:  '@Url.Action("HospitalQueue", "MonthlyBill")',  // ← ADD
+        },
+        provider: {
+            dashboard:  '@Url.Action("Dashboard", "Provider")',
+            linen:      '@Url.Action("DailyEntry", "Provider")',
+            Pending:    '@Url.Action("Pending", "Provider")',
+            reports:    '@Url.Action("DailyEntryList", "Provider")',
+            myBills:    '@Url.Action("MyBills", "MonthlyBill")',  // ← ADD
+        }
         };
 
         const MENU_CONFIG = {
@@ -115,12 +119,16 @@
                 { id: "hospitals", icon: "🏥", label: "Hospitals", route: () => routes.admin.Hospitals },
                 { id: "agreements", icon: "📄", label: "Agreements", route: () => routes.admin.Agreements },
                 { id: "providers", icon: "📄", label: "Providers", route: () => routes.admin.Providers },
-                { id: "wards", icon: "📄", label: "Wards", route: () => routes.admin.Wards }
+                { id: "wards", icon: "📄", label: "Wards", route: () => routes.admin.Wards },
+                        { section: "Billing" },
+        { id: "allBills", icon: "🧾", label: "Monthly Bills", route: () => routes.admin.allBills },
             ],
             Hospital: [
              { section: "Overview" },
             { id: "dashboard", icon: "🏥", label: "Dashboard", route: () => routes.hospital.dashboard },
             { id: "WPREntry", icon: "📋", label: "WPR Entry", route: () => routes.hospital.WPREntry },
+                    { section: "Billing" },
+        { id: "billQueue", icon: "🧾", label: "Bill Verify", route: () => routes.hospital.billQueue },
             ],
             Provider: [ 
                 { section: "Overview" }, 
@@ -128,8 +136,10 @@
                 { section: "Operations" },
                 { id: "linen", icon: "🧺", label: "Daily Linen Log", route: () => routes.provider.linen },
                 { id: "Pending", icon: "🧺", label: "Pending", route: () => routes.provider.Pending },
-                { id: "Deliver", icon: "🧺", label: "Deliver", route: () => routes.provider.Deliver },
+                // { id: "Deliver", icon: "🧺", label: "Deliver", route: () => routes.provider.Deliver },
                 { id: "reports", icon: "📊", label: "Reports", route: () => routes.provider.reports },
+                        { section: "Billing" },
+        { id: "myBills", icon: "🧾", label: "My Bills", route: () => routes.provider.myBills },
             ]
         };
 
