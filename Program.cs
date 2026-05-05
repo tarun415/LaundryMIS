@@ -38,6 +38,8 @@ builder.Services.AddScoped<HospitalRepository, HospitalRepository>();
 builder.Services.AddScoped<IHospitalService, HospitalService>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<IMonthlyBillRepository, MonthlyBillRepository>();
+builder.Services.AddScoped<IMonthlyBillService, MonthlyBillService>();
 
 // 🔥 FIX (IMPORTANT)
 builder.Services.AddScoped<IDbConnection>(sp =>

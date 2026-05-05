@@ -31,7 +31,7 @@ namespace LaudaryMis.Controllers
             return id;
         }
 
-        public IActionResult Dashboard() => View();
+        //public IActionResult Dashboard() => View();
         public IActionResult Dashboard()
         {
             return View();

@@ -1,0 +1,310 @@
+﻿@model LaudaryMis.ViewModels.MonthlyBillVM
+@{
+    ViewData["Title"] = "Bill Detail";
+    var statusColor = Model.Status switch
+    {
+        "Draft" => "secondary",
+        "Submitted" => "warning",
+        "CMSApproved" => "success",
+        "CMSRejected" => "danger",
+        _ => "secondary"
+    };
+}
+
+<style>
+    .bill-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.07);
+        padding: 22px 24px;
+        margin-bottom: 20px;
+    }
+
+        .bill-card h6 {
+            font-weight: 700;
+            color: #1a3c5e;
+            border-bottom: 2px solid #e8f0fe;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+        }
+
+    .dl-item {
+        margin-bottom: 14px;
+    }
+
+        .dl-item dt {
+            font-size: .75rem;
+            text-transform: uppercase;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .dl-item dd {
+            font-size: .95rem;
+            font-weight: 600;
+            color: #1a3c5e;
+            margin: 2px 0 0;
+        }
+
+    .calc-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f4f8;
+        font-size: .9rem;
+    }
+
+        .calc-row:last-child {
+            border-bottom: none;
+        }
+
+    .net-row {
+        background: #eef7f0;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 8px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+        .net-row .val {
+            font-weight: 800;
+            color: #16a34a;
+            font-size: 1.15rem;
+        }
+
+    .page-header {
+        background: linear-gradient(135deg,#1a3c5e,#2563a8);
+        color: white;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+    }
+    /* Timeline */
+    .tl {
+        padding-left: 28px;
+        position: relative;
+    }
+
+        .tl::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0;
+        }
+
+    .tl-item {
+        position: relative;
+        margin-bottom: 16px;
+    }
+
+    .tl-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        position: absolute;
+        left: -24px;
+        top: 3px;
+    }
+
+    .tl-box {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: .85rem;
+    }
+</style>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        ✅ @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        ⚠️ @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="mb-1">🧾 @Model.MonthName ka Bill</h4>
+            <p class="mb-0 opacity-75">@Model.HospitalName</p>
+        </div>
+        <span class="badge bg-@statusColor fs-6 px-3 py-2">@Model.StatusDisplay</span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-7">
+
+        <div class="bill-card">
+            <h6>📋 Agreement</h6>
+            <div class="row">
+                <div class="col-4"><div class="dl-item"><dt>Hospital</dt><dd>@Model.HospitalName</dd></div></div>
+                <div class="col-4"><div class="dl-item"><dt>Contract No</dt><dd>@Model.ContractNo</dd></div></div>
+                <div class="col-4"><div class="dl-item"><dt>Beds</dt><dd>@Model.SanctionedBeds</dd></div></div>
+            </div>
+        </div>
+
+        <div class="bill-card">
+            <h6>📊 WPR Score</h6>
+            <div class="row">
+                <div class="col-4"><div class="dl-item"><dt>Score</dt><dd>@Model.WPRAvgScore.ToString("N2")</dd></div></div>
+                <div class="col-4"><div class="dl-item"><dt>Weeks</dt><dd>@Model.WPRWeeksFound</dd></div></div>
+                <div class="col-4"><div class="dl-item"><dt>Override</dt><dd>@(Model.IsScoreOverridden ? "✏️ Haan" : "Auto")</dd></div></div>
+                @if (Model.IsScoreOverridden)
+                {
+                    <div class="col-12"><div class="dl-item"><dt>Override Reason</dt><dd class="text-muted">@Model.OverrideReason</dd></div></div>
+                }
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="bill-card">
+            <h6>⚡ Actions</h6>
+            <div class="d-flex gap-2 flex-wrap">
+
+                @if (Model.CanEdit)
+                {
+                    <a asp-action="Create"
+                       asp-route-hospitalId="@Model.HospitalId"
+                       asp-route-month="@Model.BillingMonth"
+                       asp-route-year="@Model.BillingYear"
+                       class="btn btn-outline-primary">✏️ Edit</a>
+                }
+
+                @if (Model.CanSubmit)
+                {
+                    <form asp-action="Submit" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="billId" value="@Model.BillId" />
+                        <button type="submit" class="btn btn-success"
+                                onclick="return confirm('CMS ko submit karna chahte ho?')">
+                            🚀 Submit to CMS
+                        </button>
+                    </form>
+                }
+
+                @if (Model.Status == "CMSRejected")
+                {
+                    <form asp-action="Submit" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="billId" value="@Model.BillId" />
+                        <button type="submit" class="btn btn-warning">🔄 Re-Submit</button>
+                    </form>
+                }
+
+                @if (Model.Status == "Submitted")
+                {
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalApprove">✅ Approve</button>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalReject">❌ Reject</button>
+                }
+
+                <a asp-action="MyBills" class="btn btn-outline-secondary">← Back</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <!-- Bill Summary -->
+        <div class="bill-card" style="position:sticky;top:80px;">
+            <h6>💰 Bill Summary</h6>
+            <div class="calc-row"><span class="text-muted">Annual (ex-GST)</span><span class="fw-bold">₹@Model.AnnualValueExGST.ToString("N2")</span></div>
+            <div class="calc-row"><span class="text-muted">Annual (incl GST)</span><span class="fw-bold">₹@Model.AnnualValueInGST.ToString("N2")</span></div>
+            <div class="calc-row"><span class="text-muted">Monthly Gross</span><span class="fw-bold">₹@Model.MonthlyGrossAmount.ToString("N2")</span></div>
+            <div class="calc-row"><span class="text-muted">WPR Band</span><span class="fw-bold"><span class="badge bg-primary">@Model.PaymentBandPercent%</span></span></div>
+            <div class="calc-row"><span class="text-muted">Base Payable</span><span class="fw-bold">₹@Model.BasePayableAmount.ToString("N2")</span></div>
+            <div class="calc-row"><span class="text-muted">TDS (2%)</span><span class="fw-bold text-danger">-₹@Model.TDSAmount.ToString("N2")</span></div>
+            <div class="calc-row"><span class="text-muted">Extra Deductions</span><span class="fw-bold text-danger">-₹@Model.AdditionalDeductions.ToString("N2")</span></div>
+            <div class="net-row mt-2">
+                <span class="fw-bold">Net Payable</span>
+                <span class="val">₹@Model.NetPayableAmount.ToString("N2")</span>
+            </div>
+        </div>
+
+        <!-- Workflow Log -->
+        @if (Model.WorkflowLog?.Any() == true)
+        {
+            <div class="bill-card mt-3">
+                <h6>📜 History</h6>
+                <div class="tl">
+                    @foreach (var log in Model.WorkflowLog)
+                    {
+                        var dc = log.ToStatus switch { "CMSApproved" => "success", "CMSRejected" => "danger", "Submitted" => "warning", _ => "secondary" };
+                        <div class="tl-item">
+                            <div class="tl-dot bg-@dc"></div>
+                            <div class="tl-box">
+                                <span class="badge bg-@dc">@log.ToStatus</span>
+                                <strong class="ms-2">@log.ActionByName</strong>
+                                <div class="text-muted small">@log.ActionAt.ToString("dd MMM yyyy, hh:mm tt")</div>
+                                @if (!string.IsNullOrEmpty(log.Remarks))
+                                {
+                                    <div class="text-secondary">💬 @log.Remarks</div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Approve Modal -->
+<div class="modal fade" id="modalApprove" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">✅ Approve Bill</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CMSAction" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="billId" value="@Model.BillId" />
+                <input type="hidden" name="approve" value="true" />
+                <div class="modal-body">
+                    <label class="form-label">Remarks (Optional)</label>
+                    <textarea name="remarks" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Approve Karo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="modalReject" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">❌ Reject Bill</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CMSAction" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="billId" value="@Model.BillId" />
+                <input type="hidden" name="approve" value="false" />
+                <div class="modal-body">
+                    <label class="form-label fw-bold">Reason <span class="text-danger">*</span></label>
+                    <textarea name="remarks" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Reject Karo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

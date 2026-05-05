@@ -48,10 +48,11 @@ namespace LaudaryMis.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.FullName ?? ""),
-                new Claim(ClaimTypes.Role, user.RoleName ?? ""),
-                new Claim("HospitalId", user.HospitalId?.ToString() ?? ""),
-                new Claim("ProviderId", user.ProviderId?.ToString() ?? "")
+                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),  // ← YEH ADD KARO
+    new Claim(ClaimTypes.Name, user.FullName ?? ""),
+    new Claim(ClaimTypes.Role, user.RoleName ?? ""),
+    new Claim("HospitalId", user.HospitalId?.ToString() ?? ""),
+    new Claim("ProviderId", user.ProviderId?.ToString() ?? "")
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

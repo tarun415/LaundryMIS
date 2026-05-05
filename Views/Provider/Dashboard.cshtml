@@ -1,9 +1,30 @@
 ﻿@{
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var now = DateTime.Now;
 }
 
 <h2>Provider Dashboard</h2>
 
 <div class="alert alert-warning">
     Manage Laundry Service, Delivery, Logs
+</div>
+
+<!-- YEH ADD KARO: -->
+<div class="card mt-3" style="background:#fff;border-radius:10px;
+     box-shadow:0 2px 12px rgba(0,0,0,.07);padding:20px 24px;">
+    <h6 style="font-weight:700;color:#1a3c5e;">🧾 Monthly Billing</h6>
+    <p class="text-muted small mb-3">
+        @now.ToString("MMMM yyyy") ka bill generate karo
+    </p>
+
+    @* Provider ke hospitals dropdown (agar multiple hospitals hain) *@
+    @* Abhi ke liye agar single hospital hai to hard-code karo *@
+    <a asp-controller="MonthlyBill"
+       asp-action="MyBills"
+       class="btn btn-outline-primary me-2">
+        📋 My Bills
+    </a>
+
+    @* Note: Create button ke liye hospitalId chahiye *@
+    @* Ye Provider Dashboard Controller se ViewBag mein bhejo *@
 </div>
