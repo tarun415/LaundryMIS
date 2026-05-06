@@ -4,6 +4,7 @@
     {
 
         public int Id { get; set; }
+        public int AgreementId { get; set; }
         public int Week { get; set; }
         public string Month { get; set; } = string.Empty;
         public int Year { get; set; }

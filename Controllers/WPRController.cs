@@ -14,11 +14,12 @@ namespace LaudaryMis.Controllers
             _wprService = wprService;
         }
 
-        // GET: /WPR/WPREntry
+        // GET: /WPR/WPREntry?agreementId=1
         [HttpGet]
-        public IActionResult WPREntry()
+        public IActionResult WPREntry(int agreementId = 0)
         {
-            return View(new WPRVM());
+            ViewBag.AgreementId = agreementId;
+            return View(new WPRVM { AgreementId = agreementId });
         }
 
         // POST: /WPR/WPREntry

@@ -55,10 +55,10 @@ namespace LaudaryMis.Repositories
             const string sql = @"
                 INSERT INTO WeeklyPerformanceReport
                     (Week, Month, Year, StaffName, Remarks,
-                     TotalScore, PaymentPercentage, SubmittedAt)
+                     TotalScore, PaymentPercentage, SubmittedAt, AgreementId)
                 VALUES
                     (@Week, @Month, @Year, @StaffName, @Remarks,
-                     @TotalScore, @PaymentPercentage, @SubmittedAt);
+                     @TotalScore, @PaymentPercentage, @SubmittedAt, @AgreementId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
             using var conn = CreateConnection();

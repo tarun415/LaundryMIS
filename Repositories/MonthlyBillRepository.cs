@@ -31,7 +31,7 @@ namespace LaudaryMis.Repositories
             const string sql = @"
                 SELECT
                     AVG(CAST(w.TotalScore AS DECIMAL(6,2))) AS AvgScore,
-                    COUNT(*)                                AS WeeksCount
+                    COUNT(DISTINCT w.Week)                  AS WeeksCount
                 FROM WeeklyPerformanceReport w
                 INNER JOIN ProviderHospitalAgreements a
                     ON w.AgreementId = a.Id
@@ -82,7 +82,7 @@ namespace LaudaryMis.Repositories
         {
             const string sql = @"
                 INSERT INTO MonthlyBills (
-                    AgreementId, HospitalId, BillingMonth, BillingYear,
+                    AgreementId, HospitalId, ProviderId, BillingMonth, BillingYear,
                     SanctionedBeds, RatePerBedPerYear, GSTPercent,
                     WPRAvgScore, WPRWeeksConsidered,
                     IsScoreOverridden, OverrideReason,
@@ -92,7 +92,7 @@ namespace LaudaryMis.Repositories
                     AdditionalDeductions, DeductionRemarks,
                     NetPayableAmount, Status, CreatedBy, CreatedAt
                 ) VALUES (
-                    @AgreementId, @HospitalId, @BillingMonth, @BillingYear,
+                    @AgreementId, @HospitalId, @ProviderId, @BillingMonth, @BillingYear,
                     @SanctionedBeds, @RatePerBedPerYear, @GSTPercent,
                     @WPRAvgScore, @WPRWeeksConsidered,
                     @IsScoreOverridden, @OverrideReason,

@@ -2,6 +2,7 @@
 {
     public class WPRVM
     {
+        public int AgreementId { get; set; }   // ← ADD
         public int Week { get; set; }
         public string Month { get; set; } = string.Empty;
         public int Year { get; set; }

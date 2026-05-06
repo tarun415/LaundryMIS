@@ -114,6 +114,7 @@ namespace LaudaryMis.Services
             {
                 AgreementId = vm.AgreementId,
                 HospitalId = vm.HospitalId,
+                ProviderId=vm.ProviderId,
                 BillingMonth = (byte)vm.BillingMonth,
                 BillingYear = (short)vm.BillingYear,
                 SanctionedBeds = vm.SanctionedBeds,
