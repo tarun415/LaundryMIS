@@ -2,7 +2,9 @@
 {
     public class WPRVM
     {
-        public int AgreementId { get; set; }   // ← ADD
+        public int AgreementId { get; set; }
+        public int ProviderId { get; set; }
+        public int HospitalId { get; set; }      // ← ADD HospitalId
         public int Week { get; set; }
         public string Month { get; set; } = string.Empty;
         public int Year { get; set; }
@@ -18,6 +20,7 @@
         public int ParameterId { get; set; }
         public int Score { get; set; }
     }
+
     public class ParameterVM
     {
         public int Id { get; set; }
