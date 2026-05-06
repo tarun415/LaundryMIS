@@ -2,6 +2,7 @@
 using LaudaryMis.Models;
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
@@ -178,6 +179,14 @@ namespace LaudaryMis.Repositories
             await _db.ExecuteAsync(
                 "UPDATE Tbl_Hospitals SET IsActive = 0 WHERE HospitalId=@id",
                 new { id });
+        }
+        public async Task<List<GetHospital>> GetHospitalNamesAsync()
+        {
+            var data = await _db.QueryAsync<GetHospital>(
+                "SELECT DISTINCT HospitalId as Id, HospitalName as Name FROM Tbl_Hospitals WHERE IsActive = 1 ORDER BY HospitalName"
+            );
+
+            return data.ToList();
         }
     }
 }

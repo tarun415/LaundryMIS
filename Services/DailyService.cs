@@ -22,11 +22,14 @@ namespace LaudaryMis.Services
             return await _repo.InsertAsync(model);
         }
 
-        public async Task<List<DailyEntryVM>> GetAllEntries()
+        public async Task<List<DailyEntryListVM>> GetAllEntries()
         {
             return await _repo.GetAllEntries();
         }
-
+        public async Task<List<DailyEntryItemsVM>> GetAllItems(int id)
+        {
+            return await _repo.GetAllItems(id);
+        }
         public async Task<List<Hospital>> GetHospitalsByProvider(int providerId)
         {
             return await _repo.GetHospitalsByProvider(providerId);
@@ -58,6 +61,10 @@ namespace LaudaryMis.Services
         public async Task<int> DeliverAsync(DeliveryVM model)
         {
             return await _repo.InsertDelivery(model);
+        }
+        public async Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date)
+        {
+            return await _repo.SearchDailyEntries(status, hospitalId, wardId, date);
         }
     }
 }

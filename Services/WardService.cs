@@ -39,5 +39,9 @@ namespace LaudaryMis.Services
             await _repo.DeleteAsync(id);
             return true;
         }
+        public async Task<List<Ward>> GetWardNamesAsync()
+        {
+            return await _repo.GetWardNamesAsync();
+        }
     }
 }

@@ -6,7 +6,8 @@ namespace LaudaryMis.Repositories.Interfaces
     public interface IDailyRepository
     {
         Task<int> InsertAsync(DailyEntryVM model);
-        Task<List<DailyEntryVM>> GetAllEntries();
+        Task<List<DailyEntryListVM>> GetAllEntries();
+        Task<List<DailyEntryItemsVM>> GetAllItems(int id);
         Task<List<Hospital>> GetHospitalsByProvider(int providerId);
 
         Task<List<WardVM>> GetWards();
@@ -19,5 +20,7 @@ namespace LaudaryMis.Repositories.Interfaces
 
         Task<IEnumerable<dynamic>> GetPendingEntries(int providerId);
         Task<dynamic> GetEntryWithItems(int id);
+        Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date);
+
     }
 }

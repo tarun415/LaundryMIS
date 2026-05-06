@@ -197,7 +197,7 @@ namespace LaudaryMis.Repositories
         WHERE ProviderId = @Id
     ", new { Id = id });
         }
-
+       
     }
 
 }

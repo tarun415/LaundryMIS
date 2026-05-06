@@ -6,7 +6,7 @@ namespace LaudaryMis.ViewModels
     {
         public DateTime EntryDate { get; set; }
 
-        public string? Ward { get; set; }
+        public int Ward { get; set; }
         public string? Shift { get; set; }
 
         public string? CollectedBy { get; set; }

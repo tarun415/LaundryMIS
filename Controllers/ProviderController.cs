@@ -1,4 +1,5 @@
-﻿using LaudaryMis.Services.Interfaces;
+﻿using LaudaryMis.Services;
+using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,15 +12,19 @@ namespace LaudaryMis.Controllers
         private readonly IDailyService _service;
         private readonly IProviderService _ProviderService;
         private readonly IWPRService _wprService;
+        private readonly IHospitalService _hosservice;
+        private readonly IWardService _wardservice;
 
         public ProviderController(
             IDailyService service,
             IProviderService providerService,
-            IWPRService wprService)
+            IWPRService wprService, IHospitalService hosservice, IWardService wardservice)
         {
             _service = service;
+            _hosservice = hosservice;
             _ProviderService = providerService;
             _wprService = wprService;
+            _wardservice = wardservice;
         }
 
         private int GetProviderId()
@@ -90,8 +95,6 @@ namespace LaudaryMis.Controllers
 
         public async Task<IActionResult> WPREntry()
         {
-
-
             return View();
         }
 
@@ -100,7 +103,11 @@ namespace LaudaryMis.Controllers
             var data = await _service.GetAllEntries();
             return View(data);
         }
-
+        public async Task<IActionResult> DailyEntryItems(int id)
+        {
+            var data = await _service.GetAllItems(id);
+            return Json(data);
+        }
 
         public async Task<IActionResult> Pending()
         {
@@ -133,6 +140,47 @@ namespace LaudaryMis.Controllers
         }
 
         // 🔥 WPR GET
-      
+        public async Task<IActionResult> GetHospitals()
+        {
+            var data = await _hosservice.GetHospitalNamesAsync();
+            return Json(data);
+        }
+        public async Task<IActionResult> GetWards()
+        {
+            var data = await _wardservice.GetWardNamesAsync();
+            return Json(data);
+        }
+        //Search
+        [HttpGet]
+        public async Task<IActionResult> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date)
+        {
+            var data = await _service.SearchDailyEntries(status, hospitalId, wardId, date);
+            return Json(data);
+        }
+        // EDIT
+        //public async Task<IActionResult> EditDailyEntry(int id)
+        //{
+        //    var data = await _service.GetDailyEntryByIdAsync(id);
+        //    return View("DailyEntry", data);
+        //}
+
+        //// DELETE
+        //[HttpPost]
+        //public async Task<JsonResult> DeleteDailyEntry(int id)
+        //{
+        //    try
+        //    {
+        //        var result = await _service.DeleteAsync(id);
+
+        //        if (!result)
+        //            return Json(new { success = false, message = "Ward not found" });
+
+        //        return Json(new { success = true, message = "Deleted successfully" });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Json(new { success = false, message = ex.Message });
+        //    }
+        //}
     }
 }

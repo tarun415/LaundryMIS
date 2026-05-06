@@ -19,5 +19,6 @@ namespace LaudaryMis.Repositories.Interfaces
         Task<List<District>> GetDistricts();
 
         Task DeleteAsync(int id);
+        Task<List<GetHospital>> GetHospitalNamesAsync();
     }
 }

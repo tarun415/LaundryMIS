@@ -88,12 +88,16 @@ SELECT CAST(SCOPE_IDENTITY() as int);
 
             return (await _db.QueryAsync<WardVM>(sql)).ToList();
         }
-        public async Task<List<DailyEntryVM>> GetAllEntries()
+        public async Task<List<DailyEntryListVM>> GetAllEntries()
         {
-            var sql = @"SELECT * FROM DailyEntries ORDER BY Id DESC";
-            return (await _db.QueryAsync<DailyEntryVM>(sql)).ToList();
+            var sql = @"SELECT ROW_NUMBER() OVER (ORDER BY de.Id DESC) AS RowNum, de.Id as EntryId, de.Status,de.Supervisor,de.IsInfected,de.CollectedBy,de.ReceivedBy,de.Remarks,de.Shift,de.EntryDate,de.DeliveredBy,ho.HospitalName,wr.WardName, (select sum(di.DirtyCount)   from DailyEntryItems di where di.EntryId=de.Id) as TotalPickupQty, (select sum(di.CleanCount)   from DailyEntryItems di where di.EntryId=de.Id) as CleanDeliveredQty  FROM  DailyEntries de  left join tbl_Hospitals ho on de.HospitalId=ho.HospitalId  left join  tbl_Wards as wr on de.Ward=wr.WardId ORDER BY Id DESC";
+            return (await _db.QueryAsync<DailyEntryListVM>(sql)).ToList();
         }
-
+        public async Task<List<DailyEntryItemsVM>> GetAllItems(int id)
+        {
+            var sql = @"select Id,EntryId,LinenType as LinenTypeName,DirtyCount as TotalPickupQty,CleanCount as CleanDeliveredQty From DailyEntryItems WHERE EntryId = @Id";
+            return (await _db.QueryAsync<DailyEntryItemsVM>(sql, new { Id = id })).ToList();
+        }
 
         public async Task UpdateStatus(int id, string status)
         {
@@ -234,6 +238,39 @@ SELECT CAST(SCOPE_IDENTITY() as int);
                 transaction.Rollback();
                 throw;
             }
+        }
+        public async Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date)
+        {
+            var sql = @"
+    SELECT 
+        de.Id AS EntryId,
+        ROW_NUMBER() OVER (ORDER BY de.Id DESC) AS RowNum,
+        de.EntryDate,
+        ho.HospitalName,
+        wr.WardName,
+        de.Status,
+        (SELECT SUM(di.DirtyCount) FROM DailyEntryItems di WHERE di.EntryId = de.Id) AS TotalPickupQty,
+        (SELECT SUM(di.CleanCount) FROM DailyEntryItems di WHERE di.EntryId = de.Id) AS CleanDeliveredQty
+    FROM DailyEntries de
+    LEFT JOIN Tbl_Hospitals ho ON de.HospitalId = ho.HospitalId
+    LEFT JOIN Tbl_Wards wr ON de.Ward = wr.WardId
+    WHERE 1=1
+        AND (@status IS NULL OR @status = '' OR de.Status = @status)
+        AND (@hospitalId IS NULL OR de.HospitalId = @hospitalId)
+        AND (@wardId IS NULL OR de.Ward = @wardId)
+        AND (@date IS NULL OR CAST(de.EntryDate AS DATE) = @date)
+    ORDER BY de.Id DESC
+    ";
+
+            var data = await _db.QueryAsync<DailyEntryListVM>(sql, new
+            {
+                status,
+                hospitalId,
+                wardId,
+                date
+            });
+
+            return data.ToList();
         }
     }
 }

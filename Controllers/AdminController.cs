@@ -1,4 +1,5 @@
 ﻿using LaudaryMis.Models;
+using LaudaryMis.Services;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -63,7 +64,7 @@ namespace LaudaryMis.Controllers
             await _service.CreateHospitalWithLogin(model);
             return RedirectToAction("Hospitals");
         }
-
+        
         //Edit
         public async Task<IActionResult> EditHospital(int id)
         {
@@ -90,8 +91,8 @@ namespace LaudaryMis.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+       
 
-        
         #endregion
 
         #region Provider

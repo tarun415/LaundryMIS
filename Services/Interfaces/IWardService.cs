@@ -9,5 +9,6 @@ namespace LaudaryMis.Services.Interfaces
         Task<WardVM> GetWardByIdAsync(int id);
         Task SaveAsync(WardVM model);
         Task<bool> DeleteAsync(int id);
+        Task<List<Ward>> GetWardNamesAsync();
     }
 }
