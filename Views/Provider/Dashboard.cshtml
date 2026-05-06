@@ -1,30 +1,114 @@
-﻿@{
+﻿@using LaudaryMis.Models
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var now = DateTime.Now;
+    var hospitals = ViewBag.Hospitals as List<Hospital> ?? new List<Hospital>();
+    int month = ViewBag.CurrentMonth != null ? (int)ViewBag.CurrentMonth : DateTime.Now.Month;
+    int year = ViewBag.CurrentYear != null ? (int)ViewBag.CurrentYear : DateTime.Now.Year;
+    string mName = ViewBag.MonthName as string ?? DateTime.Now.ToString("MMMM yyyy");
 }
 
-<h2>Provider Dashboard</h2>
+<style>
+    .page-header {
+        background: linear-gradient(135deg,#1a3c5e,#2563a8);
+        color: white;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+    }
 
-<div class="alert alert-warning">
-    Manage Laundry Service, Delivery, Logs
+    .dash-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.07);
+        padding: 20px 24px;
+        margin-bottom: 20px;
+    }
+
+        .dash-card h6 {
+            font-weight: 700;
+            color: #1a3c5e;
+            border-bottom: 2px solid #e8f0fe;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+        }
+
+    .hosp-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f4f8;
+    }
+
+        .hosp-row:last-child {
+            border-bottom: none;
+        }
+</style>
+
+<div class="page-header">
+    <h4 class="mb-1">🚚 Provider Dashboard</h4>
+    <p class="mb-0 opacity-75">Laundry Service Management</p>
 </div>
 
-<!-- YEH ADD KARO: -->
-<div class="card mt-3" style="background:#fff;border-radius:10px;
-     box-shadow:0 2px 12px rgba(0,0,0,.07);padding:20px 24px;">
-    <h6 style="font-weight:700;color:#1a3c5e;">🧾 Monthly Billing</h6>
-    <p class="text-muted small mb-3">
-        @now.ToString("MMMM yyyy") ka bill generate karo
-    </p>
+<!-- Quick Links -->
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+        <a asp-action="DailyEntry" class="dash-card d-block text-center text-decoration-none">
+            <div style="font-size:2rem">🧺</div>
+            <div class="fw-semibold text-dark">Daily Linen Log</div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a asp-action="Pending" class="dash-card d-block text-center text-decoration-none">
+            <div style="font-size:2rem">⏳</div>
+            <div class="fw-semibold text-dark">Pending</div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a asp-action="DailyEntryList" class="dash-card d-block text-center text-decoration-none">
+            <div style="font-size:2rem">📊</div>
+            <div class="fw-semibold text-dark">Reports</div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a asp-controller="MonthlyBill" asp-action="MyBills" class="dash-card d-block text-center text-decoration-none">
+            <div style="font-size:2rem">🧾</div>
+            <div class="fw-semibold text-dark">My Bills</div>
+        </a>
+    </div>
+</div>
 
-    @* Provider ke hospitals dropdown (agar multiple hospitals hain) *@
-    @* Abhi ke liye agar single hospital hai to hard-code karo *@
-    <a asp-controller="MonthlyBill"
-       asp-action="MyBills"
-       class="btn btn-outline-primary me-2">
-        📋 My Bills
-    </a>
+<!-- Monthly Billing Section -->
+<div class="dash-card">
+    <h6>🧾 Monthly Bill Banao — @mName</h6>
 
-    @* Note: Create button ke liye hospitalId chahiye *@
-    @* Ye Provider Dashboard Controller se ViewBag mein bhejo *@
+    @if (!hospitals.Any())
+    {
+        <div class="alert alert-warning mb-0">
+            ⚠️ Aapke account se koi hospital linked nahi hai. Admin se contact karein.
+        </div>
+    }
+    else
+    {
+        <p class="text-muted small mb-3">
+            Neeche apne hospital ke saamne <strong>Create Bill</strong> click karein:
+        </p>
+        @foreach (var h in hospitals)
+        {
+            <div class="hosp-row">
+                <div>
+                    <div class="fw-semibold">🏥 @h.HospitalName</div>
+                    <div class="text-muted small">@h.City</div>
+                </div>
+                <a asp-controller="MonthlyBill"
+                   asp-action="Create"
+                   asp-route-hospitalId="@h.HospitalId"
+                   asp-route-month="@month"
+                   asp-route-year="@year"
+                   class="btn btn-primary btn-sm">
+                    ➕ Create Bill
+                </a>
+            </div>
+        }
+    }
 </div>

@@ -107,7 +107,7 @@ SELECT CAST(SCOPE_IDENTITY() as int);
 
         public async Task<List<LinenType>> GetLinenTypes()
         {
-            var sql = "SELECT LinenTypeId, LinenName FROM LinenType";
+            var sql = "SELECT LinenTypeId, LinenName FROM LinenType ORDER BY LinenTypeId;";
 
             var data = await _db.QueryAsync<LinenType>(sql);
 
