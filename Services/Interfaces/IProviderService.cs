@@ -12,5 +12,6 @@ namespace LaudaryMis.Services.Interfaces
         Task<IEnumerable<ProvidersVM>> GetProviderAsync();
         Task<ProvidersVM> GetProviderByIdAsync(int id);
         Task<bool> DeleteAsync(int id);
+      
     }
 }

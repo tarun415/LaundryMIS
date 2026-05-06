@@ -38,7 +38,7 @@ namespace LaudaryMis.Controllers
             return View(data);
         }
 
-
+       
 
     }
 }

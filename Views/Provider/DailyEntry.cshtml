@@ -120,7 +120,7 @@
 
     document.addEventListener("DOMContentLoaded", generateTable);
 
-    async function saveEntry() {
+       function saveEntry() {
 
         const rows = document.querySelectorAll("#linenTable tr");
 
@@ -133,57 +133,62 @@
 
             if (dirty > 0) {
                 items.push({
-                    linenType: type,
-                    dirtyCount: dirty
+                    LinenType: type,
+                    DirtyCount: dirty
                 });
             }
         });
 
-    const hospitalId = parseInt(document.getElementById("ln-hospital").value);
-
-    if (!hospitalId) {
-        alert("Select hospital");
-        return;
-    }
-    const wardId = parseInt(document.getElementById("ln-ward").value);
-
-    if (!wardId) {
-        alert("Select ward");
-        return;
-    }
-
-    if (items.length === 0) {
-        alert("Enter at least one item");
-        return;
-    }
-
-    const data = {
-        entryDate: document.getElementById("ln-date").value,
-        //ward: document.getElementById("ln-ward").value,
-        shift: document.getElementById("ln-shift").value,
-        hospitalId: hospitalId,
-        ward: wardId,
-
-        collectedBy: document.getElementById("ln-collected").value,
-        receivedBy: document.getElementById("ln-received").value,
-        supervisor: document.getElementById("ln-supervisor").value,
-
-        isInfected: document.getElementById("ln-infected").checked,
-        remarks: document.getElementById("ln-remarks").value || "",
-
-        items: items
-    };
-        const res = await fetch('/Provider/Save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-
-        const result = await res.json();
-
-        if (result.success) {
-            alert("Saved Successfully");
-            location.reload();
+        const hospitalId = parseInt($("#ln-hospital").val());
+        if (!hospitalId) {
+            alert("Select hospital");
+            return;
         }
+
+        const wardId = parseInt($("#ln-ward").val());
+        if (!wardId) {
+            alert("Select ward");
+            return;
+        }
+
+        if (items.length === 0) {
+            alert("Enter at least one item");
+            return;
+        }
+
+        const data = {
+            EntryDate: $("#ln-date").val(),
+            Shift: $("#ln-shift").val(),
+            HospitalId: hospitalId,
+            Ward: wardId,
+
+            CollectedBy: $("#ln-collected").val(),
+            ReceivedBy: $("#ln-received").val(),
+            Supervisor: $("#ln-supervisor").val(),
+
+            IsInfected: $("#ln-infected").is(":checked"),
+            Remarks: $("#ln-remarks").val() || "",
+
+            Items: items
+        };
+
+        $.ajax({
+            url: '/Provider/Save',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+
+            success: function (result) {
+                if (result.success) {
+                    alert("Saved Successfully");
+                    location.reload();
+                }
+            },
+
+            error: function (xhr) {
+                console.log(xhr.responseText);
+                alert(xhr.responseText || "Error occurred");
+            }
+        });
     }
 </script>

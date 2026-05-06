@@ -25,7 +25,15 @@ namespace LaudaryMis.Repositories
             return await _db.QueryFirstOrDefaultAsync<WardVM>(
                 "SELECT * FROM tbl_Wards WHERE WardId = @id", new { id });
         }
+      
+        public async Task<List<Ward>> GetWardNamesAsync()
+        {
+            var data = await _db.QueryAsync<Ward>(
+                "SELECT DISTINCT WardId as Id, WardName as Name FROM tbl_Wards WHERE IsActive = 1 ORDER BY WardName"
+            );
 
+            return data.ToList();
+        }
         public async Task SaveAsync(WardVM model)
         {
             if (model.WardId == 0)
