@@ -19,5 +19,9 @@ namespace LaudaryMis.Services.Interfaces
         Task<int> DeliverAsync(DeliveryVM model);
 
         Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date);
+
+       Task<DailyEntryVM> GetDailyEntryByIdAsync(int id);
+
+        Task<bool> DeleteAsync(int id);
     }
 }

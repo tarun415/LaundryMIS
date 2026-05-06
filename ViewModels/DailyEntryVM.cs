@@ -4,6 +4,7 @@ namespace LaudaryMis.ViewModels
 {
     public class DailyEntryVM
     {
+        public int EntryId { get; set; }
         public DateTime EntryDate { get; set; }
 
         public int Ward { get; set; }

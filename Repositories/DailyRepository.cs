@@ -72,6 +72,73 @@ SELECT CAST(SCOPE_IDENTITY() as int);
             }
         }
 
+        public async Task<int> UpdateAsync(DailyEntryVM model)
+        {
+            if (_db.State == ConnectionState.Closed)
+                _db.Open();
+
+            using var transaction = _db.BeginTransaction();
+
+            try
+            {
+                // 🔹 UPDATE HEADER
+                await _db.ExecuteAsync(@"
+            UPDATE DailyEntries
+            SET 
+                EntryDate = @EntryDate,
+                Ward = @Ward,
+                Shift = @Shift,
+                HospitalId = @HospitalId,
+                CollectedBy = @CollectedBy,
+                ReceivedBy = @ReceivedBy,
+                Supervisor = @Supervisor,
+                IsInfected = @IsInfected,
+                Remarks = @Remarks
+            WHERE Id = @EntryId
+        ", new
+                {
+                    model.EntryId,
+                    model.EntryDate,
+                    model.Ward,
+                    model.Shift,
+                    model.HospitalId,
+                    model.CollectedBy,
+                    model.ReceivedBy,
+                    model.Supervisor,
+                    model.IsInfected,
+                    Remarks = model.Remarks ?? ""
+                }, transaction);
+
+                // 🔥 IMPORTANT: DELETE OLD ITEMS
+                await _db.ExecuteAsync(@"
+            DELETE FROM DailyEntryItems
+            WHERE EntryId = @EntryId
+        ", new { model.EntryId }, transaction);
+
+                // 🔥 INSERT NEW ITEMS
+                foreach (var item in model.Items)
+                {
+                    await _db.ExecuteAsync(@"
+                INSERT INTO DailyEntryItems (EntryId, LinenType, DirtyCount)
+                VALUES (@EntryId, @LinenType, @DirtyCount)
+            ", new
+                    {
+                        EntryId = model.EntryId,
+                        item.LinenType,
+                        item.DirtyCount
+                    }, transaction);
+                }
+
+                transaction.Commit();
+
+                return model.EntryId;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
         public async Task<List<Hospital>> GetHospitalsByProvider(int providerId)
         {
             var sql = @"
@@ -82,7 +149,7 @@ SELECT CAST(SCOPE_IDENTITY() as int);
 
             return (await _db.QueryAsync<Hospital>(sql, new { ProviderId = providerId })).ToList();
         }
-        public async Task<List<WardVM>>GetWards()
+        public async Task<List<WardVM>> GetWards()
         {
             var sql = @"Select WardId , WardName from tbl_Wards where IsActive=1";
 
@@ -193,6 +260,19 @@ SELECT CAST(SCOPE_IDENTITY() as int);
                         item.LinenType,
                         item.CleanCount
                     }, transaction);
+
+                    // 🔥 UPDATE DailyEntryItems CleanCount (ACCUMULATE)
+                    await _db.ExecuteAsync(@"
+        UPDATE DailyEntryItems
+        SET CleanCount = ISNULL(CleanCount, 0) + @CleanCount
+        WHERE EntryId = @EntryId
+        AND LTRIM(RTRIM(LinenType)) = LTRIM(RTRIM(@LinenType))
+    ", new
+                    {
+                        model.EntryId,
+                        item.LinenType,
+                        item.CleanCount
+                    }, transaction);
                 }
 
                 // 🔥 STEP 2 START — CALCULATE STATUS
@@ -271,6 +351,103 @@ SELECT CAST(SCOPE_IDENTITY() as int);
             });
 
             return data.ToList();
+        }
+        public async Task<DailyEntryVM> GetDailyEntryByIdAsync(int id)
+        {
+            var model = new DailyEntryVM();
+
+            // 🔹 HEADER
+            var header = await _db.QueryFirstOrDefaultAsync<DailyEntryVM>(@"
+        SELECT 
+            Id AS EntryId,
+            EntryDate,
+            HospitalId,
+            ProviderId,
+            Ward,
+            Shift,
+            CollectedBy,
+            ReceivedBy,
+            Supervisor,
+            IsInfected,
+            Remarks
+        FROM DailyEntries
+        WHERE Id = @id
+    ", new { id });
+
+            if (header == null) return null;
+
+            model = header;
+
+            // 🔹 ITEMS
+            var items = await _db.QueryAsync<LinenItemVM>(@"
+        SELECT 
+            Id,
+            EntryId,
+            LinenType,
+            DirtyCount,
+            CleanCount
+        FROM DailyEntryItems
+        WHERE EntryId = @id
+    ", new { id });
+            var LinenType = await _db.QueryAsync<LinenType>(@"
+        SELECT 
+            Id LinenTypeId,
+            EntryId,
+            LinenType LinenName,
+            DirtyCount,
+            CleanCount
+        FROM DailyEntryItems
+        WHERE EntryId = @id
+    ", new { id });
+
+            model.Items = items.ToList();
+            model.LinenTypes = LinenType.ToList();
+            model.Hospitals = await GetHospitalsByProvider(model.ProviderId);
+            //  model.Hospitals = (await _db.QueryAsync<Hospital>("SELECT HospitalId, HospitalName FROM Tbl_Hospitals")).ToList();
+
+            model.Wards = (await _db.QueryAsync<WardVM>("SELECT WardId, WardName FROM Tbl_Wards")).ToList();
+
+          
+
+
+            return model;
+        }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            if (_db.State == ConnectionState.Closed)
+                _db.Open();
+
+            using (var tran = _db.BeginTransaction())
+            {
+                try
+                {
+                    // Check exists
+                    var exists = await _db.ExecuteScalarAsync<int>(
+                        "SELECT COUNT(1) FROM DailyEntries WHERE Id=@id",
+                        new { id }, tran);
+
+                    if (exists == 0)
+                        return false;
+
+                    //  Delete child first (VERY IMPORTANT)
+                    await _db.ExecuteAsync(
+                        "DELETE FROM DailyEntryItems WHERE EntryId=@id",
+                        new { id }, tran);
+
+                    // Delete parent
+                    await _db.ExecuteAsync(
+                        "DELETE FROM DailyEntries WHERE Id=@id",
+                        new { id }, tran);
+
+                    tran.Commit();
+                    return true;
+                }
+                catch
+                {
+                    tran.Rollback();
+                    throw;
+                }
+            }
         }
     }
 }

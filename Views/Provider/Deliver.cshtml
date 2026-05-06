@@ -1,96 +1,201 @@
 ﻿@model dynamic
 
+<style>
+    .card {
+        border-radius: 14px;
+    }
+
+    .table th {
+        background: #dbeafe; /* light blue */
+    }
+
+    .form-control {
+        border-radius: 10px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        border: none;
+    }
+
+    .section-title {
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    /* 🔥 FIX HEADER COLOR */
+    .table thead th {
+        background: #dbeafe; /* light blue */
+        color: #1e3a8a; /* deep blue text */
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    /* 🔥 SCROLL TABLE */
+    .table-scroll {
+        max-height: 350px;
+        overflow-y: auto;
+    }
+</style>
+
 <div class="container mt-4">
-    <h3>🚚 Deliver Clean Linen</h3>
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">🚚 Deliver Clean Linen</h4>
+
+        <!-- BACK -->
+        <a href="/Provider/Pending" class="btn btn-outline-secondary rounded-pill px-3">
+            ← Back to List
+        </a>
+    </div>
 
     <input type="hidden" id="entryId" value="@Model.Entry.Id" />
 
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Linen</th>
-                <th>Dirty</th>
-                <th>Delivered</th>
-                <th>Remaining</th>
-                <th>Enter Clean</th>
-            </tr>
-        </thead>
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
 
-        <tbody>
-            @foreach (var item in Model.Items)
-            {
-                var remaining = item.DirtyCount - item.DeliveredCount;
+            <!-- 🔥 SCROLLABLE TABLE -->
+            <div class="table-responsive table-scroll">
+                <table class="table table-hover align-middle">
 
-                <tr>
-                    <td>@item.LinenType</td>
-                    <td>@item.DirtyCount</td>
-                    <td>@item.DeliveredCount</td>
-                    <td class="@(remaining == 0 ? "text-success" : "text-danger")">
-                        @remaining
-                    </td>
-                    <td>
-                        <input type="number"
-                               class="clean form-control"
-                               data-type="@item.LinenType"
-                               data-remaining="@remaining"
-                               @(remaining == 0 ? "disabled" : "") />
-                </tr>
-            }
-        </tbody>
-    </table>
-    <input type="text" id="deliveredBy" placeholder="Delivered By" />
-    <input type="text" id="receivedBackBy" placeholder="Received Back By" />
-    <input type="text" id="remarks" placeholder="Remarks" />
+                    <thead>
+                        <tr>
+                            <th>Linen</th>
+                            <th>Dirty</th>
+                            <th>Delivered</th>
+                            <th>Remaining</th>
+                            <th>Enter Clean</th>
+                        </tr>
+                    </thead>
 
-    <button onclick="saveDelivery()">Save</button>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            var remaining = item.DirtyCount - item.DeliveredCount;
+
+                            <tr>
+                                <td class="fw-semibold">@item.LinenType</td>
+
+                                <td>@item.DirtyCount</td>
+
+                                <td class="text-success fw-bold">
+                                    @item.DeliveredCount
+                                </td>
+
+                                <td class="fw-bold @(remaining == 0 ? "text-success" : "text-danger")">
+                                    @remaining
+                                </td>
+
+                                <td style="max-width:120px;">
+                                    <input type="number"
+                                           class="clean form-control text-center"
+                                           data-type="@item.LinenType"
+                                           data-remaining="@remaining"
+                                           placeholder="0"
+                                           @(remaining == 0 ? "disabled" : "") />
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+
+            <hr />
+
+            <!-- FORM -->
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <label class="section-title">Delivered By</label>
+                    <input type="text" id="deliveredBy" class="form-control" placeholder="Enter name" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="section-title">Received Back By</label>
+                    <input type="text" id="receivedBackBy" class="form-control" placeholder="Enter name" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="section-title">Remarks</label>
+                    <input type="text" id="remarks" class="form-control" placeholder="Optional remarks" />
+                </div>
+
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="d-flex justify-content-end gap-2 mt-4">
+
+                <!-- CANCEL -->
+                <a href="/Provider/Pending"
+                   class="btn btn-light border rounded-pill px-4">
+                    Cancel
+                </a>
+
+                <!-- SAVE -->
+                <button onclick="saveDelivery()" class="btn btn-primary rounded-pill px-4">
+                    💾 Save Delivery
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
 </div>
 
-<script>
-    async function saveDelivery(){
+@section Scripts {
+    <script>
+        async function saveDelivery(){
 
-        let items = [];
+            let items = [];
 
-        for (let i of document.querySelectorAll(".clean")) {
+            for (let i of document.querySelectorAll(".clean")) {
 
-            let clean = parseInt(i.value) || 0;
-            let remaining = parseInt(i.dataset.remaining);
+                let clean = parseInt(i.value) || 0;
+                let remaining = parseInt(i.dataset.remaining);
 
-            if (clean > remaining) {
-                alert(`Cannot exceed remaining (${remaining})`);
+                if (clean > remaining) {
+                    alert(`Cannot exceed remaining (${remaining})`);
+                    return;
+                }
+
+                if (clean > 0) {
+                    items.push({
+                        linenType: i.dataset.type,
+                        cleanCount: clean
+                    });
+                }
+            }
+
+            if (items.length === 0) {
+                alert("Enter at least one item");
                 return;
             }
 
-            if (clean > 0) {
-                items.push({
-                    linenType: i.dataset.type,
-                    cleanCount: clean
-                });
+            const data = {
+                entryId: parseInt(document.getElementById("entryId").value),
+                deliveredBy: document.getElementById("deliveredBy").value,
+                receivedBackBy: document.getElementById("receivedBackBy").value,
+                remarks: document.getElementById("remarks").value,
+                items: items
+            };
+
+            const res = await fetch('/Provider/Deliver',{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify(data)
+            });
+
+            const r = await res.json();
+
+            if(r.success){
+                alert("Delivery Saved");
+                window.location.href="/Provider/Pending";
             }
         }
-
-        if (items.length === 0) {
-            alert("Enter at least one item");
-            return;
-        }
-
-        const data = {
-            entryId: parseInt(document.getElementById("entryId").value),
-            deliveredBy: document.getElementById("deliveredBy").value,
-            receivedBackBy: document.getElementById("receivedBackBy").value,
-            remarks: document.getElementById("remarks").value,
-            items: items
-        };
-
-        const res = await fetch('/Provider/Deliver',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body: JSON.stringify(data)
-        });
-
-        const r = await res.json();
-
-        if(r.success){
-            alert("Delivery Saved");
-            window.location.href="/Provider/Pending";
-        }
-    }</script>
+    </script>
+}
