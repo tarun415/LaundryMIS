@@ -1,10 +1,15 @@
 ﻿@model LaudaryMis.ViewModels.MonthlyBillVM
 @{
     ViewData["Title"] = "Bill Detail";
+    var isProvider = User.IsInRole("Provider");
+    var isHospital = User.IsInRole("Hospital");
+    var isAdmin = User.IsInRole("Admin");
     var statusColor = Model.Status switch
     {
         "Draft" => "secondary",
-        "Submitted" => "warning",
+        "HospitalSubmitted" => "warning",
+        "HospitalApproved" => "info",
+        "HospitalRejected" => "danger",
         "CMSApproved" => "success",
         "CMSRejected" => "danger",
         _ => "secondary"
@@ -173,43 +178,60 @@
             <h6>⚡ Actions</h6>
             <div class="d-flex gap-2 flex-wrap">
 
-                @if (Model.CanEdit)
+                @* ── PROVIDER actions ── *@
+                @if (isProvider)
                 {
-                    <a asp-action="Create"
-                       asp-route-hospitalId="@Model.HospitalId"
-                       asp-route-month="@Model.BillingMonth"
-                       asp-route-year="@Model.BillingYear"
-                       class="btn btn-outline-primary">✏️ Edit</a>
+                    @if (Model.CanEdit)
+                    {
+                        <a asp-action="Create"
+                           asp-route-hospitalId="@Model.HospitalId"
+                           asp-route-month="@Model.BillingMonth"
+                           asp-route-year="@Model.BillingYear"
+                           class="btn btn-outline-primary">✏️ Edit</a>
+                    }
+
+                    @* Draft ya HospitalRejected → Hospital ko submit karo *@
+                    @if (Model.Status == "Draft" || Model.Status == "HospitalRejected")
+                    {
+                        <form asp-action="SubmitToHospital" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="billId" value="@Model.BillId" />
+                            <button type="submit" class="btn btn-success"
+                                    onclick="return confirm('Hospital ko submit karna chahte ho?')">
+                                🏥 Submit to Hospital
+                            </button>
+                        </form>
+                    }
+
+                    @* CMS ne reject kiya → resubmit to hospital *@
+                    @if (Model.Status == "CMSRejected")
+                    {
+                        <form asp-action="SubmitToHospital" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="billId" value="@Model.BillId" />
+                            <button type="submit" class="btn btn-warning">🔄 Re-Submit to Hospital</button>
+                        </form>
+                    }
+
+                    <a asp-action="MyBills" class="btn btn-outline-secondary">← Back</a>
                 }
 
-                @if (Model.CanSubmit)
+                @* ── HOSPITAL actions ── *@
+                @if (isHospital && Model.Status == "HospitalSubmitted")
                 {
-                    <form asp-action="Submit" method="post" class="d-inline">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="billId" value="@Model.BillId" />
-                        <button type="submit" class="btn btn-success"
-                                onclick="return confirm('CMS ko submit karna chahte ho?')">
-                            🚀 Submit to CMS
-                        </button>
-                    </form>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalHospApprove">✅ Approve</button>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalHospReject">❌ Reject</button>
+                    <a asp-action="HospitalQueue" class="btn btn-outline-secondary">← Queue</a>
                 }
 
-                @if (Model.Status == "CMSRejected")
+                @* ── ADMIN/CMS actions ── *@
+                @if (isAdmin && Model.Status == "HospitalApproved")
                 {
-                    <form asp-action="Submit" method="post" class="d-inline">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="billId" value="@Model.BillId" />
-                        <button type="submit" class="btn btn-warning">🔄 Re-Submit</button>
-                    </form>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalApprove">✅ CMS Approve</button>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalReject">❌ CMS Reject</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">← All Bills</a>
                 }
 
-                @if (Model.Status == "Submitted")
-                {
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalApprove">✅ Approve</button>
-                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalReject">❌ Reject</button>
-                }
-
-                <a asp-action="MyBills" class="btn btn-outline-secondary">← Back</a>
             </div>
         </div>
     </div>
@@ -256,6 +278,58 @@
                 </div>
             </div>
         }
+    </div>
+</div>
+
+<!-- Hospital Approve Modal -->
+<div class="modal fade" id="modalHospApprove" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">✅ Hospital Approval</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="HospitalAction" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="billId" value="@Model.BillId" />
+                <input type="hidden" name="approve" value="true" />
+                <div class="modal-body">
+                    <p class="text-muted">Is bill ko hospital ki taraf se approve karna chahte ho?</p>
+                    <label class="form-label">Remarks (Optional)</label>
+                    <textarea name="remarks" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">✅ Approve Karo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hospital Reject Modal -->
+<div class="modal fade" id="modalHospReject" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">❌ Hospital Rejection</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="HospitalAction" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="billId" value="@Model.BillId" />
+                <input type="hidden" name="approve" value="false" />
+                <div class="modal-body">
+                    <label class="form-label fw-bold">Rejection Reason <span class="text-danger">*</span></label>
+                    <textarea name="remarks" class="form-control" rows="3"
+                              placeholder="Rejection ki wajah likhein..." required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">❌ Reject Karo</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

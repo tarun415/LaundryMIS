@@ -108,7 +108,8 @@
             linen:      '@Url.Action("DailyEntry", "Provider")',
             Pending:    '@Url.Action("Pending", "Provider")',
             reports:    '@Url.Action("DailyEntryList", "Provider")',
-            myBills:    '@Url.Action("MyBills", "MonthlyBill")',  // ← ADD
+            createBill: '@Url.Action("SelectHospital", "MonthlyBill")',
+            myBills:    '@Url.Action("MyBills", "MonthlyBill")',
         }
         };
 
@@ -130,8 +131,8 @@
                     { section: "Billing" },
         { id: "billQueue", icon: "🧾", label: "Bill Verify", route: () => routes.hospital.billQueue },
             ],
-            Provider: [ 
-                { section: "Overview" }, 
+            Provider: [
+                { section: "Overview" },
                 { id: "dashboard", icon: "🚚", label: "Dashboard", route: () => routes.provider.dashboard },
                 { section: "Operations" },
                 { id: "linen", icon: "🧺", label: "Daily Linen Log", route: () => routes.provider.linen },
@@ -139,7 +140,8 @@
                 // { id: "Deliver", icon: "🧺", label: "Deliver", route: () => routes.provider.Deliver },
                 { id: "reports", icon: "📊", label: "Reports", route: () => routes.provider.reports },
                         { section: "Billing" },
-        { id: "myBills", icon: "🧾", label: "My Bills", route: () => routes.provider.myBills },
+        { id: "createBill", icon: "➕", label: "Create Bill",  route: () => routes.provider.createBill },
+        { id: "myBills",    icon: "🧾", label: "My Bills",     route: () => routes.provider.myBills },
             ]
         };
 

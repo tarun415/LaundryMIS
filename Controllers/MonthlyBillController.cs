@@ -10,15 +10,29 @@ namespace LaudaryMis.Controllers
     public class MonthlyBillController : Controller
     {
         private readonly IMonthlyBillService _billService;
+        private readonly IDailyService _dailyService;
 
-        public MonthlyBillController(IMonthlyBillService billService)
+        public MonthlyBillController(IMonthlyBillService billService, IDailyService dailyService)
         {
             _billService = billService;
+            _dailyService = dailyService;
         }
 
         // ════════════════════════════════════════════════
         // PROVIDER ACTIONS
         // ════════════════════════════════════════════════
+
+        // GET /MonthlyBill/SelectHospital
+        [Authorize(Roles = "Provider")]
+        [HttpGet]
+        public async Task<IActionResult> SelectHospital()
+        {
+            var hospitals = await _dailyService.GetHospitalsByProvider(GetProviderId());
+            ViewBag.Hospitals = hospitals;
+            ViewBag.CurrentMonth = DateTime.Now.Month;
+            ViewBag.CurrentYear = DateTime.Now.Year;
+            return View();
+        }
 
         // GET /MonthlyBill/Create?hospitalId=1&month=4&year=2026
         [Authorize(Roles = "Provider")]
