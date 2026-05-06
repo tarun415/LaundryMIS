@@ -49,6 +49,7 @@ namespace LaudaryMis.Services
 
                 var wpr = new WeeklyPerformanceReport
                 {
+                    AgreementId = model.AgreementId,   // ← ADD
                     Week = model.Week,
                     Month = model.Month,
                     Year = model.Year,
