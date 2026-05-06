@@ -5,6 +5,9 @@
 
         public int Id { get; set; }
         public int AgreementId { get; set; }
+        public int ProviderId { get; set; }      // ← ADD THIS
+        public int HospitalId { get; set; }      // ← ADD HospitalId
+
         public int Week { get; set; }
         public string Month { get; set; } = string.Empty;
         public int Year { get; set; }

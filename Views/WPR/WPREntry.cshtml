@@ -22,6 +22,8 @@
 
         <input type="hidden" id="totalScoreHidden" name="TotalScore" />
         <input type="hidden" name="AgreementId" value="@ViewBag.AgreementId" />
+        <input type="hidden" id="providerIdHidden" name="ProviderId" "@ViewBag.ProviderId" />
+        <input type="hidden" id="hospitalIdHidden" name="HospitalId" value="@ViewBag.HospitalId" />
 
         <!-- TOP GRID: Details + Live Score -->
         <div class="g2">
@@ -30,6 +32,12 @@
             <div class="card">
                 <div class="card-hdr">
                     <div class="card-title"><span class="card-icon">📝</span> Report Details</div>
+                </div>
+
+                <!-- Hospital Display -->
+                <div style="background:#f8f6f2;padding:10px;border-radius:6px;margin-bottom:12px;">
+                    <div style="font-size:11px;color:#888;font-weight:600;">📍 Hospital</div>
+                    <div id="hospitalDisplay" style="font-size:14px;color:#333;font-weight:500;margin-top:4px;">@Model.</div>
                 </div>
 
                 <div class="g2">
@@ -45,7 +53,21 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Month</label>
-                        <input name="Month" id="fMonth" class="form-control" readonly />
+                        <select name="Month" id="fMonth" class="form-control" required>
+                            <option value="">-- Select Month --</option>
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
+                        </select>
                     </div>
                 </div>
 
@@ -177,14 +199,55 @@
       "Warning Letters"
     ];
 
+    // Month mapping
+    const MONTHS = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
     // ✅ Auto-fill month, year aur current week
     const now = new Date();
     const day = now.getDate();
+    const currentMonth = now.getMonth();
     const currentWeek = Math.min(Math.ceil(day / 7), 5);
 
-    document.getElementById("fMonth").value = now.toLocaleString("default", { month: "long" });
+    // Set current month in dropdown
+    document.getElementById("fMonth").value = MONTHS[currentMonth];
     document.getElementById("fYear").value = now.getFullYear();
     document.getElementById("fWeek").value = currentWeek;
+
+    // ✅ Fetch Agreement details to get ProviderId and HospitalId
+    const agreementId = document.querySelector('input[name="AgreementId"]').value;
+
+    if (agreementId && agreementId !== "0") {
+        fetchAgreementProviderDetails(agreementId);
+    }
+
+    async function fetchAgreementProviderDetails(agreementId) {
+        try {
+            // Call API to get Agreement details including ProviderId and HospitalId
+            const response = await fetch(`/api/agreement/${agreementId}`);
+            if (response.ok) {
+                const agreement = await response.json();
+                document.getElementById("providerIdHidden").value = agreement.providerId;
+                document.getElementById("hospitalIdHidden").value = agreement.hospitalId;
+
+                // ✅ Display Hospital Name
+                displayHospitalInfo(agreement.hospitalName || "Hospital #" + agreement.hospitalId);
+            } else {
+                console.warn("Could not fetch agreement details");
+                document.getElementById("hospitalDisplay").textContent = "Hospital not found";
+            }
+        } catch (error) {
+            console.error("Error fetching agreement:", error);
+            document.getElementById("hospitalDisplay").textContent = "Error loading hospital";
+        }
+    }
+
+    function displayHospitalInfo(hospitalName) {
+        document.getElementById("hospitalDisplay").textContent = "🏥 " + hospitalName;
+        document.getElementById("hospitalDisplay").style.color = "#27ae60";
+    }
 
     // Build KPI rows
     const kpiContainer = document.getElementById("kpiRows");
@@ -332,6 +395,27 @@
     }
 
     function validateForm() {
+        // ✅ ProviderId check
+        const providerId = document.getElementById("providerIdHidden").value;
+        if (!providerId || providerId === "0") {
+            alert("Provider information not found. Please select a valid agreement.");
+            return false;
+        }
+
+        // ✅ HospitalId check
+        const hospitalId = document.getElementById("hospitalIdHidden").value;
+        if (!hospitalId || hospitalId === "0") {
+            alert("Hospital information not found. Please select a valid agreement.");
+            return false;
+        }
+
+        // ✅ Month selection check
+        const month = document.getElementById("fMonth").value;
+        if (!month) {
+            alert("Please select a month.");
+            return false;
+        }
+
         // ✅ Sab 10 parameters score hone chahiye
         for (let i = 1; i <= 10; i++) {
             if (!document.getElementById("score_" + i).value) {
