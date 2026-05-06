@@ -158,29 +158,29 @@ namespace LaudaryMis.Controllers
             return Json(data);
         }
         // EDIT
-        //public async Task<IActionResult> EditDailyEntry(int id)
-        //{
-        //    var data = await _service.GetDailyEntryByIdAsync(id);
-        //    return View("DailyEntry", data);
-        //}
+        public async Task<IActionResult> EditDailyEntry(int id)
+        {
+            var data = await _service.GetDailyEntryByIdAsync(id);
+            return View("DailyEntry", data);
+        }
 
-        //// DELETE
-        //[HttpPost]
-        //public async Task<JsonResult> DeleteDailyEntry(int id)
-        //{
-        //    try
-        //    {
-        //        var result = await _service.DeleteAsync(id);
+        // DELETE
+        [HttpPost]
+        public async Task<JsonResult> DeleteDailyEntry(int id)
+        {
+            try
+            {
+                var result = await _service.DeleteAsync(id);
 
-        //        if (!result)
-        //            return Json(new { success = false, message = "Ward not found" });
+                if (!result)
+                    return Json(new { success = false, message = "Entry not found" });
 
-        //        return Json(new { success = true, message = "Deleted successfully" });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Json(new { success = false, message = ex.Message });
-        //    }
-        //}
+                return Json(new { success = true, message = "Deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
     }
 }

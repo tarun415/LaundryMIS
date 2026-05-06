@@ -21,6 +21,9 @@ namespace LaudaryMis.Repositories.Interfaces
         Task<IEnumerable<dynamic>> GetPendingEntries(int providerId);
         Task<dynamic> GetEntryWithItems(int id);
         Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date);
+        Task<DailyEntryVM> GetDailyEntryByIdAsync(int id);
+        Task<bool> DeleteAsync(int id);
+        Task<int> UpdateAsync(DailyEntryVM model);
 
     }
 }

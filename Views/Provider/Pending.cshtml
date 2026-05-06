@@ -1,37 +1,141 @@
 ﻿@model IEnumerable<dynamic>
 
-<h3>Pending Deliveries</h3>
-
-<table class="table table-bordered">
-    <tr>
-        <th>Date</th>
-        <th>Hospital</th>
-        <th>Status</th>   <!-- 🔥 NEW -->
-
-        <th>Action</th>
-    </tr>
-
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@item.EntryDate</td>
-            <td>@item.HospitalName</td>
-
-            <!-- 🔥 STATUS BADGE -->
-            <td>
-                <span class="badge
-                @(item.Status == "Delivered" ? "bg-success" :
-                                    item.Status == "Partial" ? "bg-warning text-dark" :
-                                    "bg-danger")">
-                @item.Status
-            </span>
-        </td>
-
-            <td>
-                <a href="/Provider/Deliver/@item.EntryId" class="btn btn-success">
-                    Deliver
-                </a>
-            </td>
-        </tr>
+<style>
+    .btn-primary {
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        border: none;
+        color: #fff;
+        font-weight: 500;
     }
-</table>
+
+    .dt-buttons {
+        display: flex;
+        gap: 6px;
+    }
+
+        .dt-buttons .btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff !important;
+            border: none;
+        }
+
+    .buttons-copy {
+        background: #6c757d !important;
+    }
+
+    .buttons-excel {
+        background: #198754 !important;
+    }
+
+    .buttons-pdf {
+        background: #dc3545 !important;
+    }
+
+    .buttons-print {
+        background: #0d6efd !important;
+    }
+
+    .dataTables_filter input {
+        border-radius: 20px;
+        padding: 5px 10px;
+    }
+</style>
+
+<div class="container mt-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold">🚚 Pending Deliveries</h4>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table id="deliveryTable" class="table table-hover align-middle">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Hospital</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@Convert.ToDateTime(item.EntryDate).ToString("dd MMM yyyy")</td>
+                                <td class="fw-semibold">@item.HospitalName</td>
+
+                                <!-- STATUS -->
+                                <td>
+                                    @if (item.Status == "Delivered")
+                                    {
+                                        <span class="badge bg-success">Delivered</span>
+                                    }
+                                    else if (item.Status == "Partial")
+                                    {
+                                        <span class="badge bg-warning text-dark">Partial</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Pending</span>
+                                    }
+                                </td>
+
+                                <!-- ACTION -->
+                                <td>
+                                    <a href="/Provider/Deliver/@item.EntryId"
+                                       class="btn btn-sm btn-success rounded-pill px-3">
+                                        <i class="fa fa-truck"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            $('#deliveryTable').DataTable({
+                pageLength: 10,
+                responsive: true,
+
+                dom:
+                    "<'row mb-2 align-items-center'<'col-md-4'l><'col-md-8 d-flex justify-content-end gap-2'Bf>>" +
+                    "<'row'<'col-12'tr>>" +
+                    "<'row mt-2'<'col-md-5'i><'col-md-7 text-end'p>>",
+
+                buttons: [
+                    { extend: 'copy', className: 'btn buttons-copy', text: '📋' },
+                    { extend: 'excel', className: 'btn buttons-excel', text: '📊' },
+                    { extend: 'pdf', className: 'btn buttons-pdf', text: '📄' },
+                    { extend: 'print', className: 'btn buttons-print', text: '🖨️' }
+                ],
+
+                language: {
+                    search: "",
+                    searchPlaceholder: "🔍 Search deliveries..."
+                }
+            });
+
+        });
+    </script>
+}

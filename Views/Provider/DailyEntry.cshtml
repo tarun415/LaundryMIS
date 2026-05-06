@@ -1,51 +1,90 @@
-﻿@model LaudaryMis.ViewModels.DailyEntryVM
+﻿@using LaudaryMis.ViewModels
+@model LaudaryMis.ViewModels.DailyEntryVM
+<style>
+    .linen-scroll {
+        max-height: 300px; /* adjust as needed */
+        overflow-y: auto;
+        border: 1.5px solid #dee2e6;
+        border-radius: 9px;
+    }
 
+        /* Sticky header */
+        .linen-scroll thead th {
+            position: sticky;
+            top: 0;
+            background: #dbeafe; /* nice blue */
+            color: #1e3a8a;
+            z-index: 2;
+        }
+</style>
 <div class="container mt-4">
-    <h3>🧺 Daily Linen Entry</h3>
+    @* <h3>🧺 Daily Linen Entry</h3> *@
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">
+            @(Model == null || Model.EntryId == 0 ? "➕ Add Daily Linen Entry" : "✏️ Edit Daily Linen Entry")
+        </h4>
 
-    <!-- Hospital -->
-    <div class="mb-3">
-        <label>Hospital</label>
-        <select id="ln-hospital" class="form-control">
-            <option value="">Select Hospital</option>
-            @foreach (var h in Model.Hospitals)
-            {
-                <option value="@h.HospitalId">@h.HospitalName</option>
-            }
-        </select>
+        <a href="@Url.Action("DailyEntryList", "Provider")"
+           class="btn btn-outline-secondary rounded-pill px-3">
+            ← Back to List
+        </a>
     </div>
+    <input type="hidden" id="entryId" value="@Model.EntryId" />
 
-    <!-- Date -->
-    <div class="mb-3">
-        <label>Date</label>
-        <input type="date" id="ln-date" class="form-control" value="@Model.EntryDate.ToString("yyyy-MM-dd")" />
-    </div>
+    <div class="row g-3">
 
-    <!-- Ward -->
-    <div class="mb-3">
-        <label>Ward</label>
-        <select id="ln-ward" class="form-control">
-            <option value="">Select Ward</option>
-            @foreach (var h in Model.Wards)
-            {
-                <option value="@h.WardId">@h.WardName</option>
-            }
-        </select>
-    </div>
+        <!-- Row 1 -->
+        <div class="col-md-6">
+            <label>Hospital</label>
+            <select id="ln-hospital" class="form-control">
+                <option value="">Select Hospital</option>
+                @foreach (var h in Model.Hospitals)
+                {
+                    <option value="@h.HospitalId"
+                            selected="@(h.HospitalId == Model.HospitalId)">
+                        @h.HospitalName
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label>Ward</label>
+            <select id="ln-ward" class="form-control">
+                <option value="">Select Ward</option>
+                @foreach (var w in Model.Wards)
+                {
+                    <option value="@w.WardId"
+                            selected="@(w.WardId == Model.Ward)">
+                        @w.WardName
+                    </option>
+                }
+            </select>
+        </div>
+       
 
-    <!-- SHIFT -->
-    <div class="mb-3">
-        <label>Shift</label>
-        <select id="ln-shift" class="form-control">
-            <option>Morning</option>
-            <option>Evening</option>
-        </select>
+        <!-- Row 2 -->
+        <div class="col-md-6">
+            <label>Date</label>
+            <input type="date" id="ln-date" class="form-control"
+                   value="@Model.EntryDate.ToString("yyyy-MM-dd")" />
+        </div>
+
+        <div class="col-md-6">
+            <label>Shift</label>
+            <select id="ln-shift" class="form-control">
+                <option value="Morning" selected="@(Model.Shift == "Morning")">Morning</option>
+                <option value="Evening" selected="@(Model.Shift == "Evening")">Evening</option>
+            </select>
+        </div>
+
     </div>
 
     <hr />
 
     <!-- 🔥 LINEN TABLE -->
-    <table class="table table-bordered">
+    <div class="table-responsive linen-scroll">
+        <table class="table table-bordered">
         <thead>
             <tr>
                 <th>Linen Type</th>
@@ -53,63 +92,124 @@
             </tr>
         </thead>
         <tbody id="linenTable"></tbody>
-    </table>
+        </table>
+    </div>
 
     <hr />
 
     <!-- Tracking -->
-    <div class="row">
+    <div class="row g-3">
+
         <div class="col-md-4">
-            <label>Collected By</label>
-            <input type="text" id="ln-collected" class="form-control" />
+            <label class="form-label mb-1">Collected By</label>
+            <input type="text" id="ln-collected"
+                   class="form-control"
+                   value="@Model.CollectedBy" />
         </div>
 
         <div class="col-md-4">
-            <label>Received By</label>
-            <input type="text" id="ln-received" class="form-control" />
+            <label class="form-label mb-1">Received By</label>
+            <input type="text" id="ln-received"
+                   class="form-control"
+                   value="@Model.ReceivedBy" />
         </div>
 
         <div class="col-md-4">
-            <label>Supervisor</label>
-            <input type="text" id="ln-supervisor" class="form-control" />
+            <label class="form-label mb-1">Supervisor</label>
+            <input type="text" id="ln-supervisor"
+                   class="form-control"
+                   value="@Model.Supervisor" />
         </div>
+
     </div>
 
-    <br />
-    <div class="row mt-3">
-        <div class="col-md-6">
-            <label>Remarks</label>
-            <input type="text" id="ln-remarks" class="form-control" />
+    <!-- Remarks + Infected -->
+    <div class="row g-3 mt-2 align-items-end">
+
+        <!-- Remarks -->
+        <div class="col-md-8">
+            <label class="form-label mb-1 fw-semibold">Remarks</label>
+            <input type="text"
+                   id="ln-remarks"
+                   class="form-control"
+                   placeholder="Enter remarks (optional)"
+                   value="@Model.Remarks" />
         </div>
 
-        <div class="col-md-6">
-            <label>
-                <input type="checkbox" id="ln-infected" /> Is Infected
-            </label>
+        <!-- Infected Checkbox -->
+        <div class="col-md-4 d-flex align-items-center">
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="checkbox"
+                       id="ln-infected"
+                       @(Model.IsInfected ? "checked" : "") />
+
+                <label class="form-check-label ms-2 fw-semibold" for="ln-infected">
+                    Is Infected
+                </label>
+            </div>
         </div>
+
     </div>
-    <button class="btn btn-success" onclick="saveEntry()">Save Entry</button>
+
+    <!-- Buttons -->
+    <div class="d-flex justify-content-end gap-2 mt-3">
+
+        <a href="/Provider/DailyEntryList"
+           class="btn btn-light border rounded-pill px-4">
+            Cancel
+        </a>
+
+        <button type="button"
+                onclick="saveEntry()"
+                class="btn btn-primary rounded-pill px-4">
+            @(Model.EntryId == 0 ? "💾 Save" : "✏️ Update")
+        </button>
+
+    </div>
 </div>
 
 <!-- 🔥 Razor → JS Array -->
 <script>
-    const linenTypes = @Html.Raw(
+      const linenTypes = @Html.Raw(
                 System.Text.Json.JsonSerializer.Serialize(
-                    Model.LinenTypes.Select(x => x.LinenName)
+                        Model.LinenTypes.Select(x => x.LinenName)
                 )
-        )
+        );
 
-    function generateTable() {
+        const existingItems = @Html.Raw(
+                System.Text.Json.JsonSerializer.Serialize(
+                        (Model.Items as List<LinenItemVM>) ?? new List<LinenItemVM>()
+                )
+        );
+            // ✅ PRINT
+    console.log("Linen Types:", linenTypes);
+    console.log("Existing Items:", existingItems);
+          function generateTable() {
+
         let html = "";
 
-        linenTypes.forEach((name, i) => {
+        // 🔥 fallback if linenTypes empty
+        let source = linenTypes.length > 0
+            ? linenTypes
+            : existingItems.map(x => x.LinenType);
+
+        source.forEach(name => {
+
+            let existing = existingItems.find(x =>
+                x.LinenType?.trim().toLowerCase() === name?.trim().toLowerCase()
+            );
+
+            let dirty = existing ? existing.DirtyCount : 0;
+
             html += `
                 <tr>
                     <td>${name}</td>
                     <td>
                         <input type="number"
                                class="dirty form-control"
-                               data-type="${name}" />
+                               data-type="${name}"
+                               value="${dirty}" />
                     </td>
                 </tr>
             `;
@@ -117,6 +217,8 @@
 
         document.getElementById("linenTable").innerHTML = html;
     }
+
+    document.addEventListener("DOMContentLoaded", generateTable);
 
     document.addEventListener("DOMContentLoaded", generateTable);
 
@@ -156,34 +258,40 @@
             return;
         }
 
-        const data = {
-            EntryDate: $("#ln-date").val(),
-            Shift: $("#ln-shift").val(),
-            HospitalId: hospitalId,
-            Ward: wardId,
+        
+            const data = {
+        EntryId: $("#entryId").val(), // important
+        EntryDate: $("#ln-date").val(),
+        Shift: $("#ln-shift").val(),
+        HospitalId: hospitalId,
+        Ward: wardId,
 
-            CollectedBy: $("#ln-collected").val(),
-            ReceivedBy: $("#ln-received").val(),
-            Supervisor: $("#ln-supervisor").val(),
+        CollectedBy: $("#ln-collected").val(),
+        ReceivedBy: $("#ln-received").val(),
+        Supervisor: $("#ln-supervisor").val(),
 
-            IsInfected: $("#ln-infected").is(":checked"),
-            Remarks: $("#ln-remarks").val() || "",
+        IsInfected: $("#ln-infected").is(":checked"),
+        Remarks: $("#ln-remarks").val() || "",
 
-            Items: items
-        };
-
+        Items: items
+    };
         $.ajax({
             url: '/Provider/Save',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
 
-            success: function (result) {
-                if (result.success) {
-                    alert("Saved Successfully");
-                    location.reload();
-                }
-            },
+               success: function (result) {
+        if (result.success) {
+
+            // optional  message
+             alert("Saved Successfully");
+
+            setTimeout(() => {
+                window.location.href = '/Provider/DailyEntryList';
+            }, 500);
+        }
+    },
 
             error: function (xhr) {
                 console.log(xhr.responseText);

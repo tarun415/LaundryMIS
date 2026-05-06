@@ -19,7 +19,10 @@ namespace LaudaryMis.Services
             if (!model.Items.Any(x => x.DirtyCount > 0))
                 throw new Exception("No data");
 
-            return await _repo.InsertAsync(model);
+            if (model.EntryId > 0)
+                return await _repo.UpdateAsync(model);   // 🔥 UPDATE
+            else
+                return await _repo.InsertAsync(model);   // 🔥 INSERT
         }
 
         public async Task<List<DailyEntryListVM>> GetAllEntries()
@@ -65,6 +68,14 @@ namespace LaudaryMis.Services
         public async Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date)
         {
             return await _repo.SearchDailyEntries(status, hospitalId, wardId, date);
+        }
+        public async Task<DailyEntryVM> GetDailyEntryByIdAsync(int id)
+        {
+            return await _repo.GetDailyEntryByIdAsync(id);
+        }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            return await _repo.DeleteAsync(id);
         }
     }
 }
