@@ -6,17 +6,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
+
 namespace LaudaryMis.Repositories
 {
     public class HospitalRepository : IHospitalRepository
     {
         private readonly IDbConnection _db;
         private readonly IConfiguration _config;
+     
 
         public HospitalRepository(IDbConnection db, IConfiguration config)
         {
             _db = db;
             _config = config;
+           
         }
 
         public async Task<IEnumerable<HospitalVM>> GetAllAsync()
@@ -188,5 +191,6 @@ namespace LaudaryMis.Repositories
 
             return data.ToList();
         }
+     
     }
 }

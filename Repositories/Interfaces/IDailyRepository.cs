@@ -25,5 +25,7 @@ namespace LaudaryMis.Repositories.Interfaces
         Task<bool> DeleteAsync(int id);
         Task<int> UpdateAsync(DailyEntryVM model);
 
+     
+
     }
 }
