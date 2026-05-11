@@ -23,5 +23,7 @@ namespace LaudaryMis.Services.Interfaces
        Task<DailyEntryVM> GetDailyEntryByIdAsync(int id);
 
         Task<bool> DeleteAsync(int id);
+
+
     }
 }

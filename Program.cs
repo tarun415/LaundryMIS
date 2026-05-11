@@ -40,6 +40,8 @@ builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IMonthlyBillRepository, MonthlyBillRepository>();
 builder.Services.AddScoped<IMonthlyBillService, MonthlyBillService>();
+builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
+builder.Services.AddScoped<IDeliveryService, DeliveryService>();
 
 // 🔥 FIX (IMPORTANT)
 builder.Services.AddScoped<IDbConnection>(sp =>

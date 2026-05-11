@@ -11,11 +11,16 @@ namespace LaudaryMis.Controllers
     {
         private readonly IDailyService _service;
         private readonly IWPRService _wprService;
+        private readonly IWebHostEnvironment _env;
+        private readonly IDeliveryService _delservice;
 
-        public HospitalController(IDailyService service, IWPRService wprService)
+
+        public HospitalController(IDailyService service, IWPRService wprService, IWebHostEnvironment env, IDeliveryService delservice)
         {
             _service = service;
             _wprService = wprService;
+            _env = env;
+            _delservice = delservice;
         }
 
         [Authorize(Roles = "Hospital")]
@@ -38,7 +43,52 @@ namespace LaudaryMis.Controllers
             return View(data);
         }
 
-       
+        [HttpGet]
+        public async Task<IActionResult> VerifyDelivery(int DeliveryId)
+        {
+            var model =
+                await _delservice.GetDeliveryByIdAsync(DeliveryId);
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> VerifyDelivery(
+            VerifyDeliveryVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            string uploadPath = Path.Combine(
+                _env.WebRootPath,
+                "Uploads",
+                "LogBooks");
+
+            int userId =
+                Convert.ToInt32(HttpContext.Session.GetString("UserId"));
+
+            bool status =
+                await _delservice.VerifyDeliveryAsync(
+                    model,
+                    userId,
+                    uploadPath);
+
+            if (!status)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Log book upload is mandatory or invalid file");
+
+                return View(model);
+            }
+
+            TempData["Success"] =
+                "Delivery verified successfully";
+
+            return RedirectToAction("PendingVerification");
+        }
 
     }
 }
