@@ -145,6 +145,7 @@
                             <th>Ward</th>
                             <th>Pickup</th>
                             <th>Delivered</th>
+                            <th>Pending</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
@@ -170,6 +171,9 @@
 
                                 <td class="text-success fw-bold">
                                     @item.CleanDeliveredQty
+                                </td>
+                                <td class="text-success fw-bold">
+                                    @item.TotalPendingQty
                                 </td>
 
                                 <td>
@@ -263,6 +267,7 @@
                                     <th>Linen Type</th>
                                     <th>Pickup</th>
                                     <th>Delivered</th>
+                                    <th>Pending</th>
                                 </tr>
                             </thead>
                             <tbody>`;
@@ -272,6 +277,7 @@
                             <td>${x.linenTypeName}</td>
                             <td>${x.totalPickupQty}</td>
                             <td>${x.cleanDeliveredQty}</td>
+                             <td>${x.totalpendingQty}</td>
                          </tr>`;
             });
 
@@ -371,6 +377,7 @@
             <td>${item.wardName}</td>
             <td class="text-primary fw-bold">${item.totalPickupQty}</td>
             <td class="text-success fw-bold">${item.cleanDeliveredQty}</td>
+            <td class="text-success fw-bold">${item.totalPendingQty}</td>
             <td>${getStatusBadge(item.status)}</td>
 
                           ${item.status === "Collected" ? `

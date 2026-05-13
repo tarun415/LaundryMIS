@@ -13,6 +13,8 @@
         public int TotalPickupQty { get; set; }
         public int CleanDeliveredQty { get; set; }
 
+        public int TotalPendingQty { get; set; }
+
         public string? Status { get; set; }
     }
 

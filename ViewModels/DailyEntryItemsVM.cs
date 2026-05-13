@@ -8,6 +8,8 @@
         public int TotalPickupQty { get; set; }
         public int CleanDeliveredQty { get; set; }
 
+        public int TotalpendingQty { get; set; }
+
 
     }
 }
