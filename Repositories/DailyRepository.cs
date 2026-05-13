@@ -157,12 +157,12 @@ SELECT CAST(SCOPE_IDENTITY() as int);
         }
         public async Task<List<DailyEntryListVM>> GetAllEntries()
         {
-            var sql = @"SELECT ROW_NUMBER() OVER (ORDER BY de.Id DESC) AS RowNum, de.Id as EntryId, de.Status,de.Supervisor,de.IsInfected,de.CollectedBy,de.ReceivedBy,de.Remarks,de.Shift,de.EntryDate,de.DeliveredBy,ho.HospitalName,wr.WardName, (select sum(di.DirtyCount)   from DailyEntryItems di where di.EntryId=de.Id) as TotalPickupQty, (select sum(di.CleanCount)   from DailyEntryItems di where di.EntryId=de.Id) as CleanDeliveredQty  FROM  DailyEntries de  left join tbl_Hospitals ho on de.HospitalId=ho.HospitalId  left join  tbl_Wards as wr on de.Ward=wr.WardId ORDER BY Id DESC";
+            var sql = @"SELECT ROW_NUMBER() OVER (ORDER BY de.Id DESC) AS RowNum, de.Id as EntryId, de.Status,de.Supervisor,de.IsInfected,de.CollectedBy,de.ReceivedBy,de.Remarks,de.Shift,de.EntryDate,de.DeliveredBy,ho.HospitalName,wr.WardName, ISNULL(( SELECT SUM(di.DirtyCount)FROM DailyEntryItems di WHERE di.EntryId = de.Id ),0) AS TotalPickupQty,  ISNULL((  SELECT SUM(di.CleanCount)  FROM DailyEntryItems di WHERE di.EntryId = de.Id  ),0) AS CleanDeliveredQty,ISNULL((  SELECT SUM(di.DirtyCount)  FROM DailyEntryItems di   WHERE di.EntryId = de.Id ),0) - ISNULL((  SELECT SUM(di.CleanCount)  FROM DailyEntryItems di  WHERE di.EntryId = de.Id ),0) AS TotalPendingQty  FROM  DailyEntries de  left join tbl_Hospitals ho on de.HospitalId=ho.HospitalId  left join  tbl_Wards as wr on de.Ward=wr.WardId ORDER BY Id DESC";
             return (await _db.QueryAsync<DailyEntryListVM>(sql)).ToList();
         }
         public async Task<List<DailyEntryItemsVM>> GetAllItems(int id)
         {
-            var sql = @"select Id,EntryId,LinenType as LinenTypeName,DirtyCount as TotalPickupQty,CleanCount as CleanDeliveredQty From DailyEntryItems WHERE EntryId = @Id";
+            var sql = @"select Id,EntryId,LinenType as LinenTypeName,DirtyCount as TotalPickupQty,CleanCount as CleanDeliveredQty,isnull( isnull(DirtyCount,0)- isnull(CleanCount,0),0) as TotalpendingQty From DailyEntryItems WHERE EntryId = @Id";
             return (await _db.QueryAsync<DailyEntryItemsVM>(sql, new { Id = id })).ToList();
         }
 
@@ -329,8 +329,7 @@ SELECT CAST(SCOPE_IDENTITY() as int);
         ho.HospitalName,
         wr.WardName,
         de.Status,
-        (SELECT SUM(di.DirtyCount) FROM DailyEntryItems di WHERE di.EntryId = de.Id) AS TotalPickupQty,
-        (SELECT SUM(di.CleanCount) FROM DailyEntryItems di WHERE di.EntryId = de.Id) AS CleanDeliveredQty
+         ISNULL(( SELECT SUM(di.DirtyCount)FROM DailyEntryItems di WHERE di.EntryId = de.Id ),0) AS TotalPickupQty,  ISNULL((  SELECT SUM(di.CleanCount)  FROM DailyEntryItems di WHERE di.EntryId = de.Id  ),0) AS CleanDeliveredQty,ISNULL((  SELECT SUM(di.DirtyCount)  FROM DailyEntryItems di   WHERE di.EntryId = de.Id ),0) - ISNULL((  SELECT SUM(di.CleanCount)  FROM DailyEntryItems di  WHERE di.EntryId = de.Id ),0) AS TotalPendingQty
     FROM DailyEntries de
     LEFT JOIN Tbl_Hospitals ho ON de.HospitalId = ho.HospitalId
     LEFT JOIN Tbl_Wards wr ON de.Ward = wr.WardId
