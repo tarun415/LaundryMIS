@@ -732,7 +732,7 @@
                             btn.html('Saving...');
                         },
 
-                               success: function (response) {
+                                      success: function (response) {
 
             if (response.success) {
 
@@ -755,7 +755,35 @@
                 tr.find('.remarkBox')
                     .prop('readonly', true);
 
+                // REMOVE VERIFY BUTTON
+                btn.replaceWith(`
+                    <button type="button"
+                            class="btn btn-success btn-sm"
+                            disabled>
+                        Verified
+                    </button>
+                `);
+
+                // CHECK ALL ROWS VERIFIED
+                let totalRows =
+                    $('#tblMonthly tbody tr').length;
+
+                let verifiedRows =
+                    $('#tblMonthly tbody .badge.bg-success')
+                        .filter(function () {
+                            return $(this).text().trim() === 'Verified';
+                        }).length;
+
+                if (totalRows === verifiedRows) {
+
+                    $('#DivLogBook')
+                        .removeClass('d-none')
+                        .hide()
+                        .fadeIn(500);
+                }
+
                 alert(response.message);
+                 location.reload();
             }
             else {
 
