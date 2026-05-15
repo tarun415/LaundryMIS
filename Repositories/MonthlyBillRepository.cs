@@ -351,7 +351,7 @@ namespace LaudaryMis.Repositories
         SELECT
             b.Id                AS BillId,
             h.HospitalName,
-            h.District,
+            h.DistrictId,
             p.ProviderName,
             b.ProviderId,
             b.BillingMonth,

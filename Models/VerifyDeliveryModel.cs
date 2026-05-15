@@ -11,5 +11,7 @@
         public int VerifiedBy { get; set; }
 
         public string? VerificationRemark { get; set; }
+
+        public string AdditionalRemark { get; set; }
     }
 }

@@ -2,6 +2,8 @@
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
+using Microsoft.Data.SqlClient;
+using System.Data;
 using System.IO;
 namespace LaudaryMis.Services
 {
@@ -15,64 +17,51 @@ namespace LaudaryMis.Services
             _repository = repository;
         }
 
-        public async Task<VerifyDeliveryVM> GetDeliveryByIdAsync(int entryId)
+
+        public async Task<List<MonthlyVerificationListVM>>
+      GetWeeklyVerificationAsync(
+          int hospitalId,
+          int month,
+          int year)
         {
-            return await _repository.GetDeliveryByIdAsync(entryId);
+            return await _repository
+                .GetWeeklyVerificationAsync(
+                    hospitalId,
+                    month,
+                    year);
         }
 
-        public async Task<bool> VerifyDeliveryAsync(
-            VerifyDeliveryVM model,
-            int userId,
-            string uploadPath)
+        public async Task<List<MonthlyVerificationListVM>>
+            GetWeeklyDrillDownAsync(
+                int hospitalId,
+                int month,
+                int year,
+                int weekNo)
         {
-            if (model.LogBookFile == null ||
-                model.LogBookFile.Length == 0)
-            {
-                return false;
-            }
-
-            // Extension Validation
-            var allowed = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
-
-            string ext = Path.GetExtension(model.LogBookFile.FileName)
-                             .ToLower();
-
-            if (!allowed.Contains(ext))
-            {
-                return false;
-            }
-
-            // Create Folder
-            if (!Directory.Exists(uploadPath))
-            {
-                Directory.CreateDirectory(uploadPath);
-            }
-
-            // Unique File Name
-            string fileName =
-                Guid.NewGuid() + ext;
-
-            string fullPath =
-                Path.Combine(uploadPath, fileName);
-
-            // Save File
-            using (var stream = new FileStream(fullPath, FileMode.Create))
-            {
-                await model.LogBookFile.CopyToAsync(stream);
-            }
-
-            var data = new VerifyDeliveryModel
-            {
-                DeliveryId = model.DeliveryId,
-                VerifiedQty = model.VerifiedQty,
-                LogBookPath = "/Uploads/LogBooks/" + fileName,
-                VerifiedBy = userId
-            };
-
-            int result =
-                await _repository.VerifyDeliveryAsync(data);
-
-            return result > 0;
+            return await _repository
+                .GetWeeklyDrillDownAsync(
+                    hospitalId,
+                    month,
+                    year,
+                    weekNo);
         }
+
+        public async Task<int> SaveWeeklyVerificationLogAsync(
+       WeeklyVerificationModel model)
+        {
+            return await _repository
+                .SaveWeeklyVerificationLogAsync(model);
+        }
+
+
+
+        public async Task<int> SaveMonthlyLogBookAsync(
+     WeeklyVerificationModel model)
+        {
+            return await _repository
+                .SaveMonthlyLogBookAsync(model);
+        }
+
+
     }
 }
