@@ -2,6 +2,8 @@
 using LaudaryMis.Models;
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.ViewModels;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using System.Data;
 
 namespace LaudaryMis.Repositories
@@ -15,97 +17,457 @@ namespace LaudaryMis.Repositories
             _db = db;
         }
 
-        public async Task<VerifyDeliveryVM?> GetDeliveryByIdAsync(int deliveryId)
+        public async Task<List<MonthlyVerificationListVM>>
+       GetWeeklyVerificationAsync(
+           int hospitalId,
+           int month,
+           int year)
         {
             var sql = @"
-                SELECT TOP 1
-                    DeliveryId,
-                    LinenType,
-                    CleanCount,
-                    VerifiedQty
-                FROM DeliveryItems
-                WHERE DeliveryId = @deliveryId";
 
-            return await _db.QueryFirstOrDefaultAsync<VerifyDeliveryVM>(
-                sql,
-                new { deliveryId });
+SELECT
+
+    ROW_NUMBER() OVER
+    (
+        ORDER BY
+        YEAR(de.EntryDate) DESC,
+        DATEPART(WEEK, de.EntryDate) DESC
+    ) AS RowNum,
+
+    STRING_AGG
+    (
+        CAST(de.Id AS VARCHAR(20)),
+        ','
+    ) AS EntryIds,
+
+    MAX(de.HospitalId) AS HospitalId,
+
+    DATEPART(WEEK, de.EntryDate) AS WeekNo,
+
+    MIN(de.EntryDate) AS WeekStartDate,
+
+    MAX(de.EntryDate) AS WeekEndDate,
+
+    CASE
+
+        WHEN COUNT(*) =
+             SUM(
+                 CASE
+                     WHEN de.Status = 'Verified'
+                     THEN 1
+                     ELSE 0
+                 END
+             )
+        THEN 'Verified'
+
+        WHEN SUM
+        (
+            CASE
+                WHEN de.Status IN ('Collected','Partial')
+                THEN 1
+                ELSE 0
+            END
+        ) > 0
+        THEN 'Pending'
+
+        ELSE 'Delivered'
+
+    END AS Status,
+
+    MAX(ho.HospitalName) AS HospitalName,
+
+    MAX(wvl.Remark) AS Remark,
+
+    Max(wvllg.LogBookPath) AS LogBookPath,
+
+    SUM(ISNULL(di.TotalPickupQty,0))
+        AS TotalPickupQty,
+
+    SUM(ISNULL(di.CleanDeliveredQty,0))
+        AS CleanDeliveredQty,
+
+    SUM(ISNULL(di.TotalPickupQty,0))
+    -
+    SUM(ISNULL(di.CleanDeliveredQty,0))
+        AS TotalPendingQty
+
+FROM DailyEntries de
+
+LEFT JOIN Tbl_Hospitals ho
+    ON de.HospitalId = ho.HospitalId
+
+LEFT JOIN
+(
+    SELECT
+
+        EntryId,
+
+        SUM(ISNULL(DirtyCount,0))
+            AS TotalPickupQty,
+
+        SUM(ISNULL(CleanCount,0))
+            AS CleanDeliveredQty
+
+    FROM DailyEntryItems
+
+    GROUP BY EntryId
+
+) di
+    ON de.Id = di.EntryId
+
+LEFT JOIN WeeklyVerificationLog wvl
+    ON wvl.WeekNo = DATEPART(WEEK, de.EntryDate)
+    AND wvl.HospitalId = de.HospitalId
+
+LEFT JOIN WeeklyVerification wvllg
+    ON wvllg.id  =wvl.WeeklyVerificationId
+
+WHERE de.HospitalId = @hospitalId
+
+AND MONTH(de.EntryDate) = @month
+
+AND YEAR(de.EntryDate) = @year
+
+GROUP BY
+    YEAR(de.EntryDate),
+    DATEPART(WEEK, de.EntryDate)
+
+ORDER BY
+    YEAR(de.EntryDate) DESC,
+    DATEPART(WEEK, de.EntryDate) DESC
+
+";
+
+            var data =
+                await _db.QueryAsync<MonthlyVerificationListVM>(
+                    sql,
+                    new
+                    {
+                        hospitalId,
+                        month,
+                        year
+                    });
+
+            return data.ToList();
         }
 
-        public async Task<int> VerifyDeliveryAsync(
-            VerifyDeliveryModel model)
+
+        public async Task<List<MonthlyVerificationListVM>>
+    GetWeeklyDrillDownAsync(
+        int hospitalId,
+        int month,
+        int year,
+        int weekNo)
         {
-            if (_db.State == ConnectionState.Closed)
-                _db.Open();
+            var sql = @"
 
-            using var tran = _db.BeginTransaction();
+SELECT
 
+    ROW_NUMBER() OVER
+    (
+        ORDER BY de.EntryDate DESC
+    ) AS RowNum,
+
+    de.Id AS EntryIds,
+
+    de.EntryDate,
+
+   de.Status AS Status,
+
+    ho.HospitalName,
+
+    ISNULL(di.TotalPickupQty,0)
+        AS TotalPickupQty,
+
+    ISNULL(di.CleanDeliveredQty,0)
+        AS CleanDeliveredQty,
+
+    ISNULL(di.TotalPickupQty,0)
+    -
+    ISNULL(di.CleanDeliveredQty,0)
+        AS TotalPendingQty
+
+FROM DailyEntries de
+
+LEFT JOIN Tbl_Hospitals ho
+    ON de.HospitalId = ho.HospitalId
+
+LEFT JOIN
+(
+    SELECT
+
+        EntryId,
+
+        SUM(ISNULL(DirtyCount,0))
+            AS TotalPickupQty,
+
+        SUM(ISNULL(CleanCount,0))
+            AS CleanDeliveredQty
+
+    FROM DailyEntryItems
+
+    GROUP BY EntryId
+
+) di
+    ON de.Id = di.EntryId
+
+WHERE de.HospitalId = @hospitalId
+
+AND MONTH(de.EntryDate) = @month
+
+AND YEAR(de.EntryDate) = @year
+
+AND DATEPART(WEEK, de.EntryDate) = @weekNo
+
+ORDER BY de.EntryDate DESC
+
+";
+
+            var data =
+                await _db.QueryAsync<MonthlyVerificationListVM>(
+                    sql,
+                    new
+                    {
+                        hospitalId,
+                        month,
+                        year,
+                        weekNo
+                    });
+
+            return data.ToList();
+        }
+
+
+        public async Task<int> SaveWeeklyVerificationLogAsync(
+      WeeklyVerificationModel model)
+        {
             try
             {
-                // 1️⃣ Update DeliveryItems
-                var itemSql = @"
-                    UPDATE DeliveryItems
-                    SET VerifiedQty = @VerifiedQty
-                    WHERE DeliveryId = @DeliveryId";
+                if (_db.State == ConnectionState.Closed)
+                    _db.Open();
 
-                await _db.ExecuteAsync(
-                    itemSql,
-                    new
-                    {
-                        model.VerifiedQty,
-                        model.DeliveryId
-                    },
-                    tran);
+                using var tran = _db.BeginTransaction();
 
-                // 2️⃣ Update DeliveryEntries
-                var entrySql = @"
-                    UPDATE DeliveryEntries
-                    SET 
-                        LogBookPath = @LogBookPath,
-                        VerifiedBy = @VerifiedBy,
-                        VerifiedDate = GETDATE(),
-                        IsVerified = 1,
-                        VerificationRemark = @VerificationRemark
-                    WHERE Id = @DeliveryId";
+                try
+                {
+                    var insertSql = @"
 
-                var result = await _db.ExecuteAsync(
-                    entrySql,
-                    new
-                    {
-                        model.LogBookPath,
-                        model.VerifiedBy,
-                        model.VerificationRemark,
-                        model.DeliveryId
-                    },
-                    tran);
+INSERT INTO WeeklyVerificationLog
+(
+    HospitalId,
+    TotalPickupQty,
+    TotalDeliveredQty,
+    TotalPendingQty,
+    Status,
+    WeekNo,
+    FromDate,
+    ToDate,
+    Remark,
+    CreatedBy,
+    EntryIds
+)
+VALUES
+(
+    @HospitalId,
+    @TotalPickupQty,
+    @TotalDeliveredQty,
+    @TotalPendingQty,
+    @Status,
+    @WeekNo,
+    @FromDate,
+    @ToDate,
+    @Remark,
+    @CreatedBy,
+    @EntryIds
+)
 
-                tran.Commit();
+SELECT CAST(SCOPE_IDENTITY() AS INT)";
 
-                return result;
+                    int result =
+                        await _db.ExecuteScalarAsync<int>(
+                            insertSql,
+                            new
+                            {
+                                model.HospitalId,
+                                model.TotalPickupQty,
+                                model.TotalDeliveredQty,
+                                model.TotalPendingQty,
+                                model.Status,
+                                model.WeekNo,
+                                model.FromDate,
+                                model.ToDate,
+                                model.Remark,
+                                model.CreatedBy,
+                                model.EntryIds
+                            },
+                            tran);
+
+
+
+
+                    // UPDATE DeliveryEntries
+
+                    var updateDeliverySql = @"
+
+UPDATE DeliveryEntries
+SET IsVerified = 1
+WHERE  EntryId in 
+(
+    SELECT value
+    FROM STRING_SPLIT(@EntryIds, ',')
+)";
+
+                    await _db.ExecuteAsync(
+                        updateDeliverySql,
+                        new
+                        {
+                            EntryIds = model.EntryIds
+                        },
+                        tran);
+
+
+
+
+                    // UPDATE DailyEntries STATUS
+
+                    var updateDailySql = @"
+
+UPDATE DailyEntries
+SET Status = 'Verified'
+WHERE Id IN
+(
+    SELECT value
+    FROM STRING_SPLIT(@EntryIds, ',')
+)";
+
+                    await _db.ExecuteAsync(
+                        updateDailySql,
+                        new
+                        {
+                            EntryIds = model.EntryIds
+                        },
+                        tran);
+
+
+
+                    tran.Commit();
+
+                    return result;
+                }
+                catch
+                {
+                    tran.Rollback();
+                    throw;
+                }
             }
             catch
             {
-                tran.Rollback();
                 throw;
             }
         }
 
-        public async Task<List<VerifyDeliveryVM>> GetPendingVerificationsAsync()
+
+        public async Task<int> SaveMonthlyLogBookAsync(
+     WeeklyVerificationModel model)
         {
-            var sql = @"
-                SELECT 
-                    di.DeliveryId,
-                    di.LinenType,
-                    di.CleanCount,
-                    di.VerifiedQty
-                FROM DeliveryItems di
-                INNER JOIN DeliveryEntries de
-                    ON de.Id = di.DeliveryId
-                WHERE ISNULL(de.IsVerified,0) = 0
-                ORDER BY de.DeliveryDate DESC";
+            try
+            {
+                if (_db.State == ConnectionState.Closed)
+                    _db.Open();
 
-            var data = await _db.QueryAsync<VerifyDeliveryVM>(sql);
+                using var tran = _db.BeginTransaction();
 
-            return data.ToList();
+                try
+                {
+                    // INSERT INTO WeeklyVerification
+
+                    var insertSql = @"
+
+INSERT INTO WeeklyVerification
+(
+    Status,
+    WeekNo,
+    FromDate,
+    ToDate,
+    Remark,
+    LogBookPath
+)
+VALUES
+(
+    'Verified',
+    0,
+    (
+        SELECT MIN(FromDate)
+        FROM WeeklyVerificationLog
+        WHERE HospitalId = @HospitalId
+        AND MONTH(FromDate) = @Month
+        AND YEAR(FromDate) = @Year
+    ),
+    (
+        SELECT MAX(ToDate)
+        FROM WeeklyVerificationLog
+        WHERE HospitalId = @HospitalId
+        AND MONTH(ToDate) = @Month
+        AND YEAR(ToDate) = @Year
+    ),
+    @Remark,
+    @LogBookPath
+)
+
+SELECT CAST(SCOPE_IDENTITY() AS INT)";
+
+                    int weeklyVerificationId =
+                        await _db.ExecuteScalarAsync<int>(
+                            insertSql,
+                            new
+                            {
+                                model.HospitalId,
+                                model.Month,
+                                model.Year,
+                                model.Remark,
+                                model.LogBookPath
+                            },
+                            tran);
+
+
+
+                    // UPDATE WeeklyVerificationLog
+
+                    var updateSql = @"
+
+UPDATE WeeklyVerificationLog
+SET WeeklyVerificationId = @WeeklyVerificationId
+WHERE HospitalId = @HospitalId
+AND MONTH(FromDate) = @Month
+AND YEAR(FromDate) = @Year";
+
+                    await _db.ExecuteAsync(
+                        updateSql,
+                        new
+                        {
+                            WeeklyVerificationId = weeklyVerificationId,
+                            model.HospitalId,
+                            model.Month,
+                            model.Year
+                        },
+                        tran);
+
+
+                    tran.Commit();
+
+                    return weeklyVerificationId;
+                }
+                catch
+                {
+                    tran.Rollback();
+                    throw;
+                }
+            }
+            catch
+            {
+                throw;
+            }
         }
+
     }
 }
