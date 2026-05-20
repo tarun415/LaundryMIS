@@ -23,15 +23,20 @@ namespace LaudaryMis.Repositories
            int month,
            int year)
         {
-            var sql = @"
-
-SELECT
+            var sql = @"SELECT
 
     ROW_NUMBER() OVER
     (
         ORDER BY
-        YEAR(de.EntryDate) DESC,
-        DATEPART(WEEK, de.EntryDate) DESC
+            YEAR(de.EntryDate) DESC,
+
+            CASE
+                WHEN DAY(de.EntryDate) BETWEEN 1 AND 7 THEN 1
+                WHEN DAY(de.EntryDate) BETWEEN 8 AND 14 THEN 2
+                WHEN DAY(de.EntryDate) BETWEEN 15 AND 21 THEN 3
+                WHEN DAY(de.EntryDate) BETWEEN 22 AND 28 THEN 4
+                ELSE 5
+            END DESC
     ) AS RowNum,
 
     STRING_AGG
@@ -42,7 +47,13 @@ SELECT
 
     MAX(de.HospitalId) AS HospitalId,
 
-    DATEPART(WEEK, de.EntryDate) AS WeekNo,
+    CASE
+        WHEN DAY(de.EntryDate) BETWEEN 1 AND 7 THEN 1
+        WHEN DAY(de.EntryDate) BETWEEN 8 AND 14 THEN 2
+        WHEN DAY(de.EntryDate) BETWEEN 15 AND 21 THEN 3
+        WHEN DAY(de.EntryDate) BETWEEN 22 AND 28 THEN 4
+        ELSE 5
+    END AS WeekNo,
 
     MIN(de.EntryDate) AS WeekStartDate,
 
@@ -51,7 +62,8 @@ SELECT
     CASE
 
         WHEN COUNT(*) =
-             SUM(
+             SUM
+             (
                  CASE
                      WHEN de.Status = 'Verified'
                      THEN 1
@@ -78,7 +90,7 @@ SELECT
 
     MAX(wvl.Remark) AS Remark,
 
-    Max(wvllg.LogBookPath) AS LogBookPath,
+    MAX(wvllg.LogBookPath) AS LogBookPath,
 
     SUM(ISNULL(di.TotalPickupQty,0))
         AS TotalPickupQty,
@@ -116,11 +128,22 @@ LEFT JOIN
     ON de.Id = di.EntryId
 
 LEFT JOIN WeeklyVerificationLog wvl
-    ON wvl.WeekNo = DATEPART(WEEK, de.EntryDate)
+    ON wvl.WeekNo =
+    (
+        CASE
+            WHEN DAY(de.EntryDate) BETWEEN 1 AND 7 THEN 1
+            WHEN DAY(de.EntryDate) BETWEEN 8 AND 14 THEN 2
+            WHEN DAY(de.EntryDate) BETWEEN 15 AND 21 THEN 3
+            WHEN DAY(de.EntryDate) BETWEEN 22 AND 28 THEN 4
+            ELSE 5
+        END
+    )
     AND wvl.HospitalId = de.HospitalId
 
 LEFT JOIN WeeklyVerification wvllg
-    ON wvllg.id  =wvl.WeeklyVerificationId
+    ON wvllg.Id = wvl.WeeklyVerificationId
+    AND MONTH(wvllg.FromDate) = MONTH(de.EntryDate)
+    AND YEAR(wvllg.FromDate) = YEAR(de.EntryDate)
 
 WHERE de.HospitalId = @hospitalId
 
@@ -129,14 +152,28 @@ AND MONTH(de.EntryDate) = @month
 AND YEAR(de.EntryDate) = @year
 
 GROUP BY
+
     YEAR(de.EntryDate),
-    DATEPART(WEEK, de.EntryDate)
+
+    CASE
+        WHEN DAY(de.EntryDate) BETWEEN 1 AND 7 THEN 1
+        WHEN DAY(de.EntryDate) BETWEEN 8 AND 14 THEN 2
+        WHEN DAY(de.EntryDate) BETWEEN 15 AND 21 THEN 3
+        WHEN DAY(de.EntryDate) BETWEEN 22 AND 28 THEN 4
+        ELSE 5
+    END
 
 ORDER BY
-    YEAR(de.EntryDate) DESC,
-    DATEPART(WEEK, de.EntryDate) DESC
 
-";
+    YEAR(de.EntryDate) DESC,
+
+    CASE
+        WHEN DAY(de.EntryDate) BETWEEN 1 AND 7 THEN 1
+        WHEN DAY(de.EntryDate) BETWEEN 8 AND 14 THEN 2
+        WHEN DAY(de.EntryDate) BETWEEN 15 AND 21 THEN 3
+        WHEN DAY(de.EntryDate) BETWEEN 22 AND 28 THEN 4
+        ELSE 5
+    END DESC";
 
             var data =
                 await _db.QueryAsync<MonthlyVerificationListVM>(
@@ -160,7 +197,6 @@ ORDER BY
         int weekNo)
         {
             var sql = @"
-
 SELECT
 
     ROW_NUMBER() OVER
@@ -172,7 +208,7 @@ SELECT
 
     de.EntryDate,
 
-   de.Status AS Status,
+    de.Status AS Status,
 
     ho.HospitalName,
 
@@ -217,9 +253,30 @@ AND MONTH(de.EntryDate) = @month
 
 AND YEAR(de.EntryDate) = @year
 
-AND DATEPART(WEEK, de.EntryDate) = @weekNo
+AND
+(
+    (@weekNo = 1 AND DAY(de.EntryDate) BETWEEN 1 AND 7)
 
-ORDER BY de.EntryDate DESC
+    OR
+
+    (@weekNo = 2 AND DAY(de.EntryDate) BETWEEN 8 AND 14)
+
+    OR
+
+    (@weekNo = 3 AND DAY(de.EntryDate) BETWEEN 15 AND 21)
+
+    OR
+
+    (@weekNo = 4 AND DAY(de.EntryDate) BETWEEN 22 AND 28)
+
+    OR
+
+    (@weekNo = 5 AND DAY(de.EntryDate) BETWEEN 29
+                                      AND DAY(EOMONTH(de.EntryDate)))
+)
+
+ORDER BY de.EntryDate DESC;
+
 
 ";
 
@@ -365,10 +422,8 @@ WHERE Id IN
                 throw;
             }
         }
-
-
         public async Task<int> SaveMonthlyLogBookAsync(
-     WeeklyVerificationModel model)
+    WeeklyVerificationModel model)
         {
             try
             {
@@ -379,6 +434,31 @@ WHERE Id IN
 
                 try
                 {
+                    // Duplicate check
+
+                    var existsSql = @"
+
+SELECT COUNT(1)
+FROM WeeklyVerification
+WHERE MONTH(FromDate) = @Month
+AND YEAR(FromDate) = @Year
+AND Status = 'Verified'";
+
+                    int exists = await _db.ExecuteScalarAsync<int>(
+                        existsSql,
+                        new
+                        {
+                            model.Month,
+                            model.Year
+                        },
+                        tran);
+
+                    if (exists > 0)
+                    {
+                        throw new Exception(
+                            "Monthly logbook already uploaded.");
+                    }
+
                     // INSERT INTO WeeklyVerification
 
                     var insertSql = @"
@@ -395,7 +475,8 @@ INSERT INTO WeeklyVerification
 VALUES
 (
     'Verified',
-    0,
+    NULL,
+
     (
         SELECT MIN(FromDate)
         FROM WeeklyVerificationLog
@@ -403,6 +484,7 @@ VALUES
         AND MONTH(FromDate) = @Month
         AND YEAR(FromDate) = @Year
     ),
+
     (
         SELECT MAX(ToDate)
         FROM WeeklyVerificationLog
@@ -410,6 +492,7 @@ VALUES
         AND MONTH(ToDate) = @Month
         AND YEAR(ToDate) = @Year
     ),
+
     @Remark,
     @LogBookPath
 )
@@ -428,8 +511,6 @@ SELECT CAST(SCOPE_IDENTITY() AS INT)";
                                 model.LogBookPath
                             },
                             tran);
-
-
 
                     // UPDATE WeeklyVerificationLog
 
@@ -452,7 +533,6 @@ AND YEAR(FromDate) = @Year";
                         },
                         tran);
 
-
                     tran.Commit();
 
                     return weeklyVerificationId;
@@ -468,6 +548,108 @@ AND YEAR(FromDate) = @Year";
                 throw;
             }
         }
+
+        //        public async Task<int> SaveMonthlyLogBookAsync(
+        //     WeeklyVerificationModel model)
+        //        {
+        //            try
+        //            {
+        //                if (_db.State == ConnectionState.Closed)
+        //                    _db.Open();
+
+        //                using var tran = _db.BeginTransaction();
+
+        //                try
+        //                {
+        //                    // INSERT INTO WeeklyVerification
+
+        //                    var insertSql = @"
+
+        //INSERT INTO WeeklyVerification
+        //(
+        //    Status,
+        //    WeekNo,
+        //    FromDate,
+        //    ToDate,
+        //    Remark,
+        //    LogBookPath
+        //)
+        //VALUES
+        //(
+        //    'Verified',
+        //    0,
+        //    (
+        //        SELECT MIN(FromDate)
+        //        FROM WeeklyVerificationLog
+        //        WHERE HospitalId = @HospitalId
+        //        AND MONTH(FromDate) = @Month
+        //        AND YEAR(FromDate) = @Year
+        //    ),
+        //    (
+        //        SELECT MAX(ToDate)
+        //        FROM WeeklyVerificationLog
+        //        WHERE HospitalId = @HospitalId
+        //        AND MONTH(ToDate) = @Month
+        //        AND YEAR(ToDate) = @Year
+        //    ),
+        //    @Remark,
+        //    @LogBookPath
+        //)
+
+        //SELECT CAST(SCOPE_IDENTITY() AS INT)";
+
+        //                    int weeklyVerificationId =
+        //                        await _db.ExecuteScalarAsync<int>(
+        //                            insertSql,
+        //                            new
+        //                            {
+        //                                model.HospitalId,
+        //                                model.Month,
+        //                                model.Year,
+        //                                model.Remark,
+        //                                model.LogBookPath
+        //                            },
+        //                            tran);
+
+
+
+        //                    // UPDATE WeeklyVerificationLog
+
+        //                    var updateSql = @"
+
+        //UPDATE WeeklyVerificationLog
+        //SET WeeklyVerificationId = @WeeklyVerificationId
+        //WHERE HospitalId = @HospitalId
+        //AND MONTH(FromDate) = @Month
+        //AND YEAR(FromDate) = @Year";
+
+        //                    await _db.ExecuteAsync(
+        //                        updateSql,
+        //                        new
+        //                        {
+        //                            WeeklyVerificationId = weeklyVerificationId,
+        //                            model.HospitalId,
+        //                            model.Month,
+        //                            model.Year
+        //                        },
+        //                        tran);
+
+
+        //                    tran.Commit();
+
+        //                    return weeklyVerificationId;
+        //                }
+        //                catch
+        //                {
+        //                    tran.Rollback();
+        //                    throw;
+        //                }
+        //            }
+        //            catch
+        //            {
+        //                throw;
+        //            }
+        //        }
 
     }
 }

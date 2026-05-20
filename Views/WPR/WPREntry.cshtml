@@ -22,7 +22,11 @@
 
         <input type="hidden" id="totalScoreHidden" name="TotalScore" />
         <input type="hidden" name="AgreementId" value="@ViewBag.AgreementId" />
-        <input type="hidden" id="providerIdHidden" name="ProviderId" "@ViewBag.ProviderId" />
+      @*   <input type="hidden" id="providerIdHidden" name="ProviderId" "@ViewBag.ProviderId" /> *@
+        <input type="hidden"
+               id="providerIdHidden"
+               name="ProviderId"
+               value="@ViewBag.ProviderId" />
         <input type="hidden" id="hospitalIdHidden" name="HospitalId" value="@ViewBag.HospitalId" />
 
         <!-- TOP GRID: Details + Live Score -->
@@ -35,15 +39,44 @@
                 </div>
 
                 <!-- Hospital Display -->
-                <div style="background:#f8f6f2;padding:10px;border-radius:6px;margin-bottom:12px;">
+            @*     <div style="background:#f8f6f2;padding:10px;border-radius:6px;margin-bottom:12px;">
                     <div style="font-size:11px;color:#888;font-weight:600;">📍 Hospital</div>
                     <div id="hospitalDisplay" style="font-size:14px;color:#333;font-weight:500;margin-top:4px;">@Model.</div>
-                </div>
+                </div> *@
 
                 <div class="g2">
                     <div class="form-group">
+                        <label class="form-label">Month</label>
+                        <select name="Month"
+                                id="fMonth"
+                                class="form-control"
+                                onchange="checkVerification()">
+
+                            <option value="">Select Month</option>
+
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Week</label>
-                        <select name="Week" id="fWeek" class="form-control">
+                        <select name="Week"
+                                id="Week"
+                                class="form-control"
+                                onchange="checkVerification()">
+
+                            <option value="">Select Week</option>
+
                             <option value="1">Week 1</option>
                             <option value="2">Week 2</option>
                             <option value="3">Week 3</option>
@@ -51,37 +84,34 @@
                             <option value="5">Week 5</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Month</label>
-                        <select name="Month" id="fMonth" class="form-control" required>
-                            <option value="">-- Select Month --</option>
-                            <option value="January">January</option>
-                            <option value="February">February</option>
-                            <option value="March">March</option>
-                            <option value="April">April</option>
-                            <option value="May">May</option>
-                            <option value="June">June</option>
-                            <option value="July">July</option>
-                            <option value="August">August</option>
-                            <option value="September">September</option>
-                            <option value="October">October</option>
-                            <option value="November">November</option>
-                            <option value="December">December</option>
-                        </select>
-                    </div>
+                
                 </div>
 
                 <div class="g2">
                     <div class="form-group">
                         <label class="form-label">Year</label>
-                        <input name="Year" id="fYear" class="form-control" readonly />
+                        <input name="Year" id="fYear" class="form-control" onchange="checkVerification()" readonly  />
                     </div>
                     <div class="form-group">
                         <label class="form-label">Staff Name</label>
                         <input name="StaffName" class="form-control" placeholder="Enter name" required />
                     </div>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Verification Status</label>
 
+                    <div id="verificationStatus"
+                         class="form-control"
+                         style="background:#f5f5f5;
+                font-weight:600;">
+
+                        Select Month & Week
+                    </div>
+
+                    <input type="hidden"
+                           id="isVerified"
+                           value="false" />
+                </div>
                 <div class="form-group">
                     <label class="form-label">Remarks</label>
                     <textarea name="Remarks" class="form-control" placeholder="Optional remarks..."></textarea>
@@ -131,7 +161,7 @@
 
                 <div style="display:flex;gap:10px;margin-top:14px;">
                     <button type="button" class="btn btn-ghost" onclick="resetForm()">Reset</button>
-                    <button type="submit" class="btn btn-gold" id="submitBtn">Submit WPR</button>
+                    <button type="submit" class="btn btn-gold" id="submitBtn" disabled>Submit WPR</button>
                 </div>
             </div>
 
@@ -206,15 +236,25 @@
     ];
 
     // ✅ Auto-fill month, year aur current week
-    const now = new Date();
-    const day = now.getDate();
-    const currentMonth = now.getMonth();
-    const currentWeek = Math.min(Math.ceil(day / 7), 5);
+    // const now = new Date();
+    // const day = now.getDate();
+    // const currentMonth = now.getMonth();
+    // const currentWeek = Math.min(Math.ceil(day / 7), 5);
 
-    // Set current month in dropdown
-    document.getElementById("fMonth").value = MONTHS[currentMonth];
+    // // Set current month in dropdown
+    // document.getElementById("fMonth").value = MONTHS[currentMonth];
+    // document.getElementById("fYear").value = now.getFullYear();
+    // document.getElementById("fWeek").value = currentWeek;
+
+        // ✅ Auto-fill month, year and week
+    const now = new Date();
+
+    const currentMonth = now.getMonth() + 1;
+    const currentWeek = Math.min(Math.ceil(now.getDate() / 7), 5);
+
+    document.getElementById("fMonth").value = currentMonth;
     document.getElementById("fYear").value = now.getFullYear();
-    document.getElementById("fWeek").value = currentWeek;
+    document.getElementById("Week").value = currentWeek;
 
     // ✅ Fetch Agreement details to get ProviderId and HospitalId
     const agreementId = document.querySelector('input[name="AgreementId"]').value;
@@ -415,7 +455,13 @@
             alert("Please select a month.");
             return false;
         }
+            // ✅ Verification check
+    if ($("#isVerified").val() != "true") {
 
+        alert("Before verification you can't fill WPR.");
+        $("#submitBtn").prop("disabled", true);
+        return false;
+    }
         // ✅ Sab 10 parameters score hone chahiye
         for (let i = 1; i <= 10; i++) {
             if (!document.getElementById("score_" + i).value) {
@@ -436,5 +482,79 @@
         document.getElementById("submitBtn").textContent = "Submitting...";
 
         return true;
+    }
+
+        function checkVerification() {
+
+        let weekNo = $("#Week").val();
+        let month = $("#fMonth").val();
+        let year = $("#fYear").val();
+
+        if (!weekNo || !month || !year) {
+
+            $("#verificationStatus")
+                .html("Select Month & Week");
+
+                $("#isVerified").val("false");
+
+    $("#submitBtn").prop("disabled", true);
+            return;
+        }
+
+        $.ajax({
+
+            url: '/WPR/CheckWeeklyVerification',
+
+            type: 'GET',
+
+            data: {
+                weekNo: weekNo,
+                month: month,
+                year: year
+            },
+
+            success: function (res) {
+
+                if (res.success) {
+
+                    $("#verificationStatus")
+                        .html("✅ Verified")
+                        .css({
+                            "color": "green",
+                            "background": "#edf9ed",
+                            "border": "1px solid green"
+                        });
+
+                       $("#isVerified").val("true");
+
+     $("#submitBtn").prop("disabled", false);
+                }
+                else {
+
+                    $("#verificationStatus")
+                        .html("❌ Before verification you can't fill WPR")
+                        .css({
+                            "color": "red",
+                            "background": "#fff0f0",
+                            "border": "1px solid red"
+                        });
+
+                    $("#isVerified").val("false");
+                    $("#submitBtn").prop("disabled", true);
+                }
+            },
+
+            error: function () {
+
+                $("#verificationStatus")
+                    .html("❌ Verification check failed")
+                    .css({
+                        "color": "red",
+                        "background": "#fff0f0"
+                    });
+
+                $("#isVerified").val("false");
+            }
+        });
     }
 </script>

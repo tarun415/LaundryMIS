@@ -76,5 +76,73 @@ namespace LaudaryMis.Repositories
             using var conn = CreateConnection();
             await conn.ExecuteAsync(sql, details);
         }
+
+        public async Task<bool> CheckWeeklyVerification(int weekNo, int month, int year)
+        {
+            DateTime fromDate;
+            DateTime toDate;
+
+            switch (weekNo)
+            {
+                case 1:
+                    fromDate = new DateTime(year, month, 1);
+                    toDate = new DateTime(year, month, 7);
+                    break;
+
+                case 2:
+                    fromDate = new DateTime(year, month, 8);
+                    toDate = new DateTime(year, month, 14);
+                    break;
+
+                case 3:
+                    fromDate = new DateTime(year, month, 15);
+                    toDate = new DateTime(year, month, 21);
+                    break;
+
+                case 4:
+                    fromDate = new DateTime(year, month, 22);
+                    toDate = new DateTime(year, month, 28);
+                    break;
+
+                case 5:
+                    fromDate = new DateTime(year, month, 29);
+
+                    toDate = new DateTime(
+                        year,
+                        month,
+                        DateTime.DaysInMonth(year, month));
+
+                    break;
+
+                default:
+                    return false;
+            }
+
+            const string sql = @"
+
+SELECT COUNT(1)
+FROM WeeklyVerificationLog
+WHERE Status = 'Verified'
+
+AND CAST(FromDate AS DATE)
+    BETWEEN CAST(@fromDate AS DATE)
+        AND CAST(@toDate AS DATE)
+
+AND CAST(ToDate AS DATE)
+    BETWEEN CAST(@fromDate AS DATE)
+        AND CAST(@toDate AS DATE)";
+
+            using var conn = CreateConnection();
+
+            int count = await conn.QuerySingleAsync<int>(
+                sql,
+                new
+                {
+                    fromDate,
+                    toDate
+                });
+
+            return count > 0;
+        }
     }
 }

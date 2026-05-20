@@ -91,5 +91,10 @@ namespace LaudaryMis.Services
                 <= 80 => 90,
                 _ => 100
             };
+
+        public async Task<bool> CheckWeeklyVerification(int weekNo, int month, int year)
+        {
+            return await _repo.CheckWeeklyVerification(weekNo, month, year);
+        }
     }
 }
