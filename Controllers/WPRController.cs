@@ -70,5 +70,23 @@ namespace LaudaryMis.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet]
+        public async Task<JsonResult> CheckWeeklyVerification(
+     int weekNo,
+     int month,
+     int year)
+        {
+            bool isVerified =
+                await _wprService.CheckWeeklyVerification(
+                    weekNo,
+                    month,
+                    year);
+
+            return Json(new
+            {
+                success = isVerified
+            });
+        }
     }
 }
