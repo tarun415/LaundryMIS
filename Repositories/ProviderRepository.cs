@@ -1,6 +1,4 @@
-﻿
-
-using Dapper;
+﻿using Dapper;
 using LaudaryMis.Models;
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.ViewModels;

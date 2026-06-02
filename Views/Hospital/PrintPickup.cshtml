@@ -1,0 +1,270 @@
+﻿@model LaudaryMis.ViewModels.PickupVM
+
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Laundry Pickup Slip</title>
+
+    <style>
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            font-size: 13px;
+            color: #222;
+            margin: 25px;
+        }
+
+        .report-header {
+            text-align: center;
+            border-bottom: 3px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .hospital-name {
+            font-size: 28px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .report-title {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .sub-title {
+            margin-top: 5px;
+            color: #555;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+            .info-table td {
+                border: 1px solid #000;
+                padding: 8px;
+            }
+
+        .label {
+            font-weight: bold;
+            background: #f3f3f3;
+            width: 20%;
+        }
+
+        .linen-title {
+            margin-top: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .linen-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+            .linen-table th {
+                background: #d9d9d9;
+                border: 1px solid #000;
+                padding: 10px;
+                text-align: center;
+            }
+
+            .linen-table td {
+                border: 1px solid #000;
+                padding: 8px;
+            }
+
+            .linen-table tbody tr:nth-child(even) {
+                background: #f8f8f8;
+            }
+
+        .total-row {
+            font-weight: bold;
+            background: #ececec;
+        }
+
+        .remarks-box {
+            border: 1px solid #000;
+            min-height: 60px;
+            padding: 10px;
+            margin-top: 15px;
+        }
+
+        .signature-section {
+            margin-top: 80px;
+            width: 100%;
+        }
+
+        .signature-box {
+            width: 30%;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 60px;
+            padding-top: 5px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- HOSPITAL HEADING -->
+
+    <div class="report-header">
+
+        <div class="hospital-name">
+            @Model.HospitalName
+        </div>
+
+        <div class="report-title">
+            LAUNDRY PICKUP SLIP
+        </div>
+
+        <div class="sub-title">
+            Generated On :
+            @DateTime.Now.ToString("dd MMM yyyy hh:mm tt")
+        </div>
+
+    </div>
+
+    <!-- BASIC DETAILS -->
+
+    <table class="info-table">
+
+        <tr>
+            <td class="label">Pickup No</td>
+            <td>@Model.PickupNo</td>
+
+            <td class="label">Date</td>
+            <td>@Model.PickupDateTime.ToString("dd MMM yyyy")</td>
+        </tr>
+
+        <tr>
+            <td class="label">Ward</td>
+            <td>@Model.WardName</td>
+
+            <td class="label">Provider</td>
+            <td>@Model.ProviderName</td>
+        </tr>
+
+        <tr>
+            <td class="label">Shift</td>
+            <td>@Model.ShiftName</td>
+
+            <td class="label">Infected Linen</td>
+            <td>
+                @(Model.IsInfected ? "YES" : "NO")
+            </td>
+        </tr>
+
+        <tr>
+            <td class="label">Collected By</td>
+            <td>@Model.PickupBy</td>
+
+            <td class="label">Received By</td>
+            <td>@Model.ReceivedBy</td>
+        </tr>
+
+    </table>
+
+    <!-- LINEN DETAILS -->
+
+    <div class="linen-title">
+        Linen Details
+    </div>
+
+    <table class="linen-table">
+
+        <thead>
+            <tr>
+                <th width="10%">S.No.</th>
+                <th width="70%">Linen Type</th>
+                <th width="20%">Quantity</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            @{
+                int sr = 1;
+                int totalQty = 0;
+            }
+
+            @foreach (var item in Model.Items)
+            {
+                totalQty += item.CollectedQty;
+
+                <tr>
+                    <td style="text-align:center">@sr</td>
+                    <td>@item.LinenTypeName</td>
+                    <td style="text-align:center">
+                        @item.CollectedQty
+                    </td>
+                </tr>
+
+                sr++;
+            }
+
+            <tr class="total-row">
+                <td colspan="2" style="text-align:right">
+                    Total Quantity
+                </td>
+
+                <td style="text-align:center">
+                    @totalQty
+                </td>
+            </tr>
+
+        </tbody>
+
+    </table>
+
+    <!-- REMARKS -->
+
+    <h4>Remarks</h4>
+
+    <div class="remarks-box">
+        @(string.IsNullOrWhiteSpace(Model.Remarks)
+                ? "N/A"
+                : Model.Remarks)
+    </div>
+
+    <!-- SIGNATURES -->
+
+    <div class="signature-section">
+
+        <div class="signature-box">
+
+            <div class="signature-line">
+                Collected By
+            </div>
+
+        </div>
+
+        <div class="signature-box" style="float:right;">
+
+            <div class="signature-line">
+                Received By
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
