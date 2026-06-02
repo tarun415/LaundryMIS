@@ -4,6 +4,7 @@ using LaudaryMis.Services;
 using LaudaryMis.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Data.SqlClient;
+using Rotativa.AspNetCore;
 using System.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +43,10 @@ builder.Services.AddScoped<IMonthlyBillRepository, MonthlyBillRepository>();
 builder.Services.AddScoped<IMonthlyBillService, MonthlyBillService>();
 builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
 builder.Services.AddScoped<IDeliveryService, DeliveryService>();
+builder.Services.AddScoped<IPickUpRepository, PickUpRepository>();
+builder.Services.AddScoped<IPickUpService, PickUpService>();
+builder.Services.AddScoped<ICommonRepository, CommonRepository>();
+builder.Services.AddScoped<ICommonService, CommonService>();
 
 // 🔥 FIX (IMPORTANT)
 builder.Services.AddScoped<IDbConnection>(sp =>
@@ -61,8 +66,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 var app = builder.Build();
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-
+app.UseStaticFiles(); 
+RotativaConfiguration.Setup(
+    app.Environment.WebRootPath,
+    "Rotativa");
 app.UseRouting();
 
 app.UseAuthentication();
@@ -71,5 +78,6 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
+
 
 app.Run();

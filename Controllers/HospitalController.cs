@@ -3,8 +3,12 @@ using LaudaryMis.Services;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using Rotativa.AspNetCore;
+using Rotativa.AspNetCore.Options;
 using System.Data;
+using System.Drawing;
 
 namespace LaudaryMis.Controllers
 {
@@ -14,14 +18,25 @@ namespace LaudaryMis.Controllers
         private readonly IWPRService _wprService;
         private readonly IWebHostEnvironment _env;
         private readonly IDeliveryService _delservice;
+        private readonly IPickUpService _pkservice;
+        private readonly IHospitalService _hosservice;
+        private readonly IWardService _wardservice;
+        private readonly IProviderService _ProviderService;
+        private readonly IDailyService _dservice;
+        private readonly ICommonService _comservice;
 
-
-        public HospitalController(IDailyService service, IWPRService wprService, IWebHostEnvironment env, IDeliveryService delservice)
-        {
-            _service = service;
-            _wprService = wprService;
-            _env = env;
-            _delservice = delservice;
+        public HospitalController(IDailyService service, IWPRService wprService, IWebHostEnvironment env, IDeliveryService delservice,IHospitalService hosservice ,IWardService wardservice, IProviderService ProviderService, IDailyService dailyService, IPickUpService pkservice, ICommonService comservice)
+                {
+                    _service = service;
+                    _wprService = wprService;
+                    _env = env;
+                    _delservice = delservice;
+            _hosservice = hosservice;
+            _wardservice = wardservice;
+            _ProviderService = ProviderService;
+            _dservice = dailyService;
+            _pkservice = pkservice;
+            _comservice = comservice;
         }
 
         [Authorize(Roles = "Hospital")]
@@ -196,5 +211,190 @@ namespace LaudaryMis.Controllers
                 return RedirectToAction("MonthlyVerification");
             }
         }
+
+
+        #region New LMS 
+
+
+        // CREATE PAGE
+
+        [HttpGet]
+        public async Task<IActionResult> CreatePickUp()
+        {
+            var model = new PickupVM();
+
+            // dropdown data
+
+            var hospitalId = GetHospitalId();
+            model.Wards = await _comservice.GetWards();
+
+            model.Providers = await _comservice.GetProviderByHospital(hospitalId);
+
+            model.LinenTypes = await _comservice.GetLinenTypes();
+
+            model.Items = new List<PickupItemVM>();
+
+            model.HospitalId = hospitalId;
+            var agreement = await _comservice.GetAgreementByHospital(model.HospitalId);
+
+            if (agreement != null)
+            {
+                model.AgreementId = agreement.AgreementId;
+                model.ProviderId = agreement.ProviderId;
+            }
+
+            return View(model);
+        }
+        // SAVE PICKUP
+        [HttpPost]
+        public async Task<JsonResult> SavePickup( [FromBody] PickupVM model)
+        {
+            try
+            {
+                model.CreatedBy =
+                    Convert.ToInt32(
+                        User.FindFirst("UserId")?.Value);
+
+                var pickupId =
+                    await _pkservice.SavePickup(model);
+
+                return Json(new
+                {
+                    success = true,
+                    pickupId = pickupId,
+                    message = "Pickup saved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+        // LIST
+        public async Task<IActionResult> PickupList()
+        {
+            var data = await _pkservice.GetPickupList();
+            return View(data);
+        }
+
+        // CHILD ITEMS
+        [HttpGet]
+        public async Task<IActionResult> PickupItems(int id)
+        {
+            var data = await _pkservice.GetPickupItems(id);
+            return Json(data);
+        }
+        // DELETE
+        [HttpPost]
+        public async Task<IActionResult> DeletePickup(int id)
+        {
+            var result = await _pkservice.DeletePickup(id);
+
+            return Json(new
+            {
+                success = result.Flag == 1,
+                message = result.Message
+            });
+        }
+        // SEARCH
+        [HttpGet]
+        public async Task<IActionResult> SearchPickupList(
+            string status,
+            int? hospitalId,
+            int? wardId,
+            DateTime? date)
+        {
+            var data = await _pkservice.SearchPickupList(
+                status,
+                hospitalId,
+                wardId,
+                date);
+
+            return Json(data);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditPickup(int id)
+        {
+            var model = await _pkservice.GetPickupById(id);
+
+            if (model == null)
+                return NotFound();
+
+            // Dropdowns
+            model.Wards =
+                await _comservice.GetWards();
+
+            model.Providers =
+                await _comservice.GetProviderByHospital(
+                    model.HospitalId);
+
+            model.LinenTypes =
+                await _comservice.GetLinenTypes();
+
+            return View("CreatePickUp", model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> PrintPickup(int id)
+        {
+            var model = await _pkservice.GetPickupById(id);
+
+            if (model == null)
+                return NotFound();
+
+            // Create folder if not exists
+            string folderPath = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot",
+                "Uploads",
+                "Pickups");
+
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+            // File name
+            string fileName =
+                $"Pickup_{id}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+
+            string fullPath =
+                Path.Combine(folderPath, fileName);
+
+            // Generate PDF
+            var pdf = new ViewAsPdf("PrintPickup", model)
+            {
+                FileName = fileName,
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageOrientation = Orientation.Portrait
+            };
+
+            byte[] pdfBytes =
+                await pdf.BuildFile(ControllerContext);
+
+            // Save PDF physically
+            await System.IO.File.WriteAllBytesAsync(
+                fullPath,
+                pdfBytes);
+
+            // Save URL in DB
+            string dbPath =
+                "/Uploads/Pickups/" + fileName;
+
+            await _pkservice.UpdatePrintUrl(
+                id,
+                dbPath);
+
+            // Return PDF to browser
+            return File(
+                pdfBytes,
+                "application/pdf",
+                fileName);
+        }
+        #endregion
+
     }
 }
