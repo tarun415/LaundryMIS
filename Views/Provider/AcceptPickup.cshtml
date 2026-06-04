@@ -249,6 +249,12 @@
                                             Verified
                                         </span>
                                     }
+                                    else if (item.Status == "Accepted")
+                                    {
+                                        <span class="badge bg-primary">
+                                            Accepted
+                                        </span>
+                                    }
                                     else
                                     {
                                         <span class="badge bg-secondary">
@@ -262,30 +268,21 @@
 
                                     @if (item.Status == "Collected")
                                     {
-                                        <div class="d-flex gap-2 justify-content-center">
-
-                                            <a href="/Hospital/EditPickup/@item.PickupId"
-                                               class="btn btn-sm btn-warning rounded-circle">
-
-                                                <i class="fa fa-edit"></i>
-
-                                            </a>
-
-                                            <button class="btn btn-sm btn-danger rounded-circle"
-                                                    onclick="deletePickup(@item.PickupId,this)">
-
-                                                <i class="fa fa-trash"></i>
-
+                                        <div class="text-center">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-success rounded-pill px-3"
+                                                    onclick="acceptPickup(@item.PickupId)">
+                                                <i class="fa fa-check"></i> Accept
                                             </button>
-
-                                            <a href="/Hospital/PrintPickup/@item.PickupId"
-                                               target="_blank"
-                                               class="btn btn-sm btn-primary rounded-circle">
-
-                                                <i class="fa fa-print"></i>
-
+                                        </div>
+                                    }
+                                    else if (item.Status == "Accepted")
+                                    {
+                                        <div class="text-center">
+                                            <a href="/Provider/DeliveryEntry/@item.PickupId"
+                                               class="btn btn-sm btn-primary rounded-pill px-3">
+                                                <i class="fa fa-truck"></i> Deliver
                                             </a>
-
                                         </div>
                                     }
 
@@ -446,42 +443,40 @@
 
                     if (item.status === "Collected")
                         statusBadge = '<span class="badge bg-warning text-dark">Collected</span>';
-
                     else if (item.status === "Delivered")
                         statusBadge = '<span class="badge bg-info text-dark">Delivered</span>';
-
                     else if (item.status === "Verified")
                         statusBadge = '<span class="badge bg-success">Verified</span>';
-
+                    else if (item.status === "Accepted")
+                        statusBadge = '<span class="badge bg-primary">Accepted</span>';
                     else
                         statusBadge = '<span class="badge bg-secondary">' + item.status + '</span>';
 
-                    var actionButtons = '';
+                            var actionButtons = '';
 
-                    if (item.status === "Collected") {
+        if (item.status === "Collected") {
 
-                        actionButtons =
-                            `<div class="d-flex gap-2 justify-content-center">
+            actionButtons =
+            `<div class="text-center">
+                <button type="button"
+                        class="btn btn-sm btn-success rounded-pill px-3"
+                        onclick="acceptPickup(${item.pickupId})">
 
-                                <a href="/Hospital/EditPickup/${item.pickupId}"
-                                   class="btn btn-sm btn-warning rounded-circle">
-                                    <i class="fa fa-edit"></i>
-                                </a>
+                    <i class="fa fa-check"></i> Accept
+                </button>
+            </div>`;
+        }
+        else if (item.status === "Accepted") {
 
-                                <button class="btn btn-sm btn-danger rounded-circle"
-                                        onclick="deletePickup(${item.pickupId},this)">
-                                    <i class="fa fa-trash"></i>
-                                </button>
+            actionButtons =
+            `<div class="text-center">
+                <a href="/Provider/DeliveryEntry/${item.pickupId}"
+                   class="btn btn-sm btn-primary rounded-pill px-3">
 
-                                <a href="/Hospital/PrintPickup/${item.pickupId}"
-                                   target="_blank"
-                                   class="btn btn-sm btn-primary rounded-circle"
-                                   title="Print">
-                                    <i class="fa fa-print"></i>
-                                </a>
-
-                            </div>`;
-                    }
+                    <i class="fa fa-truck"></i> Deliver
+                </a>
+            </div>`;
+        }
 
                     table.row.add([
                         `<span class="details-control text-center"
@@ -561,7 +556,42 @@
                 });
             }
         }
+        function acceptPickup(id) {
 
+            if (!confirm("Are you sure you want to accept this pickup?"))
+                return;
+
+            $.ajax({
+
+                url: '/Provider/AcceptPickup',
+                type: 'POST',
+
+                data: {
+                    PickupId: id,
+                    Remarks: ''
+                },
+
+                success: function (res) {
+
+                    if (res.success) {
+
+                        alert(res.message);
+
+                        $('#btnSearch').click();
+                    }
+                    else {
+
+                        alert(res.message);
+                    }
+                },
+
+                error: function () {
+
+                    alert('Error while accepting pickup.');
+                }
+
+            });
+        }
     </script>
 
 }

@@ -3,6 +3,7 @@ using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LaudaryMis.Controllers
 {
@@ -14,17 +15,19 @@ namespace LaudaryMis.Controllers
         private readonly IWPRService _wprService;
         private readonly IHospitalService _hosservice;
         private readonly IWardService _wardservice;
+        private readonly IPickUpService _pkservice;
 
         public ProviderController(
             IDailyService service,
             IProviderService providerService,
-            IWPRService wprService, IHospitalService hosservice, IWardService wardservice)
+            IWPRService wprService, IHospitalService hosservice, IWardService wardservice, IPickUpService pkservice)
         {
             _service = service;
             _hosservice = hosservice;
             _ProviderService = providerService;
             _wprService = wprService;
             _wardservice = wardservice;
+            _pkservice = pkservice;
         }
 
         private int GetProviderId()
@@ -183,7 +186,55 @@ namespace LaudaryMis.Controllers
             }
         }
 
+        #region New Development 
+        public async Task<IActionResult> AcceptPickup(int id)
+        {
+           
+            var data = await _pkservice.GetPickupList();
+            return View(data);
+            // var providerId = GetProviderId();
+            //var model =
+            //    await _pkservice
+            //    .GetPickupForAcceptance(providerId);
 
+            //if (model == null)
+            //{
+            //    return RedirectToAction("PickupList");
+            //}
+
+            //return View(model);
+        }
+        [HttpPost]
+        public async Task<IActionResult> AcceptPickup(PickupVM model)
+        {
+            try
+            {
+                // int userId = Convert.ToInt32(
+                // HttpContext.Session.GetString("UserId"));
+                int userId = Convert.ToInt32(
+     User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+                await _pkservice.AcceptPickup(
+                    model.PickupId,
+                    userId,
+                    model.Remarks);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Pickup accepted successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+        #endregion
 
     }
 }

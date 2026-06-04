@@ -212,5 +212,52 @@ namespace LaudaryMis.Repositories
                     path
                 });
         }
+
+
+        public async Task<PickupVM> GetPickupForAcceptance(int pickupId)
+        {
+            using var con = new SqlConnection(
+                _config.GetConnectionString("DefaultConnection"));
+
+            using var multi =
+                await con.QueryMultipleAsync(
+                    "sp_GetPickupById",
+                    new
+                    {
+                        PickupId = pickupId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+            var master =
+                await multi.ReadFirstOrDefaultAsync<PickupVM>();
+
+            if (master != null)
+            {
+                master.Items =
+                    (await multi.ReadAsync<PickupItemVM>())
+                    .ToList();
+            }
+
+            return master;
+        }
+        public async Task<int> AcceptPickup(
+    int pickupId,
+    int userId,
+    string remarks)
+        {
+            using var con = new SqlConnection(
+                _config.GetConnectionString("DefaultConnection"));
+
+            var param = new DynamicParameters();
+
+            param.Add("@PickupId", pickupId);
+            param.Add("@AcceptedByUserId", userId);
+            param.Add("@Remarks", remarks);
+
+            return await con.ExecuteAsync(
+                "sp_AcceptPickup",
+                param,
+                commandType: CommandType.StoredProcedure);
+        }
     }
 }

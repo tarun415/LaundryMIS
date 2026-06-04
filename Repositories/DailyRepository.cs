@@ -208,7 +208,7 @@ SELECT CAST(SCOPE_IDENTITY() as int);
             if (entry == null)
                 throw new Exception("Entry not found");
 
-            var items = await _db.QueryAsync(@" SELECT di.LinenType,di.DirtyCount,ISNULL(SUM(dli.CleanCount), 0) AS DeliveredCount
+            var items = await _db.QueryAsync(@"SELECT di.LinenType,di.DirtyCount,ISNULL(SUM(dli.CleanCount), 0) AS DeliveredCount
     FROM DailyEntryItems di LEFT JOIN DeliveryEntries de ON de.EntryId = di.EntryId LEFT JOIN DeliveryItems dli ON dli.DeliveryId = de.Id 
         AND dli.LinenType = di.LinenType WHERE di.EntryId = @Id GROUP BY di.LinenType, di.DirtyCount", new { Id = id });
 
