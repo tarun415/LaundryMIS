@@ -112,6 +112,7 @@
             reports:    '@Url.Action("DailyEntryList", "Provider")',
             createBill: '@Url.Action("SelectHospital", "MonthlyBill")',
             myBills:    '@Url.Action("MyBills", "MonthlyBill")',
+            AcceptPickup:    '@Url.Action("AcceptPickup", "Provider")',
         }
         };
 
@@ -143,6 +144,7 @@
                 { id: "Pending", icon: "🧺", label: "Pending", route: () => routes.provider.Pending },
                 // { id: "Deliver", icon: "🧺", label: "Deliver", route: () => routes.provider.Deliver },
                 { id: "reports", icon: "📊", label: "Reports", route: () => routes.provider.reports },
+                { id: "AcceptPickup", icon: "📊", label: "AcceptPickup", route: () => routes.provider.AcceptPickup },
                         { section: "Billing" },
         { id: "createBill", icon: "➕", label: "Create Bill",  route: () => routes.provider.createBill },
         { id: "myBills",    icon: "🧾", label: "My Bills",     route: () => routes.provider.myBills },

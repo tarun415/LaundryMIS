@@ -22,5 +22,12 @@ namespace LaudaryMis.Repositories.Interfaces
         Task UpdatePrintUrl(
  int pickupId,
  string path);
+
+        Task<PickupVM> GetPickupForAcceptance(int pickupId);
+
+        Task<int> AcceptPickup(
+            int pickupId,
+            int userId,
+            string remarks);
     }
 }

@@ -1,4 +1,5 @@
-﻿using LaudaryMis.Repositories.Interfaces;
+﻿using LaudaryMis.Repositories;
+using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 
@@ -54,6 +55,22 @@ namespace LaudaryMis.Services
             await _repo.UpdatePrintUrl(
                 pickupId,
                 path);
+        }
+        public async Task<PickupVM> GetPickupForAcceptance(int pickupId)
+        {
+            return await _repo
+                .GetPickupForAcceptance(pickupId);
+        }
+        public async Task<int> AcceptPickup(
+    int pickupId,
+    int userId,
+    string remarks)
+        {
+            return await _repo
+                .AcceptPickup(
+                    pickupId,
+                    userId,
+                    remarks);
         }
     }
 }
