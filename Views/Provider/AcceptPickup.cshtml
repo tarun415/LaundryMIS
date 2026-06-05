@@ -276,10 +276,10 @@
                                             </button>
                                         </div>
                                     }
-                                    else if (item.Status == "Accepted")
+                                    else if (item.Status == "Accepted" || item.Status == "Partial Delivered")
                                     {
                                         <div class="text-center">
-                                            <a href="/Provider/DeliveryEntry/@item.PickupId"
+                                            <a href="/Provider/DeliveryChallan/@item.PickupId"
                                                class="btn btn-sm btn-primary rounded-pill px-3">
                                                 <i class="fa fa-truck"></i> Deliver
                                             </a>
@@ -466,11 +466,11 @@
                 </button>
             </div>`;
         }
-        else if (item.status === "Accepted") {
+        else if (item.status === "Accepted"||item.status === "Partial Delivered") {
 
             actionButtons =
             `<div class="text-center">
-                <a href="/Provider/DeliveryEntry/${item.pickupId}"
+                <a href="/Provider/DeliveryChallan/${item.pickupId}"
                    class="btn btn-sm btn-primary rounded-pill px-3">
 
                     <i class="fa fa-truck"></i> Deliver

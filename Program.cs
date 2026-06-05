@@ -47,6 +47,8 @@ builder.Services.AddScoped<IPickUpRepository, PickUpRepository>();
 builder.Services.AddScoped<IPickUpService, PickUpService>();
 builder.Services.AddScoped<ICommonRepository, CommonRepository>();
 builder.Services.AddScoped<ICommonService, CommonService>();
+builder.Services.AddScoped<IDeliveryChallanRepository, DeliveryChallanRepository>();
+builder.Services.AddScoped<IDeliveryChallanService, DeliveryChallanService>();
 
 // 🔥 FIX (IMPORTANT)
 builder.Services.AddScoped<IDbConnection>(sp =>
