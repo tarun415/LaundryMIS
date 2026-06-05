@@ -1,0 +1,308 @@
+﻿@model LaudaryMis.ViewModels.DeliveryChallanVM
+
+<style>
+    .card {
+        border-radius: 14px;
+    }
+
+    .table thead th {
+        background: #dbeafe;
+        color: #1e3a8a;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg,#3b82f6,#1e40af);
+        border: none;
+    }
+
+    .table-scroll {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .section-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .form-control {
+        border-radius: 10px;
+    }
+</style>
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+            <h4 class="fw-bold mb-0">
+                🚚 Delivery Challan
+            </h4>
+
+            <small class="text-muted">
+                Pickup No :
+                <strong>@Model.PickupNo</strong>
+            </small>
+        </div>
+
+        <a href="/Provider/PickupAcceptanceList"
+           class="btn btn-outline-secondary rounded-pill px-3">
+
+            ← Back
+
+        </a>
+
+    </div>
+
+    <input type="hidden"
+           id="PickupId"
+           value="@Model.PickupId" />
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body">
+
+            <div class="table-responsive table-scroll">
+
+                <table class="table table-hover align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Linen</th>
+                            <th>Collected</th>
+                            <th>Delivered</th>
+                            <th>Pending</th>
+                            <th width="150">Delivery Qty</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+
+                                <td>
+                                    @item.LinenName
+
+                                    <input type="hidden"
+                                           class="linenTypeId"
+                                           value="@item.LinenTypeId" />
+                                </td>
+
+                                <td>
+                                    @item.CollectedQty
+                                </td>
+
+                                <td class="text-success fw-bold">
+                                    @item.DeliveredQty
+                                </td>
+
+                                <td class="fw-bold text-danger">
+                                    @item.PendingQty
+                                </td>
+
+                                <td>
+
+                                    <input type="number"
+                                           class="form-control deliveryQty text-center"
+                                           min="0"
+                                           max="@item.PendingQty"
+                                           value="0"
+                                           data-pending="@item.PendingQty"
+                                           @(item.PendingQty == 0 ? "disabled" : "") />
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <hr />
+
+            <div class="row">
+
+                <div class="col-md-4">
+
+                    <label class="section-title">
+                        Delivered By
+                    </label>
+
+                    <input type="text"
+                           id="DeliveredBy"
+                           class="form-control"
+                           placeholder="Delivered By" />
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="section-title">
+                        Received By
+                    </label>
+
+                    <input type="text"
+                           id="ReceivedBy"
+                           class="form-control"
+                           placeholder="Received By" />
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="section-title">
+                        Remarks
+                    </label>
+
+                    <input type="text"
+                           id="Remarks"
+                           class="form-control"
+                           placeholder="Remarks" />
+
+                </div>
+
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+
+                <a href="/Provider/PickupAcceptanceList"
+                   class="btn btn-light border rounded-pill px-4">
+
+                    Cancel
+
+                </a>
+
+                <button type="button"
+                        class="btn btn-primary rounded-pill px-4"
+                        onclick="saveDelivery()">
+
+                    💾 Save Delivery
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        async function saveDelivery() {
+
+            let items = [];
+
+            let rows = document.querySelectorAll("tbody tr");
+
+            for (let row of rows) {
+
+                let linenTypeId =
+                    parseInt(
+                        row.querySelector(".linenTypeId").value
+                    );
+
+                let qtyBox =
+                    row.querySelector(".deliveryQty");
+
+                let deliveryQty =
+                    parseInt(qtyBox.value) || 0;
+
+                let pendingQty =
+                    parseInt(qtyBox.dataset.pending);
+
+                if (deliveryQty > pendingQty) {
+
+                    alert(
+                        "Delivery Qty cannot exceed Pending Qty"
+                    );
+
+                    return;
+                }
+
+                if (deliveryQty > 0) {
+
+                    items.push({
+
+                        linenTypeId: linenTypeId,
+                        deliveryQty: deliveryQty
+
+                    });
+                }
+            }
+
+            if (items.length === 0) {
+
+                alert(
+                    "Please enter at least one delivery quantity."
+                );
+
+                return;
+            }
+
+            const model = {
+
+                pickupId:
+                    parseInt(
+                        document.getElementById("PickupId").value
+                    ),
+
+                deliveredBy:
+                    document.getElementById("DeliveredBy").value,
+
+                receivedBy:
+                    document.getElementById("ReceivedBy").value,
+
+                remarks:
+                    document.getElementById("Remarks").value,
+
+                items: items
+            };
+
+            const response =
+                await fetch('/Provider/DeliveryChallan', {
+
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+
+                    body: JSON.stringify(model)
+
+                });
+
+            const result = await response.json();
+
+            if (result.success) {
+
+                alert("Delivery saved successfully.");
+
+                window.location.href =
+                    '/Provider/DeliveryList';
+            }
+            else {
+
+                alert(result.message);
+            }
+        }
+
+    </script>
+
+}

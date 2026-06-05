@@ -16,11 +16,11 @@ namespace LaudaryMis.Controllers
         private readonly IHospitalService _hosservice;
         private readonly IWardService _wardservice;
         private readonly IPickUpService _pkservice;
-
+        private readonly IDeliveryChallanService _delservice;
         public ProviderController(
             IDailyService service,
             IProviderService providerService,
-            IWPRService wprService, IHospitalService hosservice, IWardService wardservice, IPickUpService pkservice)
+            IWPRService wprService, IHospitalService hosservice, IWardService wardservice, IPickUpService pkservice, IDeliveryChallanService delservice)
         {
             _service = service;
             _hosservice = hosservice;
@@ -28,6 +28,7 @@ namespace LaudaryMis.Controllers
             _wprService = wprService;
             _wardservice = wardservice;
             _pkservice = pkservice;
+            _delservice = delservice;
         }
 
         private int GetProviderId()
@@ -209,8 +210,6 @@ namespace LaudaryMis.Controllers
         {
             try
             {
-                // int userId = Convert.ToInt32(
-                // HttpContext.Session.GetString("UserId"));
                 int userId = Convert.ToInt32(
      User.FindFirstValue(ClaimTypes.NameIdentifier));
 
@@ -233,6 +232,53 @@ namespace LaudaryMis.Controllers
                     message = ex.Message
                 });
             }
+        }
+        public async Task<IActionResult> DeliveryChallan(int id)
+        {
+            var model =
+                await _delservice.GetPickupForDelivery(id);
+
+            return View(model);
+        }
+        [HttpPost]
+        public async Task<IActionResult> DeliveryChallan(
+    [FromBody] DeliveryChallanVM model)
+        {
+            try
+            {
+                var challanId =
+                    await _delservice.SaveDelivery(model);
+
+                return Json(new
+                {
+                    success = true,
+                    challanId
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        public async Task<IActionResult> DeliveryList()
+        {
+            var model =
+                await _delservice.GetDeliveryList();
+
+            return View(model);
+        }
+        public async Task<IActionResult>
+DeliveryItems(int id)
+        {
+            var data =
+                await _delservice.GetDeliveryItems(id);
+
+            return Json(data);
         }
         #endregion
 
