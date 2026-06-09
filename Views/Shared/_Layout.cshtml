@@ -103,7 +103,7 @@
             WPREntry: '@Url.Action("WPREntry", "WPR")',
             billQueue: '@Url.Action("HospitalQueue", "MonthlyBill")',
             MonthlyVerification: '@Url.Action("MonthlyVerification", "Hospital")',
-             CreatePickUp:    '@Url.Action("CreatePickUp", "Hospital")',
+             CreatePickUp:    '@Url.Action("PickupList", "Hospital")',
         },
         provider: {
             dashboard:  '@Url.Action("Dashboard", "Provider")',
@@ -113,6 +113,7 @@
             createBill: '@Url.Action("SelectHospital", "MonthlyBill")',
             myBills:    '@Url.Action("MyBills", "MonthlyBill")',
             AcceptPickup:    '@Url.Action("AcceptPickup", "Provider")',
+            DeliveryList:    '@Url.Action("DeliveryList", "Provider")',
         }
         };
 
@@ -145,6 +146,7 @@
                 // { id: "Deliver", icon: "🧺", label: "Deliver", route: () => routes.provider.Deliver },
                 { id: "reports", icon: "📊", label: "Reports", route: () => routes.provider.reports },
                 { id: "AcceptPickup", icon: "📊", label: "AcceptPickup", route: () => routes.provider.AcceptPickup },
+                 { id: "DeliveryList", icon: "📊", label: "DeliveryList", route: () => routes.provider.DeliveryList },
                         { section: "Billing" },
         { id: "createBill", icon: "➕", label: "Create Bill",  route: () => routes.provider.createBill },
         { id: "myBills",    icon: "🧾", label: "My Bills",     route: () => routes.provider.myBills },

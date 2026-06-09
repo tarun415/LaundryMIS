@@ -72,5 +72,16 @@ namespace LaudaryMis.Services
                     userId,
                     remarks);
         }
+
+        public async Task<int> AcceptDelivery(
+    int PickupId,
+    int userId,
+    string remarks)
+        {
+            return await _repo.AcceptDelivery(
+                PickupId,
+                userId,
+                remarks);
+        }
     }
 }

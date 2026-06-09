@@ -26,6 +26,10 @@
 
         public int TotalCollectedQty { get; set; }
 
+        public int TotalDeliveredQty { get; set; }
+
+        public int TotalPendingQty { get; set; }
+
         public bool IsInfected { get; set; }
 
         public string PickupBy { get; set; }
@@ -50,5 +54,7 @@
         public string LinenTypeName { get; set; }
 
         public int CollectedQty { get; set; }
+        public int DeliveredQty { get; set; }
+        public int PendingQty { get; set; }
     }
 }

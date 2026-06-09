@@ -9,6 +9,7 @@ using Rotativa.AspNetCore;
 using Rotativa.AspNetCore.Options;
 using System.Data;
 using System.Drawing;
+using System.Security.Claims;
 
 namespace LaudaryMis.Controllers
 {
@@ -393,6 +394,39 @@ namespace LaudaryMis.Controllers
                 pdfBytes,
                 "application/pdf",
                 fileName);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AcceptDelivery(
+    int PickupId,
+    string remarks)
+        {
+            try
+            {
+                int userId =
+                    Convert.ToInt32(
+                        User.FindFirst(
+                            ClaimTypes.NameIdentifier)?.Value);
+
+                await _pkservice.AcceptDelivery(
+                    PickupId,
+                    userId,
+                    remarks);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Delivery accepted successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
         }
         #endregion
 
