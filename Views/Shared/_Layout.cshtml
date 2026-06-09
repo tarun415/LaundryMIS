@@ -113,7 +113,9 @@
             createBill: '@Url.Action("SelectHospital", "MonthlyBill")',
             myBills:    '@Url.Action("MyBills", "MonthlyBill")',
             AcceptPickup:    '@Url.Action("AcceptPickup", "Provider")',
-            DeliveryList:    '@Url.Action("DeliveryList", "Provider")',
+            DeliverySummary:    '@Url.Action("DeliverySummaryReport", "Report")',
+             WeeklyDeliveryReport:    '@Url.Action("WeeklyDeliveryReport", "Report")',
+             MonthlyDeliveryReport:    '@Url.Action("MonthlyReport", "Report")',
         }
         };
 
@@ -146,7 +148,9 @@
                 // { id: "Deliver", icon: "🧺", label: "Deliver", route: () => routes.provider.Deliver },
                 { id: "reports", icon: "📊", label: "Reports", route: () => routes.provider.reports },
                 { id: "AcceptPickup", icon: "📊", label: "AcceptPickup", route: () => routes.provider.AcceptPickup },
-                 { id: "DeliveryList", icon: "📊", label: "DeliveryList", route: () => routes.provider.DeliveryList },
+                 { id: "DeliverySummary", icon: "📊", label: "Delivery Report", route: () => routes.provider.DeliverySummary },
+                  { id: "WeeklyDeliveryReport", icon: "📊", label: "Weekly Delivery Report", route: () => routes.provider.WeeklyDeliveryReport },
+                   { id: "MonthlyDeliveryReport", icon: "📊", label: "Monthly Delivery Report", route: () => routes.provider.MonthlyDeliveryReport },
                         { section: "Billing" },
         { id: "createBill", icon: "➕", label: "Create Bill",  route: () => routes.provider.createBill },
         { id: "myBills",    icon: "🧾", label: "My Bills",     route: () => routes.provider.myBills },

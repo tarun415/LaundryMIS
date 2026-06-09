@@ -1,0 +1,444 @@
+﻿@using LaudaryMis.ViewModels
+@model List<MonthlyReportVM>
+
+<style>
+
+    .report-card {
+        border: none;
+        border-radius: 16px;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,.08);
+    }
+
+        .report-card h3 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .report-card p {
+            margin: 0;
+            opacity: .9;
+        }
+
+    .bg-pickup {
+        background: linear-gradient(135deg,#3b82f6,#1e40af);
+    }
+
+    .bg-collected {
+        background: linear-gradient(135deg,#06b6d4,#0891b2);
+    }
+
+    .bg-delivered {
+        background: linear-gradient(135deg,#22c55e,#15803d);
+    }
+
+    .bg-pending {
+        background: linear-gradient(135deg,#ef4444,#b91c1c);
+    }
+
+    .bg-full {
+        background: linear-gradient(135deg,#8b5cf6,#6d28d9);
+    }
+
+    .bg-partial {
+        background: linear-gradient(135deg,#f59e0b,#d97706);
+    }
+
+    .details-control {
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .child-table {
+        width: 100%;
+    }
+
+    .dataTables_filter input {
+        border-radius: 20px;
+        padding: 5px 10px;
+    }
+
+</style>
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <h3 class="fw-bold">
+            📊 Monthly Laundry Report
+        </h3>
+
+    </div>
+
+    <!-- FILTER -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form method="get">
+
+                <div class="row">
+
+                    <div class="col-md-3">
+
+                        <label>Month</label>
+
+                        <select name="month"
+                                class="form-select">
+
+                            @for (int i = 1; i <= 12; i++)
+                            {
+                                <option value="@i"
+                                        selected="@(ViewBag.Month == i)">
+                                    @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>Year</label>
+
+                        <select name="year"
+                                class="form-select">
+
+                            @for (int y = DateTime.Now.Year; y >= 2024; y--)
+                            {
+                                <option value="@y"
+                                        selected="@(ViewBag.Year == y)">
+                                    @y
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <button class="btn btn-primary mt-4">
+
+                            🔍 Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    @{
+        var summary = Model.FirstOrDefault();
+    }
+
+    @if (summary != null)
+    {
+        <!-- SUMMARY CARDS -->
+
+        <div class="row mb-4">
+
+            <div class="col-md-2">
+
+                <div class="report-card bg-pickup">
+
+                    <p>Total Pickups</p>
+
+                    <h3>@summary.TotalPickups</h3>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-2">
+
+                <div class="report-card bg-collected">
+
+                    <p>Collected Qty</p>
+
+                    <h3>@summary.CollectedQty</h3>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-2">
+
+                <div class="report-card bg-delivered">
+
+                    <p>Delivered Qty</p>
+
+                    <h3>@summary.DeliveredQty</h3>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-2">
+
+                <div class="report-card bg-pending">
+
+                    <p>Pending Qty</p>
+
+                    <h3>@summary.PendingQty</h3>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-2">
+
+                <div class="report-card bg-full">
+
+                    <p>Fully Delivered</p>
+
+                    <h3>@summary.FullyDelivered</h3>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-2">
+
+                <div class="report-card bg-partial">
+
+                    <p>Partial Delivered</p>
+
+                    <h3>@summary.PartialDelivered</h3>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+    <!-- DETAIL TABLE -->
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table id="monthlyTable"
+                       class="table table-hover align-middle">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th></th>
+
+                            <th>Pickup No</th>
+
+                            <th>Hospital</th>
+
+                            <th>Ward</th>
+
+                            <th>Collected Qty</th>
+
+                            <th>Delivered Qty</th>
+
+                            <th>Pending Qty</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        $(document).ready(function(){
+
+            var table = $('#monthlyTable').DataTable({
+
+                pageLength:10,
+
+                responsive:true,
+
+                       ajax:{
+            url:'/Report/GetMonthlyPickupDetails',
+            data:function(d){
+
+                d.month =
+                    $('select[name="month"]').val();
+
+                d.year =
+                    $('select[name="year"]').val();
+            },
+            dataSrc:''
+        },
+
+                columns:[
+
+                    {
+                        data:'pickupId',
+                        render:function(data){
+
+                            return `<span class="details-control"
+                                          data-id="${data}">
+                                        ➕
+                                    </span>`;
+                        }
+                    },
+
+                    {data:'pickupNo'},
+
+                    {data:'hospitalName'},
+
+                    {data:'wardName'},
+
+                    {
+                        data:'collectedQty',
+                        className:'fw-bold'
+                    },
+
+                    {
+                        data:'deliveredQty',
+                        className:'text-success fw-bold'
+                    },
+
+                    {
+                        data:'pendingQty',
+                        className:'text-danger fw-bold'
+                    },
+
+                    {
+                        data:'status',
+                        render:function(data){
+
+                            if(data==="Verified")
+                                return `<span class="badge bg-success">${data}</span>`;
+
+                            if(data==="Partial Delivered")
+                                return `<span class="badge bg-warning text-dark">${data}</span>`;
+
+                            return `<span class="badge bg-secondary">${data}</span>`;
+                        }
+                    }
+                ]
+            });
+
+            function format(items){
+
+                let html =
+
+                `<table class="table table-bordered child-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Delivery No</th>
+
+                            <th>Date</th>
+
+                            <th>Qty</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>`;
+
+                items.forEach(x=>{
+
+                    html +=
+
+                    `<tr>
+
+                        <td>${x.deliveryNo}</td>
+
+                        <td>${x.deliveryDate}</td>
+
+                        <td class="text-success fw-bold">
+                            ${x.deliveredQty}
+                        </td>
+
+                        <td>${x.status}</td>
+
+                    </tr>`;
+                });
+
+                html += "</tbody></table>";
+
+                return html;
+            }
+
+            $('#monthlyTable tbody').on(
+                'click',
+                'span.details-control',
+                function(){
+
+                    var tr = $(this).closest('tr');
+
+                    var row = table.row(tr);
+
+                    var id = $(this).data('id');
+
+                    if(row.child.isShown()){
+
+                        row.child.hide();
+
+                        $(this).html('➕');
+                    }
+                    else{
+
+                        $.get(
+                            '/Report/GetDeliveryHistory/'+id,
+                            function(data){
+
+                                row.child(
+                                    format(data)
+                                ).show();
+
+                                tr.find('.details-control')
+                                  .html('➖');
+                            });
+                    }
+                });
+        $('#btnSearch').click(function(e){
+
+            e.preventDefault();
+
+            $('#monthlyTable')
+                .DataTable()
+                .ajax
+                .reload();
+        });
+        });
+
+    </script>
+
+}
