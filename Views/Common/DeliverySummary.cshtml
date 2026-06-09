@@ -1,0 +1,376 @@
+﻿@using LaudaryMis.ViewModels
+@model List<DeliverySummaryVM>
+
+<style>
+
+    .card {
+        border-radius: 16px;
+        border: none;
+    }
+
+    .table thead th {
+        background: #e0f2fe;
+        color: #1e3a8a;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .details-control {
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .qty-collected {
+        color: #2563eb;
+        font-weight: 700;
+    }
+
+    .qty-delivered {
+        color: #16a34a;
+        font-weight: 700;
+    }
+
+    .qty-pending {
+        color: #dc2626;
+        font-weight: 700;
+    }
+
+    .child-table th {
+        background: #f8fafc !important;
+    }
+
+    .dt-buttons {
+        display: flex;
+        gap: 5px;
+    }
+
+        .dt-buttons .btn {
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+    .buttons-copy {
+        background: #6c757d !important;
+        color: white !important;
+    }
+
+    .buttons-excel {
+        background: #198754 !important;
+        color: white !important;
+    }
+
+    .buttons-pdf {
+        background: #dc3545 !important;
+        color: white !important;
+    }
+
+    .buttons-print {
+        background: #0d6efd !important;
+        color: white !important;
+    }
+
+</style>
+
+<div class="container-fluid mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-white border-0">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h4 class="fw-bold mb-0">
+                    🚚 Delivery Summary Report
+                </h4>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table id="deliveryTable"
+                       class="table table-hover align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th></th>
+
+                            <th>Pickup No</th>
+
+                            <th>Hospital</th>
+
+                            <th>Ward</th>
+
+                            <th>Collected Qty</th>
+
+                            <th>Delivered Qty</th>
+
+                            <th>Pending Qty</th>
+
+                            <th>Deliveries</th>
+
+                            <th>First Delivery</th>
+
+                            <th>Last Delivery</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <td class="details-control"
+                                    data-id="@item.PickupId">
+
+                                    ➕
+
+                                </td>
+
+                                <td class="fw-bold text-primary">
+                                    @item.PickupNo
+                                </td>
+
+                                <td>
+                                    @item.HospitalName
+                                </td>
+
+                                <td>
+                                    @item.WardName
+                                </td>
+
+                                <td class="qty-collected">
+                                    @item.TotalCollectedQty
+                                </td>
+
+                                <td class="qty-delivered">
+                                    @item.TotalDeliveredQty
+                                </td>
+
+                                <td class="qty-pending">
+                                    @item.PendingQty
+                                </td>
+
+                                <td>
+                                    @item.DeliveryCount
+                                </td>
+
+                                <td>
+                                    @(item.FirstDeliveryDate?.ToString("dd-MMM-yyyy"))
+                                </td>
+
+                                <td>
+                                    @(item.LastDeliveryDate?.ToString("dd-MMM-yyyy"))
+                                </td>
+
+                                <td>
+
+                                    @if (item.DeliveryStatus == "Fully Delivered")
+                                    {
+                                        <span class="badge bg-success">
+                                            Fully Delivered
+                                        </span>
+                                    }
+                                    else if (item.DeliveryStatus == "Partial Delivered")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            Partial Delivered
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Pending
+                                        </span>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <script>
+
+        $(document).ready(function () {
+
+            var table = $('#deliveryTable').DataTable({
+
+                pageLength: 10,
+
+                responsive: true,
+
+                dom:
+                    "<'row mb-2'<'col-md-4'l><'col-md-8 d-flex justify-content-end gap-2'Bf>>" +
+                    "<'row'<'col-12'tr>>" +
+                    "<'row mt-2'<'col-md-5'i><'col-md-7 text-end'p>>",
+
+                buttons: [
+
+                    {
+                        extend: 'copy',
+                        className: 'btn buttons-copy',
+                        text: '📋'
+                    },
+
+                    {
+                        extend: 'excel',
+                        className: 'btn buttons-excel',
+                        text: '📊'
+                    },
+
+                    {
+                        extend: 'pdf',
+                        className: 'btn buttons-pdf',
+                        text: '📄'
+                    },
+
+                    {
+                        extend: 'print',
+                        className: 'btn buttons-print',
+                        text: '🖨️'
+                    }
+                ]
+            });
+
+            function format(data) {
+
+                let html =
+
+                `<table class="table table-bordered child-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Delivery No</th>
+
+                            <th>Date</th>
+
+                            <th>Linen Name</th>
+
+                            <th>Delivered Qty</th>
+
+                            <th>Status</th>
+
+                            <th>Remarks</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>`;
+
+                data.forEach(function (x) {
+
+                    html +=
+
+                    `<tr>
+
+                        <td>${x.deliveryNo}</td>
+
+                        <td>${formatDate(x.deliveryDateTime)}</td>
+
+                        <td>${x.linenName}</td>
+
+                        <td class="text-success fw-bold">
+                            ${x.deliveredQty}
+                        </td>
+
+                        <td>
+
+                            <span class="badge bg-info">
+                                ${x.status}
+                            </span>
+
+                        </td>
+
+                        <td>${x.remarks ?? ''}</td>
+
+                    </tr>`;
+                });
+
+                html += "</tbody></table>";
+
+                return html;
+            }
+
+            $('#deliveryTable tbody').on(
+                'click',
+                'td.details-control',
+                function () {
+
+                    var tr = $(this).closest('tr');
+
+                    var row = table.row(tr);
+
+                    var pickupId = $(this).data('id');
+
+                    if (row.child.isShown()) {
+
+                        row.child.hide();
+
+                        tr.removeClass('shown');
+
+                        $(this).html("➕");
+                    }
+                    else {
+
+                        $.get('/Provider/DeliveryHistory/' + pickupId,
+
+                            function (data) {
+
+                                row.child(
+                                    format(data)
+                                ).show();
+
+                                tr.addClass('shown');
+                            });
+
+                        $(this).html("➖");
+                    }
+                });
+        });
+
+        function formatDate(dateString) {
+
+            let d = new Date(dateString);
+
+            return d.toLocaleDateString('en-GB', {
+
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+    </script>
+}

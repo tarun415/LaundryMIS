@@ -12,6 +12,12 @@ namespace LaudaryMis.Services.Interfaces
         Task<List<DropdownVM>> GetHospitalsByProvider(int providerId);
         Task<List<DropdownVM>> GetProviderByHospital(int hospitalId);
         Task<GetAgreementByHospitalVM> GetAgreementByHospital(int hospitalId);
+
+        Task<List<DeliverySummaryVM>>
+GetDeliverySummaryReport();
+
+        Task<List<DeliveryHistoryVM>>
+        GetDeliveryHistory(int pickupId);
     }
 }
 

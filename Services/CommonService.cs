@@ -44,5 +44,18 @@ namespace LaudaryMis.Services
         {
             return await _repo.GetAgreementByHospital(hospitalId);
         }
+        public async Task<List<DeliverySummaryVM>>
+GetDeliverySummaryReport()
+        {
+            return await _repo
+                .GetDeliverySummaryReport();
+        }
+
+        public async Task<List<DeliveryHistoryVM>>
+        GetDeliveryHistory(int pickupId)
+        {
+            return await _repo
+                .GetDeliveryHistory(pickupId);
+        }
     }
 }

@@ -2,6 +2,7 @@
 using LaudaryMis.Models;
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.ViewModels;
+using Microsoft.Data.SqlClient;
 using System.Data;
 using static LaudaryMis.ViewModels.CommonVM;
 
@@ -86,5 +87,39 @@ namespace LaudaryMis.Repositories
         sql,
         new { HospitalId = hospitalId });
 }
+
+        public async Task<List<DeliverySummaryVM>>
+GetDeliverySummaryReport()
+        {
+            using var con =
+                new SqlConnection(
+                    _config.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await con.QueryAsync<DeliverySummaryVM>(
+                    "sp_GetDeliverySummaryReport",
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<List<DeliveryHistoryVM>>
+        GetDeliveryHistory(int pickupId)
+        {
+            using var con =
+                new SqlConnection(
+                    _config.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await con.QueryAsync<DeliveryHistoryVM>(
+                    "sp_GetDeliveryHistory",
+                    new
+                    {
+                        PickupId = pickupId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
     }
 }
