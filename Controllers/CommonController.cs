@@ -55,5 +55,24 @@ namespace LaudaryMis.Controllers
 
             return Json(data);
         }
+        //Delivery Report for both provider and Hospital
+        public async Task<IActionResult>
+DeliverySummaryReport()
+        {
+            var model =
+                await _comservice
+                    .GetDeliverySummaryReport();
+
+            return View(model);
+        }
+        public async Task<IActionResult>
+DeliveryHistory(int id)
+        {
+            var data =
+                await _comservice
+                    .GetDeliveryHistory(id);
+
+            return Json(data);
+        }
     }
 }
