@@ -181,7 +181,9 @@
                             <th>Hospital</th>
                             <th>Ward</th>
                             <th>Shift</th>
-                            <th>Total Qty</th>
+                            <th>Collected Qty</th>
+                            <th>Delivered Qty</th>
+                            <th>Pending Qty</th>
                             <th>Status</th>
                             <th>Action</th>
 
@@ -225,8 +227,14 @@
                                     @item.ShiftName
                                 </td>
 
-                                <td class="fw-bold text-success">
+                                <td class="fw-bold text-primary">
                                     @item.TotalCollectedQty
+                                </td>
+                                <td class="fw-bold text-success">
+                                    @item.TotalDeliveredQty
+                                </td>
+                                <td class="fw-bold text-danger">
+                                    @item.TotalPendingQty
                                 </td>
 
                                 <td>
@@ -288,6 +296,13 @@
 
                                         </div>
                                     }
+                                    @if (item.Status == "Delivered")
+                                    {
+                                        <button class="btn btn-success btn-sm"
+                                                onclick="acceptDelivery(@item.PickupId)">
+                                            <i class="fa fa-check"></i> Accept
+                                        </button>
+                                    }
 
                                 </td>
 
@@ -310,258 +325,304 @@
 
     <script>
 
-        $(document).ready(function () {
+                $(document).ready(function () {
 
-            var table = $('#pickupTable').DataTable({
+                    var table = $('#pickupTable').DataTable({
 
-                pageLength: 10,
+                        pageLength: 10,
 
-                responsive: true,
+                        responsive: true,
 
-                dom:
-                    "<'row mb-2 align-items-center'<'col-md-4'l><'col-md-8 d-flex justify-content-end gap-2'Bf>>" +
-                    "<'row'<'col-12'tr>>" +
-                    "<'row mt-2'<'col-md-5'i><'col-md-7 text-end'p>>",
+                        dom:
+                            "<'row mb-2 align-items-center'<'col-md-4'l><'col-md-8 d-flex justify-content-end gap-2'Bf>>" +
+                            "<'row'<'col-12'tr>>" +
+                            "<'row mt-2'<'col-md-5'i><'col-md-7 text-end'p>>",
 
-                buttons: [
+                        buttons: [
 
+                            {
+                                extend: 'copy',
+                                className: 'btn buttons-copy',
+                                text: '📋'
+                            },
+
+                            {
+                                extend: 'excel',
+                                className: 'btn buttons-excel',
+                                text: '📊'
+                            },
+
+                            {
+                                extend: 'pdf',
+                                className: 'btn buttons-pdf',
+                                text: '📄'
+                            },
+
+                            {
+                                extend: 'print',
+                                className: 'btn buttons-print',
+                                text: '🖨️'
+                            }
+
+                        ]
+                    });
+
+                    function format(items,id) {
+
+                        let html =
+                        `<table id="childTable_${id}"
+                                class="table table-bordered table-sm child-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Linen Type</th>
+                                    <th>Collected Qty</th>
+                                    <th>Deliverd Qty</th>
+                                    <th>Pending Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+                        items.forEach(x => {
+
+                           html += `
+        <tr>
+            <td>${x.linenTypeName}</td>
+            <td class="fw-bold text-primary">${x.collectedQty}</td>
+            <td class="fw-bold text-success">${x.deliveredQty}</td>
+            <td class="fw-bold text-danger">${x.pendingQty}</td>
+        </tr>`;
+                        });
+
+                        html += "</tbody></table>";
+
+                        return html;
+                    }
+
+                    $('#pickupTable tbody').on(
+                        'click',
+                        'td.details-control',
+                        function () {
+
+                            var tr = $(this).closest('tr');
+                            var row = table.row(tr);
+                            var id = $(this).data('id');
+
+                            if (row.child.isShown()) {
+
+                                row.child.hide();
+                                tr.removeClass('shown');
+                                $(this).html("➕");
+                            }
+                            else {
+
+                                $.get('/Hospital/PickupItems/' + id,
+                                    function (data) {
+
+                                        row.child(
+                                            format(data,id)
+                                        ).show();
+
+                                        tr.addClass('shown');
+
+                                        tr.find('.details-control')
+                                          .html("➖");
+
+                                    });
+                            }
+                        });
+
+                    $.get('/Common/GetWards', function (data) {
+
+                        let html = '<option value="">All</option>';
+
+                        data.forEach(x => {
+
+                            html += `<option value="${x.id}">
+                                        ${x.name}
+                                    </option>`;
+                        });
+
+                        $('#filterWard').html(html);
+
+                    });
+
+                          $('#btnSearch').click(function () {
+
+                    $.get('/Hospital/SearchPickupList',
                     {
-                        extend: 'copy',
-                        className: 'btn buttons-copy',
-                        text: '📋'
+                        status: $('#filterStatus').val(),
+                        wardId: $('#filterWard').val(),
+                        date: $('#filterDate').val()
                     },
+                    function (res) {
 
-                    {
-                        extend: 'excel',
-                        className: 'btn buttons-excel',
-                        text: '📊'
-                    },
+                        table.clear();
 
-                    {
-                        extend: 'pdf',
-                        className: 'btn buttons-pdf',
-                        text: '📄'
-                    },
+                        res.forEach(function (item) {
 
-                    {
-                        extend: 'print',
-                        className: 'btn buttons-print',
-                        text: '🖨️'
-                    }
+                            var statusBadge = '';
 
-                ]
-            });
+                            if (item.status === "Collected")
+                                statusBadge = '<span class="badge bg-warning text-dark">Collected</span>';
 
-            function format(items,id) {
+                            else if (item.status === "Delivered")
+                                statusBadge = '<span class="badge bg-info text-dark">Delivered</span>';
 
-                let html =
-                `<table id="childTable_${id}"
-                        class="table table-bordered table-sm child-table">
+                            else if (item.status === "Verified")
+                                statusBadge = '<span class="badge bg-success">Verified</span>';
 
-                    <thead>
-                        <tr>
-                            <th>Linen Type</th>
-                            <th>Collected Qty</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+                            else
+                                statusBadge = '<span class="badge bg-secondary">' + item.status + '</span>';
 
-                items.forEach(x => {
+                            var actionButtons = '';
 
-                    html += `
-                        <tr>
-                            <td>${x.linenTypeName}</td>
-                            <td>${x.collectedQty}</td>
-                        </tr>`;
-                });
+                            if (item.status === "Collected") {
 
-                html += "</tbody></table>";
+                                actionButtons =
+                                    `<div class="d-flex gap-2 justify-content-center">
 
-                return html;
-            }
+                                        <a href="/Hospital/EditPickup/${item.pickupId}"
+                                           class="btn btn-sm btn-warning rounded-circle">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
 
-            $('#pickupTable tbody').on(
-                'click',
-                'td.details-control',
-                function () {
+                                        <button class="btn btn-sm btn-danger rounded-circle"
+                                                onclick="deletePickup(${item.pickupId},this)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
 
-                    var tr = $(this).closest('tr');
-                    var row = table.row(tr);
-                    var id = $(this).data('id');
+                                        <a href="/Hospital/PrintPickup/${item.pickupId}"
+                                           target="_blank"
+                                           class="btn btn-sm btn-primary rounded-circle"
+                                           title="Print">
+                                            <i class="fa fa-print"></i>
+                                        </a>
 
-                    if (row.child.isShown()) {
+                                    </div>`;
+                            }
+                                     else if (item.status === "Delivered") {
 
-                        row.child.hide();
-                        tr.removeClass('shown');
-                        $(this).html("➕");
-                    }
-                    else {
-
-                        $.get('/Hospital/PickupItems/' + id,
-                            function (data) {
-
-                                row.child(
-                                    format(data,id)
-                                ).show();
-
-                                tr.addClass('shown');
-
-                                tr.find('.details-control')
-                                  .html("➖");
-
-                            });
-                    }
-                });
-
-            $.get('/Common/GetWards', function (data) {
-
-                let html = '<option value="">All</option>';
-
-                data.forEach(x => {
-
-                    html += `<option value="${x.id}">
-                                ${x.name}
-                            </option>`;
-                });
-
-                $('#filterWard').html(html);
-
-            });
-
-                  $('#btnSearch').click(function () {
-
-            $.get('/Hospital/SearchPickupList',
-            {
-                status: $('#filterStatus').val(),
-                wardId: $('#filterWard').val(),
-                date: $('#filterDate').val()
-            },
-            function (res) {
-
-                table.clear();
-
-                res.forEach(function (item) {
-
-                    var statusBadge = '';
-
-                    if (item.status === "Collected")
-                        statusBadge = '<span class="badge bg-warning text-dark">Collected</span>';
-
-                    else if (item.status === "Delivered")
-                        statusBadge = '<span class="badge bg-info text-dark">Delivered</span>';
-
-                    else if (item.status === "Verified")
-                        statusBadge = '<span class="badge bg-success">Verified</span>';
-
-                    else
-                        statusBadge = '<span class="badge bg-secondary">' + item.status + '</span>';
-
-                    var actionButtons = '';
-
-                    if (item.status === "Collected") {
-
-                        actionButtons =
-                            `<div class="d-flex gap-2 justify-content-center">
-
-                                <a href="/Hospital/EditPickup/${item.pickupId}"
-                                   class="btn btn-sm btn-warning rounded-circle">
-                                    <i class="fa fa-edit"></i>
-                                </a>
-
-                                <button class="btn btn-sm btn-danger rounded-circle"
-                                        onclick="deletePickup(${item.pickupId},this)">
-                                    <i class="fa fa-trash"></i>
-                                </button>
-
-                                <a href="/Hospital/PrintPickup/${item.pickupId}"
-                                   target="_blank"
-                                   class="btn btn-sm btn-primary rounded-circle"
-                                   title="Print">
-                                    <i class="fa fa-print"></i>
-                                </a>
-
-                            </div>`;
-                    }
-
-                    table.row.add([
-                        `<span class="details-control text-center"
-                                data-id="${item.pickupId}"
-                                style="cursor:pointer;">
-                            ➕
-                         </span>`,
-                        item.rowNum,
-                        item.pickupNo,
-                        formatDate(item.pickupDateTime),
-                        item.hospitalName,
-                        item.wardName,
-                        item.shiftName,
-                        item.totalCollectedQty,
-                        statusBadge,
-                        actionButtons
-                    ]);
-
-                });
-
-                table.draw();
-
-            }).fail(function () {
-
-                alert("Error loading data");
-
-            });
-
-        });
-
-            $('#btnClear').click(function () {
-
-                $('#filterStatus').val('');
-                $('#filterWard').val('');
-                $('#filterDate').val('');
-
-                location.reload();
-
-            });
-
-        });
-
-        function formatDate(data) {
-
-            let d = new Date(data);
-
-            return d.toLocaleDateString('en-GB',{
-                day:'2-digit',
-                month:'short',
-                year:'numeric'
-            });
+            actionButtons =
+                `<button class="btn btn-success btn-sm"
+                         onclick="acceptDelivery(${item.pickupId})">
+                    <i class="fa fa-check"></i> Accept
+                </button>`;
         }
+                            table.row.add([
+                                `<span class="details-control text-center"
+                                        data-id="${item.pickupId}"
+                                        style="cursor:pointer;">
+                                    ➕
+                                 </span>`,
+                                item.rowNum,
+                                item.pickupNo,
+                                formatDate(item.pickupDateTime),
+                                item.hospitalName,
+                                item.wardName,
+                                item.shiftName,
+                                item.totalCollectedQty,
+                                  item.totalDeliveredQty,
+                                    item.totalPendingQty,
+                                statusBadge,
+                                actionButtons
+                            ]);
 
-        function deletePickup(id,btn){
+                        });
 
-            if(confirm('Are you sure?')){
+                        table.draw();
 
-                $.post('/Hospital/DeletePickup',
+                    }).fail(function () {
+
+                        alert("Error loading data");
+
+                    });
+
+                });
+
+                    $('#btnClear').click(function () {
+
+                        $('#filterStatus').val('');
+                        $('#filterWard').val('');
+                        $('#filterDate').val('');
+
+                        location.reload();
+
+                    });
+
+                });
+
+                function formatDate(data) {
+
+                    let d = new Date(data);
+
+                    return d.toLocaleDateString('en-GB',{
+                        day:'2-digit',
+                        month:'short',
+                        year:'numeric'
+                    });
+                }
+
+                function deletePickup(id,btn){
+
+                    if(confirm('Are you sure?')){
+
+                        $.post('/Hospital/DeletePickup',
+                        {
+                            id:id
+                        },
+                        function(res){
+
+                            if(res.success){
+
+                                $(btn)
+                                .closest('tr')
+                                .fadeOut();
+
+                            }
+                            else{
+
+                                alert(res.message);
+
+                            }
+
+                        });
+                    }
+                }
+                        function acceptDelivery(id)
                 {
-                    id:id
-                },
-                function(res){
+                    if (!confirm("Accept this delivery?"))
+                        return;
 
-                    if(res.success){
+                    $.ajax({
 
-                        $(btn)
-                        .closest('tr')
-                        .fadeOut();
+                        url: '/Hospital/AcceptDelivery',
+                        type: 'POST',
 
-                    }
-                    else{
+                        data: {
+                            PickupId: id,
+                            remarks: ''
+                        },
 
-                        alert(res.message);
+                        success: function (res)
+                        {
+                            if (res.success)
+                            {
+                                alert(res.message);
+                                location.reload();
+                            }
+                            else
+                            {
+                                alert(res.message);
+                            }
+                        },
 
-                    }
-
-                });
-            }
-        }
-
+                        error: function ()
+                        {
+                            alert('Something went wrong.');
+                        }
+                    });
+                }
     </script>
 
 }

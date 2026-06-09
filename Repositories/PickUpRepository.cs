@@ -259,5 +259,26 @@ namespace LaudaryMis.Repositories
                 param,
                 commandType: CommandType.StoredProcedure);
         }
+
+        public async Task<int> AcceptDelivery(
+    int PickupId,
+    int userId,
+    string remarks)
+        {
+            using var con =
+                new SqlConnection(
+                    _config.GetConnectionString("DefaultConnection"));
+
+            DynamicParameters param = new();
+
+            param.Add("@PickupId", PickupId);
+            param.Add("@VerifiedByUserId", userId);
+            param.Add("@Remarks", remarks);
+
+            return await con.ExecuteScalarAsync<int>(
+                "sp_AcceptDelivery",
+                param,
+                commandType: CommandType.StoredProcedure);
+        }
     }
 }

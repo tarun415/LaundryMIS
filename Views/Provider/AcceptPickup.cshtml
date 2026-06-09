@@ -181,7 +181,9 @@
                             <th>Hospital</th>
                             <th>Ward</th>
                             <th>Shift</th>
-                            <th>Total Qty</th>
+                            <th>Collected Qty</th>
+                            <th>Delivered Qty</th>
+                            <th>Pending Qty</th>
                             <th>Status</th>
                             <th>Action</th>
 
@@ -225,8 +227,14 @@
                                     @item.ShiftName
                                 </td>
 
-                                <td class="fw-bold text-success">
+                                <td class="fw-bold text-primary">
                                     @item.TotalCollectedQty
+                                </td>
+                                <td class="fw-bold text-success">
+                                    @item.TotalDeliveredQty
+                                </td>
+                                <td class="fw-bold text-danger">
+                                    @item.TotalPendingQty
                                 </td>
 
                                 <td>
@@ -359,6 +367,8 @@
                         <tr>
                             <th>Linen Type</th>
                             <th>Collected Qty</th>
+                            <th>Delivered Qty</th>
+                            <th>Pending Qty</th>
                         </tr>
                     </thead>
                     <tbody>`;
@@ -368,7 +378,9 @@
                     html += `
                         <tr>
                             <td>${x.linenTypeName}</td>
-                            <td>${x.collectedQty}</td>
+                            <td class="fw-bold text-primary">${x.collectedQty}</td>
+            <td class="fw-bold text-success">${x.deliveredQty}</td>
+            <td class="fw-bold text-danger">${x.pendingQty}</td>
                         </tr>`;
                 });
 
@@ -490,7 +502,9 @@
                         item.hospitalName,
                         item.wardName,
                         item.shiftName,
-                        item.totalCollectedQty,
+                          item.totalCollectedQty,
+                                  item.totalDeliveredQty,
+                                    item.totalPendingQty,
                         statusBadge,
                         actionButtons
                     ]);
