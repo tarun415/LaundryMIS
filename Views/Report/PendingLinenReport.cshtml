@@ -1,0 +1,156 @@
+﻿@model List<LaudaryMis.ViewModels.PendingLinenReportVM>
+
+<div class="container-fluid mt-4">
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-danger text-white">
+
+            <h4 class="mb-0">
+                Pending Linen Report
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <table id="reportTable"
+                   class="table table-bordered table-hover">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>Pickup No</th>
+
+                        <th>Hospital</th>
+
+                        <th>Ward</th>
+
+                        <th>Pickup Date</th>
+
+                        <th>Collected Qty</th>
+
+                        <th>Delivered Qty</th>
+
+                        <th>Pending Qty</th>
+
+                        <th>Pending Days</th>
+
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+
+                            <td>
+                                @item.PickupNo
+                            </td>
+
+                            <td>
+                                @item.HospitalName
+                            </td>
+
+                            <td>
+                                @item.WardName
+                            </td>
+
+                            <td>
+                                @item.PickupDate.ToString("dd MMM yyyy")
+                            </td>
+
+                            <td class="fw-bold">
+                                @item.TotalCollectedQty
+                            </td>
+
+                            <td class="text-success fw-bold">
+                                @item.TotalDeliveredQty
+                            </td>
+
+                            <td class="text-danger fw-bold">
+                                @item.PendingQty
+                            </td>
+
+                            <td>
+
+                                @if (item.PendingDays > 7)
+                                {
+                                    <span class="badge bg-danger">
+                                        @item.PendingDays Days
+                                    </span>
+                                }
+                                else if (item.PendingDays >= 3)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        @item.PendingDays Days
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        @item.PendingDays Days
+                                    </span>
+                                }
+
+                            </td>
+
+                            <td>
+
+                                @if (item.Status == "Partial Delivered")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        Partial Delivered
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        @item.Status
+                                    </span>
+                                }
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <script>
+
+        $(function(){
+
+            $('#reportTable').DataTable({
+
+                pageLength:25,
+
+                dom:'Bfrtip',
+
+                buttons:[
+                    'copy',
+                    'excel',
+                    'pdf',
+                    'print'
+                ]
+            });
+
+        });
+
+    </script>
+}

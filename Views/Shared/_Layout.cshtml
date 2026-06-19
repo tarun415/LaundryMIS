@@ -116,6 +116,7 @@
             DeliverySummary:    '@Url.Action("DeliverySummaryReport", "Report")',
              WeeklyDeliveryReport:    '@Url.Action("WeeklyDeliveryReport", "Report")',
              MonthlyDeliveryReport:    '@Url.Action("MonthlyReport", "Report")',
+             DeliveryAgingReport:    '@Url.Action("DeliveryAgingReport", "Report")',
         }
         };
 
@@ -151,6 +152,7 @@
                  { id: "DeliverySummary", icon: "📊", label: "Delivery Report", route: () => routes.provider.DeliverySummary },
                   { id: "WeeklyDeliveryReport", icon: "📊", label: "Weekly Delivery Report", route: () => routes.provider.WeeklyDeliveryReport },
                    { id: "MonthlyDeliveryReport", icon: "📊", label: "Monthly Delivery Report", route: () => routes.provider.MonthlyDeliveryReport },
+                   { id: "DeliveryAgingReport", icon: "📊", label: "Delivery Aging Report", route: () => routes.provider.DeliveryAgingReport },
                         { section: "Billing" },
         { id: "createBill", icon: "➕", label: "Create Bill",  route: () => routes.provider.createBill },
         { id: "myBills",    icon: "🧾", label: "My Bills",     route: () => routes.provider.myBills },

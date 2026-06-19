@@ -1,0 +1,762 @@
+﻿@model LaudaryMis.ViewModels.DeliveryAgingReportPageVM
+
+@{
+    ViewData["Title"] = "Pending Linen Aging Report";
+}
+
+<link rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+
+<link rel="stylesheet"
+      href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css" />
+
+<style>
+
+    .summary-card {
+        border: none;
+        border-radius: 18px;
+        color: white;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,.12);
+    }
+
+    .card-blue {
+        background: linear-gradient(135deg,#2563eb,#1d4ed8);
+    }
+
+    .card-green {
+        background: linear-gradient(135deg,#16a34a,#15803d);
+    }
+
+    .card-orange {
+        background: linear-gradient(135deg,#f59e0b,#d97706);
+    }
+
+    .card-red {
+        background: linear-gradient(135deg,#ef4444,#dc2626);
+    }
+
+    .summary-card h2 {
+        font-size: 34px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .summary-card p {
+        margin: 0;
+        font-size: 16px;
+    }
+
+    .details-control {
+        cursor: pointer;
+        font-size: 22px;
+        color: #7c3aed;
+        font-weight: bold;
+    }
+
+    .critical-row {
+        background: #fff5f5 !important;
+    }
+
+    .warning-row {
+        background: #fffaf0 !important;
+    }
+
+    .child-table {
+        width: 100%;
+    }
+
+        .child-table thead th {
+            background-color: #000 !important;
+            color: #fff !important;
+            border-color: #333 !important;
+            font-weight: 600;
+        }
+
+    .progress {
+        height: 22px;
+    }
+
+    .aging-critical {
+        color: #dc2626;
+        font-weight: 700;
+    }
+
+    .aging-warning {
+        color: #d97706;
+        font-weight: 700;
+    }
+
+    .aging-normal {
+        color: #16a34a;
+        font-weight: 700;
+    }
+
+</style>
+
+<div class="container-fluid mt-4">
+
+    ```
+    <h2 class="fw-bold mb-3">
+        ⏳ Pending Linen Aging Report
+    </h2>
+
+    <div class="alert alert-info border-0 shadow-sm">
+
+        <h6 class="fw-bold mb-2">
+            📖 Report Guide
+        </h6>
+
+        <ul class="mb-0">
+
+            <li>
+                <b>Total Collected Linen</b> = Dirty linen collected from hospital.
+            </li>
+
+            <li>
+                <b>Total Returned Linen</b> = Clean linen returned by laundry provider.
+            </li>
+
+            <li>
+                <b>Linen Pending Return</b> = Linen still pending to be returned.
+            </li>
+
+            <li>
+                <b>Days Pending</b> = Number of days since linen was collected and not fully returned.
+            </li>
+
+            <li>
+                <b>Pending Pickups</b> = Total pickup challans having pending linen.
+            </li>
+
+            <li>
+                <b>Pending Linen Qty</b> = Total quantity of linen still pending return.
+            </li>
+
+          
+
+            <li>
+                Click
+                <b>➕</b>
+                to view linen-wise pending details for a pickup.
+            </li>
+
+        </ul>
+
+    </div>
+    <div class="alert alert-light border mt-3">
+
+        <b>Legend:</b>
+
+        <span class="badge bg-success ms-2">
+            Normal (0-3 Days)
+        </span>
+
+        <span class="badge bg-warning text-dark ms-2">
+            Warning (4-7 Days)
+        </span>
+
+        <span class="badge bg-danger ms-2">
+            Critical (>7 Days)
+        </span>
+
+    </div>
+
+    @if (Model.Summary.CriticalCount > 0)
+    {
+        <div class="alert alert-danger shadow-sm">
+
+            🚨
+            <strong>@Model.Summary.CriticalCount</strong>
+            pickups are pending for more than 7 days.
+
+        </div>
+    }
+
+    <div class="row mb-4">
+
+        <div class="col-md-3">
+
+            <div class="summary-card card-blue">
+
+                <h2>
+                    @Model.Summary.TotalPendingPickups
+                </h2>
+
+                <p>
+                    Pending Pickups
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="summary-card card-red">
+
+                <h2>
+                    @Model.Summary.TotalPendingQty
+                </h2>
+
+                <p>
+                    Pending Linen Qty
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-2">
+
+            <div class="summary-card card-green">
+
+                <h2>
+                    @Model.Summary.NormalCount
+                </h2>
+
+                <p>
+                    Normal Cases
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-2">
+
+            <div class="summary-card card-orange">
+
+                <h2>
+                    @Model.Summary.WarningCount
+                </h2>
+
+                <p>
+                    Warning Cases
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-2">
+
+            <div class="summary-card card-red">
+
+                <h2>
+                    @Model.Summary.CriticalCount
+                </h2>
+
+                <p>
+                    Critical Cases
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow border-0">
+
+        <div class="card-body">
+
+            <table id="agingTable"
+                   class="table table-bordered table-hover align-middle">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th></th>
+
+                        <th>Pickup Challan No</th>
+
+                        <th>Hospital Name</th>
+
+                        <th>Ward Name</th>
+
+                        <th>Collection Date</th>
+
+                        <th>Total Collected Linen</th>
+
+                        <th>Total Returned Linen</th>
+
+                        <th>Linen Pending Return</th>
+
+                        <th>Return Completion</th>
+
+                        <th>Days Pending</th>
+
+                        <th>Risk Level</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @foreach (var item in Model.Details)
+                    {
+                        var completion =
+                        item.CollectedQty == 0
+                        ? 0
+                        : Math.Round(
+                        ((decimal)item.DeliveredQty
+                        / item.CollectedQty) * 100, 2);
+
+                        string rowClass = "";
+
+                        if (item.AgingStatus == "Critical")
+                        {
+                            rowClass = "critical-row";
+                        }
+                        else if (item.AgingStatus == "Warning")
+                        {
+                            rowClass = "warning-row";
+                        }
+
+                        <tr class="@rowClass">
+
+                            <td class="details-control"
+                                data-id="@item.PickupId">
+
+                                ➕
+
+                            </td>
+
+                            <td class="fw-bold text-primary">
+                                @item.PickupNo
+                            </td>
+
+                            <td>
+                                @item.HospitalName
+                            </td>
+
+                            <td>
+                                @item.WardName
+                            </td>
+
+                            <td>
+                                @item.PickupDate.ToString("dd-MMM-yyyy")
+                            </td>
+
+                            <td class="fw-bold">
+                                @item.CollectedQty
+                            </td>
+
+                            <td class="text-success fw-bold">
+                                @item.DeliveredQty
+                            </td>
+
+                            <td class="text-danger fw-bold">
+                                @item.PendingQty
+                            </td>
+
+                            <td style="width:220px;">
+
+                                <div class="progress">
+
+                                    <div class="progress-bar bg-success"
+                                         style="width:@completion%">
+
+                                        @completion%
+
+                                    </div>
+
+                                </div>
+
+                                <small class="text-muted">
+
+                                    @item.DeliveredQty /
+                                    @item.CollectedQty Returned
+
+                                </small>
+
+                            </td>
+
+                            <td>
+
+                                @if (item.AgingStatus == "Critical")
+                                {
+                                    <span class="aging-critical">
+                                        @item.AgingDays Days
+                                    </span>
+                                }
+                                else if (item.AgingStatus == "Warning")
+                                {
+                                    <span class="aging-warning">
+                                        @item.AgingDays Days
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="aging-normal">
+                                        @item.AgingDays Days
+                                    </span>
+                                }
+
+                            </td>
+
+                            <td>
+
+                                @if (item.AgingStatus == "Critical")
+                                {
+                                    <span class="badge bg-danger">
+                                        Critical
+                                    </span>
+                                }
+                                else if (item.AgingStatus == "Warning")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        Warning
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        Normal
+                                    </span>
+                                }
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <div class="card mt-3 border-0 shadow-sm">
+
+        <div class="card-body">
+
+            <div class="row text-center">
+
+                <div class="col-md-4">
+
+                    <h6>
+                        Total Collected Linen
+                    </h6>
+
+                    <h3 class="text-primary">
+
+                        @Model.Details.Sum(x => x.CollectedQty)
+
+                    </h3>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <h6>
+                        Total Returned Linen
+                    </h6>
+
+                    <h3 class="text-success">
+
+                        @Model.Details.Sum(x => x.DeliveredQty)
+
+                    </h3>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <h6>
+                        Total Pending Linen
+                    </h6>
+
+                    <h3 class="text-danger">
+
+                        @Model.Details.Sum(x => x.PendingQty)
+
+                    </h3>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    ```
+
+</div>
+@section Scripts
+{
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            var table = $('#agingTable').DataTable({
+
+                pageLength: 10,
+
+                responsive: true,
+
+                order: [[9, "desc"]],
+
+                dom:
+                    "<'row mb-3'<'col-md-4'l><'col-md-8 text-end'Bf>>" +
+                    "<'row'<'col-md-12'tr>>" +
+                    "<'row mt-3'<'col-md-5'i><'col-md-7'p>>",
+
+                buttons: [
+
+                    {
+                        extend: 'copy',
+                        className: 'btn btn-secondary',
+                        text: '📋 Copy'
+                    },
+
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-success',
+                        text: '📊 Excel'
+                    },
+
+                    {
+                        extend: 'pdf',
+                        className: 'btn btn-danger',
+                        text: '📄 PDF'
+                    },
+
+                    {
+                        extend: 'print',
+                        className: 'btn btn-primary',
+                        text: '🖨 Print'
+                    }
+
+                ]
+            });
+
+        });
+
+               function formatChild(data) {
+
+            let totalCollected = 0;
+            let totalDelivered = 0;
+            let totalPending = 0;
+
+            var html = `
+
+            <div class="p-3 border rounded shadow-sm"
+                 style="background:#f8fafc;">
+
+                <h6 style="
+                    color:#1e3a8a;
+                    font-weight:700;
+                    font-size:16px;
+                    margin-bottom:15px;">
+
+                    📋 Linen Wise Pending Details
+
+                </h6>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover child-table mb-0">
+
+                        <thead">
+
+                            <tr>
+
+                                <th style="width:40%">
+                                    Linen Type
+                                </th>
+
+                                <th class="text-center">
+                                    Collected Qty
+                                </th>
+
+                                <th class="text-center">
+                                    Returned Qty
+                                </th>
+
+                                <th class="text-center">
+                                    Pending Qty
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+            `;
+
+            $.each(data, function (i, item) {
+
+                totalCollected += item.collectedQty;
+                totalDelivered += item.deliveredQty;
+                totalPending += item.pendingQty;
+
+                html += `
+
+                <tr>
+
+                    <td class="fw-semibold">
+
+                        ${item.linenName}
+
+                    </td>
+
+                    <td class="text-center fw-bold">
+
+                        ${item.collectedQty}
+
+                    </td>
+
+                    <td class="text-center text-success fw-bold">
+
+                        ${item.deliveredQty}
+
+                    </td>
+
+                    <td class="text-center text-danger fw-bold">
+
+                        ${item.pendingQty}
+
+                    </td>
+
+                </tr>
+                `;
+            });
+
+            html += `
+
+                        </tbody>
+
+                        <tfoot>
+
+                            <tr style="
+                                background:#eff6ff;
+                                font-weight:700;">
+
+                                <td>
+
+                                    Total
+
+                                </td>
+
+                                <td class="text-center text-primary">
+
+                                    ${totalCollected}
+
+                                </td>
+
+                                <td class="text-center text-success">
+
+                                    ${totalDelivered}
+
+                                </td>
+
+                                <td class="text-center text-danger">
+
+                                    ${totalPending}
+
+                                </td>
+
+                            </tr>
+
+                        </tfoot>
+
+                    </table>
+
+                </div>
+
+                <div class="mt-3">
+
+                    <small class="text-muted">
+
+                        ℹ️ This section shows linen-wise collection,
+                        returned quantity and pending quantity for the selected pickup.
+
+                    </small>
+
+                </div>
+
+            </div>
+            `;
+
+            return html;
+        }
+
+        $('#agingTable tbody').on(
+            'click',
+            'td.details-control',
+            function () {
+
+                var tr = $(this).closest('tr');
+
+                var row = $('#agingTable')
+                    .DataTable()
+                    .row(tr);
+
+                var pickupId =
+                    $(this).data('id');
+
+                if (row.child.isShown()) {
+
+                    row.child.hide();
+
+                    tr.removeClass('shown');
+
+                    $(this).html('➕');
+
+                    return;
+                }
+
+                $.ajax({
+
+                    url:
+                    '/Report/GetDeliveryAgingItems/' +
+                    pickupId,
+
+                    type: 'GET',
+
+                    success: function (result) {
+
+                        row.child(
+                            formatChild(result)
+                        ).show();
+
+                        tr.addClass('shown');
+
+                        tr.find('.details-control')
+                            .html('➖');
+                    },
+
+                    error: function () {
+
+                        alert(
+                            'Unable to load linen details.'
+                        );
+                    }
+
+                });
+
+            });
+
+    </script>
+}

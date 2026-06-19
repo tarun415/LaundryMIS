@@ -18,7 +18,14 @@ int month);
         Task<List<MonthlyPickupDetailVM>>
 GetMonthlyPickupDetails(
 int month,
-int year);
+int year); 
+        Task<List<PendingLinenReportVM>>
+GetPendingLinenReport();
+        Task<DeliveryAgingReportPageVM>
+               GetDeliveryAgingReport();
+
+        Task<List<DeliveryAgingItemVM>>
+            GetDeliveryAgingDetailItems(int pickupId);
     }
 }
 
