@@ -54,5 +54,32 @@ int year)
                     month,
                     year);
         }
+        public async Task<List<PendingLinenReportVM>>
+GetPendingLinenReport()
+        {
+            return await _repo.GetPendingLinenReport();
+        }
+        public async Task<DeliveryAgingReportPageVM>
+    GetDeliveryAgingReport()
+        {
+            var summary =
+                await _repo.GetDeliveryAgingSummary();
+
+            var details =
+                await _repo.GetDeliveryAgingReport();
+
+            return new DeliveryAgingReportPageVM
+            {
+                Summary = summary,
+                Details = details
+            };
+        }
+
+        public async Task<List<DeliveryAgingItemVM>>
+        GetDeliveryAgingDetailItems(int pickupId)
+        {
+            return await _repo
+                .GetDeliveryAgingDetailItems(pickupId);
+        }
     }
 }

@@ -116,5 +116,64 @@ int year)
 
             return result.ToList();
         }
+        public async Task<List<PendingLinenReportVM>>
+GetPendingLinenReport()
+        {
+            using var con =
+                new SqlConnection(
+                    _config.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await con.QueryAsync<PendingLinenReportVM>(
+                    "sp_GetPendingLinenReport",
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+        public async Task<DeliveryAgingSummaryVM>
+  GetDeliveryAgingSummary()
+        {
+            using var con =
+                new SqlConnection(
+                    _config.GetConnectionString("DefaultConnection"));
+
+            return await con.QueryFirstOrDefaultAsync<DeliveryAgingSummaryVM>(
+                "sp_GetDeliveryAgingSummary",
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<List<DeliveryAgingReportVM>>
+        GetDeliveryAgingReport()
+        {
+            using var con =
+                new SqlConnection(
+                    _config.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await con.QueryAsync<DeliveryAgingReportVM>(
+                    "sp_GetDeliveryAgingReport",
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<List<DeliveryAgingItemVM>>
+        GetDeliveryAgingDetailItems(int pickupId)
+        {
+            using var con =
+                new SqlConnection(
+                    _config.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await con.QueryAsync<DeliveryAgingItemVM>(
+                    "sp_GetDeliveryAgingDetailItems",
+                    new
+                    {
+                        PickupId = pickupId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
     }
 }
