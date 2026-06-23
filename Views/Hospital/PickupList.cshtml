@@ -160,7 +160,9 @@
     </div>
 
     <!-- TABLE -->
-
+    <input type="hidden"
+           id="SelectedDeliveryIds"
+           value="" />
     <div class="card shadow-sm border-0 rounded-4">
 
         <div class="card-body">
@@ -197,8 +199,16 @@
                         {
                             <tr>
 
+                                @* <td class="details-control text-center"
+                                    data-id="@item.PickupId"
+                                    style="cursor:pointer;">
+
+                                    ➕
+
+                                </td> *@
                                 <td class="details-control text-center"
                                     data-id="@item.PickupId"
+                                    data-status="@item.Status"
                                     style="cursor:pointer;">
 
                                     ➕
@@ -296,13 +306,34 @@
 
                                         </div>
                                     }
-                                    @if (item.Status == "Delivered")
+                                    @*   @if (item.Status == "Delivered")
                                     {
                                         <button class="btn btn-success btn-sm"
                                                 onclick="acceptDelivery(@item.PickupId)">
                                             <i class="fa fa-check"></i> Accept
                                         </button>
+                                    } *@
+                                    @if (!string.IsNullOrWhiteSpace(item.PrintUrlFilePath))
+                                    {
+                                        <a href="@item.PrintUrlFilePath"
+                                           target="_blank"
+                                           class="badge bg-primary text-decoration-none p-2">
+
+                                            <i class="fa fa-print"></i>
+                                            Print
+
+                                        </a>
                                     }
+                                    @if ((item.Status == "Delivered" ||item.Status == "Partial Delivered") && !item.IsVerified)
+{
+                                        <button 
+                                                class="btn btn-success btn-sm"
+                                                onclick="verifyDeliveries(@item.PickupId)">
+
+                                            <i class="fa fa-check"></i> Accept
+
+                                        </button>
+}
 
                                 </td>
 
@@ -320,7 +351,40 @@
     </div>
 
 </div>
+<div class="modal fade"
+     id="deliveryDetailModal" tabindex="-1">
 
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+
+                <h5 class="modal-title">
+
+                    Delivery Details
+
+                </h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div id="deliveryDetailContainer">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 @section Scripts {
 
     <script>
@@ -399,38 +463,73 @@
                         return html;
                     }
 
-                    $('#pickupTable tbody').on(
-                        'click',
-                        'td.details-control',
-                        function () {
+                        $('#pickupTable tbody').on(
+        'click',
+        'td.details-control',
+        function () {
 
-                            var tr = $(this).closest('tr');
-                            var row = table.row(tr);
-                            var id = $(this).data('id');
+            var tr = $(this).closest('tr');
 
-                            if (row.child.isShown()) {
+            var row = table.row(tr);
 
-                                row.child.hide();
-                                tr.removeClass('shown');
-                                $(this).html("➕");
-                            }
-                            else {
+            var pickupId = $(this).data('id');
 
-                                $.get('/Hospital/PickupItems/' + id,
-                                    function (data) {
+            var status = $(this).data('status');
 
-                                        row.child(
-                                            format(data,id)
-                                        ).show();
+            if (row.child.isShown()) {
 
-                                        tr.addClass('shown');
+                row.child.hide();
 
-                                        tr.find('.details-control')
-                                          .html("➖");
+                tr.removeClass('shown');
 
-                                    });
-                            }
-                        });
+                $(this).html("➕");
+
+                return;
+            }
+
+            if ( status === "Collected" || status === "Accepted") {
+                loadPickupItems( pickupId,  row, tr, $(this)  );
+            }
+            else {
+
+                loadDeliveryHistory( pickupId,  row,  tr,  $(this)
+                );
+            }
+
+        });
+
+                    // $('#pickupTable tbody').on(
+                    //     'click',
+                    //     'td.details-control',
+                    //     function () {
+
+                    //         var tr = $(this).closest('tr');
+                    //         var row = table.row(tr);
+                    //         var id = $(this).data('id');
+
+                    //         if (row.child.isShown()) {
+
+                    //             row.child.hide();
+                    //             tr.removeClass('shown');
+                    //             $(this).html("➕");
+                    //         }
+                    //         else {
+
+                    //             $.get('/Hospital/PickupItems/' + id,
+                    //                 function (data) {
+
+                    //                     row.child(
+                    //                         format(data,id)
+                    //                     ).show();
+
+                    //                     tr.addClass('shown');
+
+                    //                     tr.find('.details-control')
+                    //                       .html("➖");
+
+                    //                 });
+                    //         }
+                    //     });
 
                     $.get('/Common/GetWards', function (data) {
 
@@ -465,20 +564,14 @@
 
                             if (item.status === "Collected")
                                 statusBadge = '<span class="badge bg-warning text-dark">Collected</span>';
-
                             else if (item.status === "Delivered")
                                 statusBadge = '<span class="badge bg-info text-dark">Delivered</span>';
-
                             else if (item.status === "Verified")
                                 statusBadge = '<span class="badge bg-success">Verified</span>';
-
                             else
                                 statusBadge = '<span class="badge bg-secondary">' + item.status + '</span>';
-
                             var actionButtons = '';
-
                             if (item.status === "Collected") {
-
                                 actionButtons =
                                     `<div class="d-flex gap-2 justify-content-center">
 
@@ -501,7 +594,7 @@
 
                                     </div>`;
                             }
-                                     else if (item.status === "Delivered") {
+                          else if (item.status === "Delivered") {
 
             actionButtons =
                 `<button class="btn btn-success btn-sm"
@@ -512,6 +605,7 @@
                             table.row.add([
                                 `<span class="details-control text-center"
                                         data-id="${item.pickupId}"
+                                        data-status="${item.status}"
                                         style="cursor:pointer;">
                                     ➕
                                  </span>`,
@@ -589,40 +683,496 @@
                         });
                     }
                 }
-                        function acceptDelivery(id)
-                {
-                    if (!confirm("Accept this delivery?"))
-                        return;
+          function acceptDelivery(deliveryId)
+        {
+            if (!confirm("Accept this delivery?"))
+                return;
 
-                    $.ajax({
+            $.ajax({
 
-                        url: '/Hospital/AcceptDelivery',
-                        type: 'POST',
+                url: '/Hospital/AcceptDelivery',
 
-                        data: {
-                            PickupId: id,
-                            remarks: ''
-                        },
+                type: 'POST',
 
-                        success: function (res)
-                        {
-                            if (res.success)
-                            {
-                                alert(res.message);
-                                location.reload();
-                            }
-                            else
-                            {
-                                alert(res.message);
-                            }
-                        },
+                data: {
 
-                        error: function ()
-                        {
-                            alert('Something went wrong.');
-                        }
-                    });
+                    DeliveryId: deliveryId,
+                    remarks: 'Accepted by Hospital'
+
+                },
+
+                success: function (res) {
+
+                    if (res.success) {
+
+                        Swal.fire(
+                            'Success',
+                            res.message,
+                            'success'
+                        );
+
+                        location.reload();
+                    }
+                    else {
+
+                        Swal.fire(
+                            'Error',
+                            res.message,
+                            'error'
+                        );
+                    }
                 }
+            });
+        }
+
+                function loadPickupItems(
+            pickupId,
+            row,
+            tr,
+            control)
+        {
+            $.get(
+                '/Hospital/PickupItems/' + pickupId,
+
+                function (data) {
+
+                    row.child(
+                        formatPickupItems(data, pickupId)
+                    ).show();
+
+                    tr.addClass('shown');
+
+                    control.html("➖");
+
+                });
+        }
+
+                function loadDeliveryHistory(
+            pickupId,
+            row,
+            tr,
+            control)
+        {
+            $.get(
+                '/Hospital/GetPickupDeliveryHistory/' + pickupId,
+
+                function (data) {
+
+                    row.child(
+                        formatDeliveryHistory(data, pickupId)
+                    ).show();
+
+                    tr.addClass('shown');
+
+                    control.html("➖");
+
+                });
+        }
+
+
+                function formatPickupItems(items,id)
+        {
+            let html = `
+            <table class="table table-bordered">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>Linen Type</th>
+
+                        <th>Collected Qty</th>
+
+                        <th>Delivered Qty</th>
+
+                        <th>Pending Qty</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>`;
+
+            items.forEach(x=>{
+
+                html += `
+
+                <tr>
+
+                    <td>${x.linenTypeName}</td>
+
+                    <td class="fw-bold text-primary">
+                        ${x.collectedQty}
+                    </td>
+
+                    <td class="fw-bold text-success">
+                        ${x.deliveredQty}
+                    </td>
+
+                    <td class="fw-bold text-danger">
+                        ${x.pendingQty}
+                    </td>
+
+                </tr>`;
+            });
+
+            html += `
+                </tbody>
+            </table>`;
+
+            return html;
+        }
+                function formatDeliveryHistory(items,id)
+        {
+            let html = `
+
+            <table class="table table-bordered table-hover">
+
+                <thead style="
+                    background:#000;
+                    color:#fff;">
+
+                    <tr>
+
+                        <th>Delivery No</th>
+
+                        <th>Delivery Date</th>
+
+                      
+
+                        <th>Delivered Qty</th>
+
+                        <th>Status</th>
+
+                      <th>Accept</th>
+
+                      <th>Reject</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>`;
+
+            items.forEach(x=>{
+
+                html += `
+
+                <tr>
+
+                               <td>
+
+            <a href="javascript:void(0)"
+               class="delivery-detail-link"
+               data-deliveryid="${x.deliveryId}"
+               data-deliveryno="${x.deliveryNo}">
+                ${x.deliveryNo}
+            </a>
+        </td>
+
+
+                           <td>
+            ${new Date(x.deliveryDateTime)
+                .toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                })}
+        </td>
+
+                   
+                     <td class="fw-bold text-success">
+
+                        ${x.deliveredQty}
+
+                    </td>
+                    
+
+                    <td>
+
+                        ${x.status}
+
+                    </td>
+
+                                         <td>
+
+        ${
+            !x.isVerified
+
+            ?
+
+            `<input type="checkbox"
+                    class="acceptCheck"
+                    value="${x.deliveryId}" />`
+
+            :
+
+            `<span class="badge bg-success">
+                -
+             </span>`
+        }
+
+        </td>
+
+        <td class="text-center">
+
+            ${
+                x.status !== "Verified" ?       
+                `<input type="checkbox"
+                        class="rejectCheck"
+                        value="${x.deliveryId}" />` : '-'
+            }
+        </td>
+
+       
+
+                </tr>`;
+            });
+
+            html += `
+
+                </tbody>
+
+            </table>
+
+            <div class="text-end">
+
+             
+
+            </div>`;
+
+            return html;
+        }
+               $(document).on(
+        'change',
+        '.acceptCheck',
+        function () {
+
+            if ($(this).is(':checked')) {
+
+                $(this)
+                    .closest('tr')
+                    .find('.rejectCheck')
+                    .prop('checked', false);
+            }
+
+            updateSelectedDeliveries();
+        });
+                $(document).on(
+        'change',
+        '.rejectCheck',
+        function () {
+
+            if ($(this).is(':checked')) {
+
+                $(this)
+                    .closest('tr')
+                    .find('.acceptCheck')
+                    .prop('checked', false);
+            }
+
+            updateSelectedDeliveries();
+        });
+                       function updateSelectedDeliveries()
+        {
+            var ids = [];
+
+            $('.acceptCheck:checked').each(function () {
+
+                var id = $(this).val();
+
+                if ($.inArray(id, ids) === -1)
+                {
+                    ids.push(id);
+                }
+
+            });
+
+            $('#SelectedDeliveryIds')
+                .val(ids.join(','));
+
+            console.log("IDs Array:", ids);
+
+            console.log(
+                "Hidden Value:",
+                $('#SelectedDeliveryIds').val()
+            );
+        }
+                function verifyDeliveries(pickupId)
+        {
+            var deliveryIds =
+                $('#SelectedDeliveryIds').val();
+
+            if(
+                deliveryIds == null ||
+                deliveryIds == ''
+            )
+            {
+                Swal.fire(
+                    'Validation',
+                    'Please select at least one delivery.',
+                    'warning'
+                );
+
+                return;
+            }
+
+            Swal.fire({
+
+                title:'Verify Deliveries?',
+
+                icon:'question',
+
+                showCancelButton:true
+
+            }).then((result)=>{
+
+                if(result.isConfirmed)
+                {
+                    saveVerification(
+                        pickupId,
+                        deliveryIds
+                    );
+                }
+
+            });
+        }
+                function saveVerification(
+            pickupId,
+            deliveryIds)
+        {
+            $.ajax({
+
+                url:
+                '/Hospital/VerifyDeliveries',
+
+                type:'POST',
+
+                data:
+                {
+                    PickupId: pickupId,
+                    DeliveryIds: deliveryIds,
+                    Remarks:''
+                },
+
+                success:function(res)
+                {
+                    if(res.success)
+                    {
+                        Swal.fire(
+                            'Success',
+                            res.message,
+                            'success'
+                        );
+
+                        location.reload();
+                    }
+                    else
+                    {
+                        Swal.fire(
+                            'Error',
+                            res.message,
+                            'error'
+                        );
+                    }
+                }
+            });
+        }
+            $(document).on(
+        'click',
+        '.delivery-detail-link',
+        function () {
+
+            let deliveryId =
+                $(this).data('deliveryid');
+
+            let deliveryNo =
+                $(this).data('deliveryno');
+
+            $.get(
+                '/Hospital/GetDeliveryItems',
+                {
+                    deliveryId: deliveryId
+                },
+                function (data) {
+
+                    let html = `
+
+                    <div class="alert alert-info">
+
+                        <strong>Delivery No :</strong>
+                        ${deliveryNo}
+
+                    </div>
+
+                    <table class="table table-bordered table-sm">
+
+                        <thead class="table-dark">
+
+                            <tr>
+
+                                <th>Linen Type</th>
+
+                                <th>Collected Qty</th>
+
+                                <th>Delivered Qty</th>
+
+                                <th>Balance Qty</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>`;
+
+                    data.forEach(x => {
+
+                        html += `
+
+                        <tr>
+
+                            <td>
+                                ${x.linenName}
+                            </td>
+
+                            <td class="text-primary fw-bold">
+                                ${x.collectedQty}
+                            </td>
+
+                            <td class="text-success fw-bold">
+                                ${x.deliveredQty}
+                            </td>
+
+                            <td class="text-danger fw-bold">
+                                ${x.pendingQty}
+                            </td>
+
+                        </tr>`;
+                    });
+
+                    html += `
+
+                        </tbody>
+
+                    </table>
+
+                    <div class="alert alert-warning">
+
+                        <strong>Note:</strong>
+
+                        Balance Qty represents linen still pending
+                        for this pickup.
+
+                    </div>`;
+
+                    $('#deliveryDetailContainer')
+                        .html(html);
+
+                    $('#deliveryDetailModal')
+                        .modal('show');
+                });
+
+        });
     </script>
 
 }

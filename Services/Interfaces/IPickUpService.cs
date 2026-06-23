@@ -31,8 +31,20 @@ namespace LaudaryMis.Services.Interfaces
             int userId,
             string remarks);
 
+        //    Task<int> AcceptDelivery(
+        //int PickupId,
+        //int userId,
+        //string remarks);
         Task<int> AcceptDelivery(
-    int PickupId,
+        int DeliveryId,
+        int userId,
+        string remarks);
+
+        Task<List<PickupDeliveryHistoryVM>>
+       GetPickupDeliveryHistory(int pickupId);
+        Task<int> VerifyDeliveries(
+    int pickupId,
+    string deliveryIds,
     int userId,
     string remarks);
     }

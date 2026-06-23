@@ -73,13 +73,41 @@ namespace LaudaryMis.Services
                     remarks);
         }
 
+        //    public async Task<int> AcceptDelivery(
+        //int PickupId,
+        //int userId,
+        //string remarks)
+        //    {
+        //        return await _repo.AcceptDelivery(
+        //            PickupId,
+        //            userId,
+        //            remarks);
+        //    }
         public async Task<int> AcceptDelivery(
-    int PickupId,
+        int DeliveryId,
+        int userId,
+        string remarks)
+        {
+            return await _repo.AcceptDelivery(
+                DeliveryId,
+                userId,
+                remarks);
+        }
+        public async Task<List<PickupDeliveryHistoryVM>>
+GetPickupDeliveryHistory(int pickupId)
+        {
+            return await _repo
+                .GetPickupDeliveryHistory(pickupId);
+        }
+        public async Task<int> VerifyDeliveries(
+    int pickupId,
+    string deliveryIds,
     int userId,
     string remarks)
         {
-            return await _repo.AcceptDelivery(
-                PickupId,
+            return await _repo.VerifyDeliveries(
+                pickupId,
+                deliveryIds,
                 userId,
                 remarks);
         }

@@ -40,5 +40,11 @@
         public string Status { get; set; }
 
         public string Remarks { get; set; }
+
+        public bool IsVerified { get; set; }
+
+        public int? VerifiedByUserId { get; set; }
+
+        public DateTime? VerifiedDateTime { get; set; }
     }
 }

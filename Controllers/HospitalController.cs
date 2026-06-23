@@ -25,8 +25,9 @@ namespace LaudaryMis.Controllers
         private readonly IProviderService _ProviderService;
         private readonly IDailyService _dservice;
         private readonly ICommonService _comservice;
+        private readonly IDeliveryChallanService _deliverychanService;
 
-        public HospitalController(IDailyService service, IWPRService wprService, IWebHostEnvironment env, IDeliveryService delservice,IHospitalService hosservice ,IWardService wardservice, IProviderService ProviderService, IDailyService dailyService, IPickUpService pkservice, ICommonService comservice)
+        public HospitalController(IDailyService service, IWPRService wprService, IWebHostEnvironment env, IDeliveryService delservice,IHospitalService hosservice ,IWardService wardservice, IProviderService ProviderService, IDailyService dailyService, IPickUpService pkservice, ICommonService comservice, IDeliveryChallanService deliverychanService)
                 {
                     _service = service;
                     _wprService = wprService;
@@ -38,6 +39,7 @@ namespace LaudaryMis.Controllers
             _dservice = dailyService;
             _pkservice = pkservice;
             _comservice = comservice;
+            _deliverychanService = deliverychanService;
         }
 
         [Authorize(Roles = "Hospital")]
@@ -395,10 +397,43 @@ namespace LaudaryMis.Controllers
                 "application/pdf",
                 fileName);
         }
+        
+        // [HttpPost]
+        //    public async Task<IActionResult> AcceptDelivery(
+        //int PickupId,
+        //string remarks)
+        //    {
+        //        try
+        //        {
+        //            int userId =
+        //                Convert.ToInt32(
+        //                    User.FindFirst(
+        //                        ClaimTypes.NameIdentifier)?.Value);
+
+        //            await _pkservice.AcceptDelivery(
+        //                PickupId,
+        //                userId,
+        //                remarks);
+
+        //            return Json(new
+        //            {
+        //                success = true,
+        //                message = "Delivery accepted successfully."
+        //            });
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            return Json(new
+        //            {
+        //                success = false,
+        //                message = ex.Message
+        //            });
+        //        }
+        //    }
 
         [HttpPost]
         public async Task<IActionResult> AcceptDelivery(
-    int PickupId,
+    int DeliveryId,
     string remarks)
         {
             try
@@ -409,7 +444,7 @@ namespace LaudaryMis.Controllers
                             ClaimTypes.NameIdentifier)?.Value);
 
                 await _pkservice.AcceptDelivery(
-                    PickupId,
+                    DeliveryId,
                     userId,
                     remarks);
 
@@ -427,6 +462,59 @@ namespace LaudaryMis.Controllers
                     message = ex.Message
                 });
             }
+        }
+        [HttpGet]
+        public async Task<IActionResult>GetPickupDeliveryHistory(int id)
+        {
+            var result =await _pkservice.GetPickupDeliveryHistory(id);
+            return Json(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult>
+VerifyDeliveries(
+    int PickupId,
+    string DeliveryIds,
+    string Remarks)
+        {
+            try
+            {
+                int userId =
+                    Convert.ToInt32(
+                        User.FindFirst(
+                            ClaimTypes.NameIdentifier)?.Value);
+
+                await _pkservice.VerifyDeliveries(
+                    PickupId,
+                    DeliveryIds,
+                    userId,
+                    Remarks);
+
+                return Json(new
+                {
+                    success = true,
+                    message =
+                    "Deliveries verified successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+        [HttpGet]
+        public async Task<JsonResult>
+GetDeliveryItems(int deliveryId)
+        {
+            var result =
+                await _deliverychanService
+                .GetDeliveryItems(deliveryId);
+
+            return Json(result);
         }
         #endregion
 
