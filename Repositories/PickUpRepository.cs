@@ -260,8 +260,67 @@ namespace LaudaryMis.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
+        //    public async Task<int> AcceptDelivery(
+        //int PickupId,
+        //int userId,
+        //string remarks)
+        //    {
+        //        using var con =
+        //            new SqlConnection(
+        //                _config.GetConnectionString("DefaultConnection"));
+
+        //        DynamicParameters param = new();
+
+        //        param.Add("@PickupId", PickupId);
+        //        param.Add("@VerifiedByUserId", userId);
+        //        param.Add("@Remarks", remarks);
+
+        //        return await con.ExecuteScalarAsync<int>(
+        //            "sp_AcceptDelivery",
+        //            param,
+        //            commandType: CommandType.StoredProcedure);
+        //    }
         public async Task<int> AcceptDelivery(
-    int PickupId,
+        int DeliveryId,
+        int userId,
+        string remarks)
+        {
+            using var con =
+                new SqlConnection(
+                    _config.GetConnectionString("DefaultConnection"));
+
+            DynamicParameters param = new();
+
+            param.Add("@DeliveryId", DeliveryId);
+            param.Add("@VerifiedByUserId", userId);
+            param.Add("@Remarks", remarks);
+
+            return await con.ExecuteScalarAsync<int>(
+                "sp_AcceptDelivery",
+                param,
+                commandType: CommandType.StoredProcedure);
+        }
+        public async Task<List<PickupDeliveryHistoryVM>>
+GetPickupDeliveryHistory(int pickupId)
+        {
+            using var con =
+                new SqlConnection(
+                    _config.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await con.QueryAsync<PickupDeliveryHistoryVM>(
+                    "sp_GetPickupDeliveryHistory",
+                    new
+                    {
+                        PickupId = pickupId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+        public async Task<int> VerifyDeliveries(
+    int pickupId,
+    string deliveryIds,
     int userId,
     string remarks)
         {
@@ -271,14 +330,16 @@ namespace LaudaryMis.Repositories
 
             DynamicParameters param = new();
 
-            param.Add("@PickupId", PickupId);
+            param.Add("@PickupId", pickupId);
+            param.Add("@DeliveryIds", deliveryIds);
             param.Add("@VerifiedByUserId", userId);
             param.Add("@Remarks", remarks);
 
             return await con.ExecuteScalarAsync<int>(
-                "sp_AcceptDelivery",
+                "sp_VerifyDeliveries",
                 param,
-                commandType: CommandType.StoredProcedure);
+                commandType:
+                CommandType.StoredProcedure);
         }
     }
 }

@@ -41,6 +41,8 @@
         public string Status { get; set; }
 
         public DateTime CreatedOn { get; set; }
+        public bool IsVerified { get; set; }
+        public string PrintUrlFilePath { get; set; }
     }
 
     public class PickupItemListVM

@@ -57,18 +57,15 @@ namespace LaudaryMis.Repositories
             var data = await _db.QueryAsync<DropdownVM>(
                 sql,
                 new { ProviderId = providerId });
-
             return data.ToList();
         }
 
         public async Task<List<DropdownVM>> GetProviderByHospital(int hospitalId)
         {
             var sql = @"select distinct pv.ProviderId as Id, pv.ProviderName as Name from ProviderHospitalAgreements as ag left join tbl_Providers pv on ag.ProviderId= pv.ProviderId where ag.HospitalId= @HospitalId";
-
             var data = await _db.QueryAsync<DropdownVM>(
                 sql,
                 new { HospitalId = hospitalId });
-
             return data.ToList();
         }
 
