@@ -101,7 +101,7 @@
                         <option value="Collected">Collected</option>
                         <option value="Accepted">Accepted</option>
                         <option value="Delivered">Delivered</option>
-                        <option value="Pending">Pending</option>
+                        <option value="Partial Delivered">Partial Delivered</option>
                         <option value="Verified">Verified</option>
 
                     </select>
@@ -324,16 +324,15 @@
 
                                         </a>
                                     }
-                                    @if ((item.Status == "Delivered" ||item.Status == "Partial Delivered") && !item.IsVerified)
-{
-                                        <button 
-                                                class="btn btn-success btn-sm"
+                                    @if ((item.Status == "Delivered" || item.Status == "Partial Delivered") && !item.IsVerified)
+                                    {
+                                        <button class="btn btn-success btn-sm"
                                                 onclick="verifyDeliveries(@item.PickupId)">
 
                                             <i class="fa fa-check"></i> Accept
 
                                         </button>
-}
+                                    }
 
                                 </td>
 
@@ -463,40 +462,84 @@
                         return html;
                     }
 
+
                         $('#pickupTable tbody').on(
         'click',
-        'td.details-control',
+        '.details-control',
         function () {
 
             var tr = $(this).closest('tr');
-
             var row = table.row(tr);
 
-            var pickupId = $(this).data('id');
-
+            var id = $(this).data('id');
             var status = $(this).data('status');
 
             if (row.child.isShown()) {
 
                 row.child.hide();
-
                 tr.removeClass('shown');
-
-                $(this).html("➕");
+                $(this).html('➕');
 
                 return;
             }
 
-            if ( status === "Collected" || status === "Accepted") {
-                loadPickupItems( pickupId,  row, tr, $(this)  );
+            if (
+                status === "Collected" ||
+                status === "Accepted"
+            ) {
+
+                loadPickupItems(
+                    id,
+                    row,
+                    tr,
+                    $(this)
+                );
             }
             else {
 
-                loadDeliveryHistory( pickupId,  row,  tr,  $(this)
+                loadDeliveryHistory(
+                    id,
+                    row,
+                    tr,
+                    $(this)
                 );
             }
-
         });
+
+        //                 $('#pickupTable tbody').on(
+        // 'click',
+        // 'td.details-control',
+        // function () {
+
+        //     var tr = $(this).closest('tr');
+
+        //     var row = table.row(tr);
+
+        //     var pickupId = $(this).data('id');
+
+        //     var status = $(this).data('status');
+
+        //     if (row.child.isShown()) {
+
+        //         row.child.hide();
+
+        //         tr.removeClass('shown');
+
+        //         $(this).html("➕");
+
+        //         return;
+        //     }
+
+        //     if ( status === "Collected" || status === "Accepted") {
+        //         loadPickupItems( pickupId,  row, tr, $(this)  );
+        //     }
+        //     else {
+
+        //         loadDeliveryHistory( pickupId,  row,  tr,  $(this)
+        //         );
+        //     }
+
+        // });
 
                     // $('#pickupTable tbody').on(
                     //     'click',
@@ -560,55 +603,92 @@
 
                         res.forEach(function (item) {
 
-                            var statusBadge = '';
+                                  var statusBadge = '';
 
-                            if (item.status === "Collected")
-                                statusBadge = '<span class="badge bg-warning text-dark">Collected</span>';
-                            else if (item.status === "Delivered")
-                                statusBadge = '<span class="badge bg-info text-dark">Delivered</span>';
-                            else if (item.status === "Verified")
-                                statusBadge = '<span class="badge bg-success">Verified</span>';
-                            else
-                                statusBadge = '<span class="badge bg-secondary">' + item.status + '</span>';
-                            var actionButtons = '';
-                            if (item.status === "Collected") {
-                                actionButtons =
-                                    `<div class="d-flex gap-2 justify-content-center">
+        switch (item.status) {
 
-                                        <a href="/Hospital/EditPickup/${item.pickupId}"
-                                           class="btn btn-sm btn-warning rounded-circle">
-                                            <i class="fa fa-edit"></i>
-                                        </a>
+            case "Collected":
+                statusBadge =
+                    '<span class="badge bg-warning text-dark">Collected</span>';
+                break;
 
-                                        <button class="btn btn-sm btn-danger rounded-circle"
-                                                onclick="deletePickup(${item.pickupId},this)">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
+            case "Partial Delivered":
+                statusBadge =
+                    '<span class="badge bg-info text-dark">Partial Delivered</span>';
+                break;
 
-                                        <a href="/Hospital/PrintPickup/${item.pickupId}"
-                                           target="_blank"
-                                           class="btn btn-sm btn-primary rounded-circle"
-                                           title="Print">
-                                            <i class="fa fa-print"></i>
-                                        </a>
+            case "Delivered":
+                statusBadge =
+                    '<span class="badge bg-primary">Delivered</span>';
+                break;
 
-                                    </div>`;
-                            }
-                          else if (item.status === "Delivered") {
+            case "Verified":
+                statusBadge =
+                    '<span class="badge bg-success">Verified</span>';
+                break;
+
+            default:
+                statusBadge =
+                    '<span class="badge bg-secondary">'
+                    + item.status +
+                    '</span>';
+        }
+                                 var actionButtons = '';
+
+        if (item.status === "Collected") {
+
+            actionButtons =
+                `<div class="d-flex gap-2 justify-content-center">
+
+                    <a href="/Hospital/EditPickup/${item.pickupId}"
+                       class="btn btn-sm btn-warning rounded-circle">
+                        <i class="fa fa-edit"></i>
+                    </a>
+
+                    <button class="btn btn-sm btn-danger rounded-circle"
+                            onclick="deletePickup(${item.pickupId},this)">
+                        <i class="fa fa-trash"></i>
+                    </button>
+
+                    <a href="/Hospital/PrintPickup/${item.pickupId}"
+                       target="_blank"
+                       class="btn btn-sm btn-primary rounded-circle">
+                        <i class="fa fa-print"></i>
+                    </a>
+
+                </div>`;
+        }
+
+        else if (
+            (item.status === "Delivered"
+             || item.status === "Partial Delivered")
+            && !item.isVerified
+        ) {
 
             actionButtons =
                 `<button class="btn btn-success btn-sm"
-                         onclick="acceptDelivery(${item.pickupId})">
-                    <i class="fa fa-check"></i> Accept
+                         onclick="verifyDeliveries(${item.pickupId})">
+
+                    <i class="fa fa-check"></i>
+                    Accept
+
                 </button>`;
         }
+
+        else if (item.isVerified) {
+
+            actionButtons =
+                `<span class="badge bg-success">
+                    Verified
+                </span>`;
+        }
                             table.row.add([
-                                `<span class="details-control text-center"
-                                        data-id="${item.pickupId}"
-                                        data-status="${item.status}"
-                                        style="cursor:pointer;">
-                                    ➕
-                                 </span>`,
+                                      `<div class="details-control text-center"
+              data-id="${item.pickupId}"
+              data-status="${item.status}"
+              style="cursor:pointer;">
+           ➕
+                                      </div>`,
                                 item.rowNum,
                                 item.pickupNo,
                                 formatDate(item.pickupDateTime),
@@ -838,7 +918,7 @@
 
                         <th>Delivery Date</th>
 
-                      
+
 
                         <th>Delivered Qty</th>
 
@@ -880,13 +960,13 @@
                 })}
         </td>
 
-                   
+
                      <td class="fw-bold text-success">
 
                         ${x.deliveredQty}
 
                     </td>
-                    
+
 
                     <td>
 
@@ -917,14 +997,14 @@
         <td class="text-center">
 
             ${
-                x.status !== "Verified" ?       
+                x.status !== "Verified" ?
                 `<input type="checkbox"
                         class="rejectCheck"
                         value="${x.deliveryId}" />` : '-'
             }
         </td>
 
-       
+
 
                 </tr>`;
             });
@@ -937,7 +1017,7 @@
 
             <div class="text-end">
 
-             
+
 
             </div>`;
 
