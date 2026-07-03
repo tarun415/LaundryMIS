@@ -144,5 +144,212 @@ AND CAST(ToDate AS DATE)
 
             return count > 0;
         }
+        public async Task<List<WeeklyPerformanceVM>> GetWeeklyPerformanceData( int agreementId, int hospitalId, int weekNo, int month, int year)
+        {
+            using var conn = CreateConnection();
+
+            var result = await conn.QueryAsync<WeeklyPerformanceVM>(
+                "sp_GetWeeklyPerformanceData",
+                new
+                {
+                    AgreementId = agreementId,
+                    HospitalId = hospitalId,
+                    WeekNo = weekNo,
+                    Month = month,
+                    Year = year
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<int> InsertWPREntryAsync(WPREntry entry)
+        {
+            const string sql = @"
+
+INSERT INTO WPREntries
+(
+    AgreementId,
+    HospitalId,
+    WeekStart,
+    WeekEnd,
+    TotalScore,
+    CreatedOn,
+    ProviderId,
+    MonthNo,
+    YearNo,
+    WeekNo,
+    PerformanceGrade,
+    Remarks
+)
+VALUES
+(
+    @AgreementId,
+    @HospitalId,
+    @WeekStart,
+    @WeekEnd,
+    @TotalScore,
+    @CreatedOn,
+    @ProviderId,
+    @MonthNo,
+    @YearNo,
+    @WeekNo,
+    @PerformanceGrade,
+    @Remarks
+);
+
+SELECT CAST(SCOPE_IDENTITY() AS INT);
+
+";
+
+            using var conn = CreateConnection();
+
+            return await conn.QuerySingleAsync<int>(sql, entry);
+        }
+
+
+        public async Task<int> SaveWPRAsync(
+    WeeklyPerformanceReport wpr,
+    WPREntry entry,
+    List<WPRDetail> details)
+        {
+            using var conn = CreateConnection();
+
+             conn.Open();
+
+            using var tran = conn.BeginTransaction();
+
+            try
+            {
+                //------------------------------------------
+                // Insert WeeklyPerformanceReport
+                //------------------------------------------
+
+                const string reportSql = @"
+
+INSERT INTO WeeklyPerformanceReport
+(
+    Week,
+    Month,
+    Year,
+    StaffName,
+    Remarks,
+    TotalScore,
+    PaymentPercentage,
+    SubmittedAt,
+    AgreementId,
+    ProviderId,
+    HospitalId
+)
+VALUES
+(
+    @Week,
+    @Month,
+    @Year,
+    @StaffName,
+    @Remarks,
+    @TotalScore,
+    @PaymentPercentage,
+    @SubmittedAt,
+    @AgreementId,
+    @ProviderId,
+    @HospitalId
+);
+
+SELECT CAST(SCOPE_IDENTITY() AS INT);
+";
+
+                int wprId = await conn.QuerySingleAsync<int>(
+                    reportSql,
+                    wpr,
+                    tran);
+
+                //------------------------------------------
+                // Insert WPREntries
+                //------------------------------------------
+
+                entry.CreatedOn = DateTime.Now;
+
+                await conn.ExecuteAsync(@"
+
+INSERT INTO WPREntries
+(
+AgreementId,
+HospitalId,
+WeekStart,
+WeekEnd,
+TotalScore,
+CreatedOn,
+ProviderId,
+MonthNo,
+YearNo,
+WeekNo,
+PerformanceGrade,
+Remarks
+)
+VALUES
+(
+@AgreementId,
+@HospitalId,
+@WeekStart,
+@WeekEnd,
+@TotalScore,
+@CreatedOn,
+@ProviderId,
+@MonthNo,
+@YearNo,
+@WeekNo,
+@PerformanceGrade,
+@Remarks
+)
+
+",
+        entry,
+        tran);
+
+                //------------------------------------------
+                // Insert Details
+                //------------------------------------------
+
+                foreach (var d in details)
+                {
+                    d.WPRId = wprId;
+                }
+
+                await conn.ExecuteAsync(@"
+
+INSERT INTO WPRDetail
+(
+WPRId,
+ParameterId,
+ParameterName,
+Score
+)
+VALUES
+(
+@WPRId,
+@ParameterId,
+@ParameterName,
+@Score
+)
+
+",
+        details,
+        tran);
+
+                //------------------------------------------
+                // Commit
+                //------------------------------------------
+
+                tran.Commit();
+
+                return wprId;
+            }
+            catch
+            {
+                tran.Rollback();
+                throw;
+            }
+        }
     }
 }

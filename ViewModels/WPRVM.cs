@@ -26,4 +26,5 @@
         public int Id { get; set; }
         public string ParameterName { get; set; } = "";
     }
+   
 }

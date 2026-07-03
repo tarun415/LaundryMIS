@@ -59,6 +59,11 @@ namespace LaudaryMis.Services
             await _repo.DeleteAsync(id);
             return true;
         }
+        public async Task<AgreementVM> GetByHosIdAsync(int HospitalId)
+        {
+            return await _repo.GetByHosIdAsync(HospitalId);
 
+        }
+       
     }
 }

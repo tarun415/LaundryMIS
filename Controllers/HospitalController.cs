@@ -1,14 +1,10 @@
 ﻿using LaudaryMis.Models;
-using LaudaryMis.Services;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Rotativa.AspNetCore;
 using Rotativa.AspNetCore.Options;
-using System.Data;
-using System.Drawing;
 using System.Security.Claims;
 
 namespace LaudaryMis.Controllers
@@ -517,6 +513,6 @@ GetDeliveryItems(int deliveryId)
             return Json(result);
         }
         #endregion
-
-    }
+       
+        }
 }

@@ -8,6 +8,6 @@ namespace LaudaryMis.Services.Interfaces
         Task<AgreementVM> GetAgreementByIdAsync(int id);
         Task<bool> DeleteAsync(int id);
         Task<IEnumerable<AgreementVM>> GetAllAsync();
-
+        Task<AgreementVM> GetByHosIdAsync(int HospitalId);
     }
 }

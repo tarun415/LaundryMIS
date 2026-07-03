@@ -1,7 +1,5 @@
 ﻿@model List<LaudaryMis.ViewModels.PickupListVM>
-
 <style>
-
     .btn-primary {
         background: linear-gradient(135deg, #3b82f6, #1e40af);
         border: none;
@@ -56,7 +54,36 @@
         margin-left: 5px;
     }
 
+    /* UI Improvement: Make table horizontally scrollable on small screens */
+    .table-responsive {
+        overflow-x: auto;
+        min-height: 0.01%;
+        /* Prevents vertical scroll from being hidden */
+    }
+
+    /* UI Improvement: Add min-width to table for better horizontal scrolling */
+    #pickupTable {
+        min-width: 1200px;
+    }
+
+    /* UI Improvement: Add spacing below filter card */
+    .filter-card {
+        margin-bottom: 1.5rem;
+    }
+
+    /* UI Improvement: Add vertical spacing for mobile */
+    @@media (max-width: 767.98px) {
+        .filter-card, .table-card {
+            margin-bottom: 1rem;
+        }
+
+        .container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
 </style>
+
 
 <div class="container mt-4">
 
@@ -600,4 +627,5 @@
         }
     </script>
 
+    
 }
