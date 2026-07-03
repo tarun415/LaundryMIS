@@ -17,43 +17,42 @@
         <div class="alert-error">❌ @TempData["Error"]</div>
     }
 
+    <style>
+        /* small UI helpers kept from original file */
+        .kb:disabled { opacity: 1; cursor: not-allowed; pointer-events: none; }
+        .kb.sg { background: #28a745; color: #fff; border-color: #28a745; }
+        .kb.sa { background: #ffc107; color: #000; border-color: #ffc107; }
+        .kb.sp { background: #dc3545; color: #fff; border-color: #dc3545; }
+
+        /* keep alerts */
+        .alert-success { background: #f0faf4; border: 1px solid #a3d9b1; border-left: 4px solid #27ae60; color: #1e7e44; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; }
+        .alert-error { background: #fff5f5; border: 1px solid #f5b7b7; border-left: 4px solid #e74c3c; color: #a93226; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; }
+        .notice-warn { background: #fffbf0; border: 1px solid #f5c518; border-left: 4px solid #f5c518; color: #7a5c00; padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-top: 12px; }
+    </style>
+
     <form id="wprForm" method="post" asp-action="WPREntry" asp-controller="WPR" onsubmit="return validateForm()">
         @Html.AntiForgeryToken()
 
+        <!-- Hidden IDs (make sure ids match JS selectors) -->
         <input type="hidden" id="totalScoreHidden" name="TotalScore" />
-        <input type="hidden" name="AgreementId" value="@ViewBag.AgreementId" />
-      @*   <input type="hidden" id="providerIdHidden" name="ProviderId" "@ViewBag.ProviderId" /> *@
-        <input type="hidden"
-               id="providerIdHidden"
-               name="ProviderId"
-               value="@ViewBag.ProviderId" />
-        <input type="hidden" id="hospitalIdHidden" name="HospitalId" value="@ViewBag.HospitalId" />
+        <input type="hidden" id="AgreementId" name="AgreementId" value="@ViewBag.AgreementId" />
+        <input type="hidden" id="providerIdHidden" name="ProviderId" value="@ViewBag.ProviderId" />
+        <input type="hidden" id="HospitalId" name="HospitalId" value="@ViewBag.HospitalId" />
 
-        <!-- TOP GRID: Details + Live Score -->
         <div class="g2">
-
-            <!-- Report Details -->
             <div class="card">
                 <div class="card-hdr">
                     <div class="card-title"><span class="card-icon">📝</span> Report Details</div>
                 </div>
 
-                <!-- Hospital Display -->
-            @*     <div style="background:#f8f6f2;padding:10px;border-radius:6px;margin-bottom:12px;">
-                    <div style="font-size:11px;color:#888;font-weight:600;">📍 Hospital</div>
-                    <div id="hospitalDisplay" style="font-size:14px;color:#333;font-weight:500;margin-top:4px;">@Model.</div>
-                </div> *@
+                <!-- small hospital display (JS populates) -->
+                <div id="hospitalDisplay" style="margin:8px 0;font-weight:600;color:#27ae60;"></div>
 
                 <div class="g2">
                     <div class="form-group">
                         <label class="form-label">Month</label>
-                        <select name="Month"
-                                id="fMonth"
-                                class="form-control"
-                                onchange="checkVerification()">
-
+                        <select name="Month" id="fMonth" class="form-control" onchange="loadWeeklyPerformance();">
                             <option value="">Select Month</option>
-
                             <option value="1">January</option>
                             <option value="2">February</option>
                             <option value="3">March</option>
@@ -68,15 +67,11 @@
                             <option value="12">December</option>
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label class="form-label">Week</label>
-                        <select name="Week"
-                                id="Week"
-                                class="form-control"
-                                onchange="checkVerification()">
-
+                        <select name="Week" id="Week" class="form-control" onchange="loadWeeklyPerformance();">
                             <option value="">Select Week</option>
-
                             <option value="1">Week 1</option>
                             <option value="2">Week 2</option>
                             <option value="3">Week 3</option>
@@ -84,41 +79,35 @@
                             <option value="5">Week 5</option>
                         </select>
                     </div>
-                
                 </div>
 
                 <div class="g2">
                     <div class="form-group">
                         <label class="form-label">Year</label>
-                        <input name="Year" id="fYear" class="form-control" onchange="checkVerification()" readonly  />
+                        <input name="Year" id="fYear" class="form-control" readonly />
                     </div>
+                 @*    <div class="form-group">
+                        <label class="form-label">Staff Name</label>
+                        <input name="StaffName" class="form-control" placeholder="Enter name" readonly required />
+                    </div> *@
                     <div class="form-group">
                         <label class="form-label">Staff Name</label>
-                        <input name="StaffName" class="form-control" placeholder="Enter name" required />
+                        <input id="StaffName"
+                               name="StaffName"
+                               class="form-control"
+                               placeholder="Enter name"
+                               readonly
+                               required
+                               value="@(Model?.StaffName ?? ViewBag.ProviderName ?? String.Empty)" />
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Verification Status</label>
 
-                    <div id="verificationStatus"
-                         class="form-control"
-                         style="background:#f5f5f5;
-                font-weight:600;">
-
-                        Select Month & Week
-                    </div>
-
-                    <input type="hidden"
-                           id="isVerified"
-                           value="false" />
-                </div>
                 <div class="form-group">
                     <label class="form-label">Remarks</label>
                     <textarea name="Remarks" class="form-control" placeholder="Optional remarks..."></textarea>
                 </div>
             </div>
 
-            <!-- Live Score -->
             <div class="card">
                 <div class="card-hdr">
                     <div class="card-title"><span class="card-icon">📊</span> Live Score</div>
@@ -137,7 +126,6 @@
                     <span class="badge badge-none" id="paymentBadge">0% Payment — No Payment</span>
                 </div>
 
-                <!-- Slab table -->
                 <div style="margin-top:14px;border:1px solid #f0ede8;border-radius:8px;overflow:hidden;">
                     <table style="width:100%;font-size:11px;border-collapse:collapse;">
                         <thead>
@@ -161,13 +149,11 @@
 
                 <div style="display:flex;gap:10px;margin-top:14px;">
                     <button type="button" class="btn btn-ghost" onclick="resetForm()">Reset</button>
-                    <button type="submit" class="btn btn-gold" id="submitBtn" disabled>Submit WPR</button>
+                    <button type="submit" class="btn btn-gold" id="submitBtn">Submit WPR</button>
                 </div>
             </div>
-
         </div>
 
-        <!-- PARAMETERS -->
         <div class="card kpi-section">
             <div class="card-hdr">
                 <div class="card-title"><span class="card-icon">📋</span> Performance Parameters</div>
@@ -176,385 +162,255 @@
 
             <div id="kpiRows"></div>
         </div>
-
     </form>
 </div>
 
-<style>
-    .alert-success {
-        background: #f0faf4;
-        border: 1px solid #a3d9b1;
-        border-left: 4px solid #27ae60;
-        color: #1e7e44;
-        padding: 10px 14px;
-        border-radius: 6px;
-        margin-bottom: 16px;
-        font-size: 13px;
-    }
+@section Scripts {
+    <script>
+        // -----------------------
+        // Constants and small helpers
+        // -----------------------
+        const PARAMS = [
+          "Collection Timeliness","Delivery Timeliness","Linen Quality","Infection Control",
+          "Stain / Odour Removal","Damage / Loss","SOP Compliance","Staff Behavior",
+          "Overall Satisfaction","Warning Letters"
+        ];
 
-    .alert-error {
-        background: #fff5f5;
-        border: 1px solid #f5b7b7;
-        border-left: 4px solid #e74c3c;
-        color: #a93226;
-        padding: 10px 14px;
-        border-radius: 6px;
-        margin-bottom: 16px;
-        font-size: 13px;
-    }
+        // init month/year/week defaults
+        (function initDateDefaults() {
+            const now = new Date();
+            document.getElementById("fMonth").value = now.getMonth() + 1;
+            document.getElementById("fYear").value = now.getFullYear();
+            document.getElementById("Week").value = Math.min(Math.ceil(now.getDate() / 7), 5);
+        })();
 
-    .notice-warn {
-        background: #fffbf0;
-        border: 1px solid #f5c518;
-        border-left: 4px solid #f5c518;
-        color: #7a5c00;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        margin-top: 12px;
-    }
-</style>
+        // -----------------------
+        // Agreement fetch (populates HospitalId, ProviderId, StaffName, Hospital display)
+        // returns Promise so callers can await completion
+        // -----------------------
+        async function fetchAgreementProviderDetails(agreementId) {
+            if (!agreementId) return null;
+            try {
+                const resp = await fetch(`/api/agreement/${agreementId}`);
+                if (!resp.ok) return null;
+                const agreement = await resp.json();
+                if (!agreement) return null;
 
-<script>
-    const PARAMS = [
-      "Collection Timeliness",
-      "Delivery Timeliness",
-      "Linen Quality",
-      "Infection Control",
-      "Stain / Odour Removal",
-      "Damage / Loss",
-      "SOP Compliance",
-      "Staff Behavior",
-      "Overall Satisfaction",
-      "Warning Letters"
-    ];
-
-    // Month mapping
-    const MONTHS = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    ];
-
-    // ✅ Auto-fill month, year aur current week
-    // const now = new Date();
-    // const day = now.getDate();
-    // const currentMonth = now.getMonth();
-    // const currentWeek = Math.min(Math.ceil(day / 7), 5);
-
-    // // Set current month in dropdown
-    // document.getElementById("fMonth").value = MONTHS[currentMonth];
-    // document.getElementById("fYear").value = now.getFullYear();
-    // document.getElementById("fWeek").value = currentWeek;
-
-        // ✅ Auto-fill month, year and week
-    const now = new Date();
-
-    const currentMonth = now.getMonth() + 1;
-    const currentWeek = Math.min(Math.ceil(now.getDate() / 7), 5);
-
-    document.getElementById("fMonth").value = currentMonth;
-    document.getElementById("fYear").value = now.getFullYear();
-    document.getElementById("Week").value = currentWeek;
-
-    // ✅ Fetch Agreement details to get ProviderId and HospitalId
-    const agreementId = document.querySelector('input[name="AgreementId"]').value;
-
-    if (agreementId && agreementId !== "0") {
-        fetchAgreementProviderDetails(agreementId);
-    }
-
-    async function fetchAgreementProviderDetails(agreementId) {
-        try {
-            // Call API to get Agreement details including ProviderId and HospitalId
-            const response = await fetch(`/api/agreement/${agreementId}`);
-            if (response.ok) {
-                const agreement = await response.json();
-                document.getElementById("providerIdHidden").value = agreement.providerId;
-                document.getElementById("hospitalIdHidden").value = agreement.hospitalId;
-
-                // ✅ Display Hospital Name
-                displayHospitalInfo(agreement.hospitalName || "Hospital #" + agreement.hospitalId);
-            } else {
-                console.warn("Could not fetch agreement details");
-                document.getElementById("hospitalDisplay").textContent = "Hospital not found";
+                // populate hidden inputs and UI
+                const providerEl = document.getElementById("providerIdHidden");
+                const hospEl = document.getElementById("HospitalId");
+                if (providerEl) providerEl.value = agreement.providerId ?? "";
+                if (hospEl) hospEl.value = agreement.hospitalId ?? "";
+                if (agreement.hospitalName) {
+                    const display = document.getElementById("hospitalDisplay");
+                    if (display) { display.textContent = "🏥 " + agreement.hospitalName; display.style.color = "#27ae60"; }
+                }
+                if (agreement.providerName) {
+                    const staff = document.querySelector('input[name="StaffName"]');
+                    if (staff) staff.value = agreement.providerName;
+                }
+                return agreement;
+            } catch (ex) {
+                console.error("fetchAgreementProviderDetails:", ex);
+                return null;
             }
-        } catch (error) {
-            console.error("Error fetching agreement:", error);
-            document.getElementById("hospitalDisplay").textContent = "Error loading hospital";
-        }
-    }
-
-    function displayHospitalInfo(hospitalName) {
-        document.getElementById("hospitalDisplay").textContent = "🏥 " + hospitalName;
-        document.getElementById("hospitalDisplay").style.color = "#27ae60";
-    }
-
-    // Build KPI rows
-    const kpiContainer = document.getElementById("kpiRows");
-    PARAMS.forEach((name, idx) => {
-        const i = idx + 1;
-        const row = document.createElement("div");
-        row.className = "kpi-row";
-        row.id = "row_" + i;
-
-        const num = document.createElement("div");
-        num.className = "kpi-n";
-        num.textContent = i;
-
-        const lbl = document.createElement("div");
-        lbl.className = "kpi-lbl";
-        lbl.textContent = name;
-
-        const hidP = document.createElement("input");
-        hidP.type = "hidden";
-        hidP.name = `Details[${idx}].ParameterId`;
-        hidP.value = i;
-        lbl.appendChild(hidP);
-
-        const btns = document.createElement("div");
-        btns.className = "kpi-btns";
-        for (let s = 1; s <= 10; s++) {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "kb";
-            btn.id = `btn_${i}_${s}`;
-            btn.textContent = s;
-            btn.onclick = () => setScore(i, s);
-            btns.appendChild(btn);
         }
 
-        const sc = document.createElement("div");
-        sc.className = "kpi-sc";
-        sc.id = "s" + i;
-        sc.innerHTML = "<span>—</span>";
+        // -----------------------
+        // Build default KPI rows (if server didn't provide them)
+        // -----------------------
+        (function buildDefaultKpis() {
+            const container = document.getElementById("kpiRows");
+            if (!container) return;
+            PARAMS.forEach((name, idx) => {
+                const i = idx + 1;
+                const row = document.createElement("div");
+                row.className = "kpi-row";
+                row.id = "row_" + i;
 
-        const hidS = document.createElement("input");
-        hidS.type = "hidden";
-        hidS.name = `Details[${idx}].Score`;
-        hidS.id = "score_" + i;
+                row.innerHTML = `
+                    <div class="kpi-n">${i}</div>
+                    <div class="kpi-lbl">${name}
+                        <input type="hidden" name="Details[${idx}].ParameterId" value="${i}" />
+                    </div>
+                    <div class="kpi-btns">${[...Array(10)].map((_,s)=>`<button type="button" class="kb" id="btn_${i}_${s+1}" onclick="setScore(${i},${s+1})">${s+1}</button>`).join('')}</div>
+                    <div class="kpi-sc" id="s${i}"><span>—</span></div>
+                    <input type="hidden" id="score_${i}" name="Details[${idx}].Score" />`;
+                container.appendChild(row);
+            });
+        })();
 
-        row.appendChild(num);
-        row.appendChild(lbl);
-        row.appendChild(btns);
-        row.appendChild(sc);
-        row.appendChild(hidS);
-        kpiContainer.appendChild(row);
-    });
+        // -----------------------
+        // Score state and helpers
+        // -----------------------
+        let scores = {};
+        function setScore(i, val) {
+            scores[i] = val;
+            const input = document.getElementById("score_" + i);
+            if (input) input.value = val;
 
-    let scores = {};
+            const sEl = document.getElementById("s" + i);
+            const cls = val >= 7 ? 'sc-good' : (val >= 3 ? 'sc-avg' : 'sc-poor');
+            if (sEl) sEl.innerHTML = `<span class="sc-badge ${cls}">${val >= 7 ? 'Good' : val >= 3 ? 'Average' : 'Poor'} (${val}/10)</span>`;
 
-    function setScore(i, val) {
-        scores[i] = val;
-        document.getElementById("score_" + i).value = val;
-
-        let label, cls;
-        if (val >= 7)       { label = "Good";    cls = "sc-good"; }
-        else if (val >= 3)  { label = "Average"; cls = "sc-avg";  }
-        else                { label = "Poor";    cls = "sc-poor"; }
-
-        document.getElementById("s" + i).innerHTML =
-            `<span class="sc-badge ${cls}">${label} (${val}/10)</span>`;
-
-        for (let s = 1; s <= 10; s++) {
-            const btn = document.getElementById(`btn_${i}_${s}`);
-            if (!btn) continue;
-            btn.classList.remove("sg", "sa", "sp");
-        }
-        const sel = document.getElementById(`btn_${i}_${val}`);
-        if (val >= 7)      sel.classList.add("sg");
-        else if (val >= 3) sel.classList.add("sa");
-        else               sel.classList.add("sp");
-
-        calc();
-    }
-
-    function calc() {
-        let total = 0, count = 0;
-        for (let k in scores) { total += scores[k]; count++; }
-
-        document.getElementById("scoreDisplay").textContent = total;
-        document.getElementById("bar").style.width = total + "%";
-        document.getElementById("totalScoreHidden").value = total;
-        document.getElementById("countText").textContent = count + " / 10 scored";
-
-        let label, badgeCls;
-        if      (total === 0)  { label = "0% — No Payment"; badgeCls = "badge-none"; }
-        else if (total <= 20)  { label = "0% — No Payment"; badgeCls = "badge-none"; }
-        else if (total <= 40)  { label = "40% Payment";     badgeCls = "badge-low";  }
-        else if (total <= 60)  { label = "60% Payment";     badgeCls = "badge-mid";  }
-        else if (total <= 70)  { label = "80% Payment";     badgeCls = "badge-good"; }
-        else if (total <= 80)  { label = "90% Payment";     badgeCls = "badge-good"; }
-        else                   { label = "100% Payment";    badgeCls = "badge-full"; }
-
-        const el = document.getElementById("paymentBadge");
-        el.textContent = label;
-        el.className = "badge " + badgeCls;
-
-        const slabs = ["slab0", "slab21", "slab41", "slab61", "slab71", "slab81"];
-        slabs.forEach(id => {
-            document.getElementById(id).style.background = "";
-            document.getElementById(id).style.fontWeight = "";
-        });
-
-        let activeId = null;
-        if      (total <= 20) activeId = "slab0";
-        else if (total <= 40) activeId = "slab21";
-        else if (total <= 60) activeId = "slab41";
-        else if (total <= 70) activeId = "slab61";
-        else if (total <= 80) activeId = "slab71";
-        else                  activeId = "slab81";
-
-        document.getElementById(activeId).style.background  = "#fffbf0";
-        document.getElementById(activeId).style.fontWeight  = "600";
-    }
-
-    function resetForm() {
-        scores = {};
-
-        for (let i = 1; i <= 10; i++) {
-            document.getElementById("score_" + i).value = "";
-            document.getElementById("s" + i).innerHTML = "<span>—</span>";
             for (let s = 1; s <= 10; s++) {
-                const btn = document.getElementById(`btn_${i}_${s}`);
-                if (btn) btn.classList.remove("sg", "sa", "sp");
+                const b = document.getElementById(`btn_${i}_${s}`);
+                if (b) b.classList.remove('sg','sa','sp');
             }
+            const sel = document.getElementById(`btn_${i}_${val}`);
+            if (sel) sel.classList.add(val >= 7 ? 'sg' : val >= 3 ? 'sa' : 'sp');
+
+            calc();
         }
 
-        document.getElementById("scoreDisplay").textContent = "0";
-        document.getElementById("bar").style.width = "0%";
-        document.getElementById("totalScoreHidden").value = "0";
-        document.getElementById("paymentBadge").textContent = "0% Payment — No Payment";
-        document.getElementById("paymentBadge").className = "badge badge-none";
-        document.getElementById("countText").textContent = "0 / 10 scored";
+        function calc() {
+            let total = 0, count = 0;
+            for (const k in scores) { total += scores[k]; count++; }
+            const scoreDisplay = document.getElementById("scoreDisplay"); if (scoreDisplay) scoreDisplay.textContent = total;
+            const bar = document.getElementById("bar"); if (bar) bar.style.width = total + "%";
+            const totalHidden = document.getElementById("totalScoreHidden"); if (totalHidden) totalHidden.value = total;
+            const countText = document.getElementById("countText"); if (countText) countText.textContent = `${count} / 10 scored`;
 
-        const slabs = ["slab0", "slab21", "slab41", "slab61", "slab71", "slab81"];
-        slabs.forEach(id => {
-            document.getElementById(id).style.background = "";
-            document.getElementById(id).style.fontWeight = "";
-        });
-    }
+            const el = document.getElementById("paymentBadge");
+            if (!el) return;
+            let label = "0% — No Payment", badgeCls = "badge-none";
+            if (total > 80) { label = "100% Payment"; badgeCls = "badge-full"; }
+            else if (total > 60) { label = "90% Payment"; badgeCls = "badge-good"; }
+            else if (total > 40) { label = "60% Payment"; badgeCls = "badge-mid"; }
+            else if (total > 20) { label = "40% Payment"; badgeCls = "badge-low"; }
 
-    function validateForm() {
-        // ✅ ProviderId check
-        const providerId = document.getElementById("providerIdHidden").value;
-        if (!providerId || providerId === "0") {
-            alert("Provider information not found. Please select a valid agreement.");
-            return false;
+            el.textContent = label; el.className = "badge " + badgeCls;
+
+            const slabs = ["slab0","slab21","slab41","slab61","slab71","slab81"];
+            slabs.forEach(id=>{ const s=document.getElementById(id); if(s){ s.style.background=""; s.style.fontWeight=""; }});
+            let active = total <= 20 ? "slab0" : total <=40 ? "slab21" : total <=60 ? "slab41" : total <=70 ? "slab61" : total <=80 ? "slab71" : "slab81";
+            const activeEl = document.getElementById(active); if (activeEl) { activeEl.style.background="#fffbf0"; activeEl.style.fontWeight="600"; }
         }
 
-        // ✅ HospitalId check
-        const hospitalId = document.getElementById("hospitalIdHidden").value;
-        if (!hospitalId || hospitalId === "0") {
-            alert("Hospital information not found. Please select a valid agreement.");
-            return false;
-        }
-
-        // ✅ Month selection check
-        const month = document.getElementById("fMonth").value;
-        if (!month) {
-            alert("Please select a month.");
-            return false;
-        }
-            // ✅ Verification check
-    if ($("#isVerified").val() != "true") {
-
-        alert("Before verification you can't fill WPR.");
-        $("#submitBtn").prop("disabled", true);
-        return false;
-    }
-        // ✅ Sab 10 parameters score hone chahiye
-        for (let i = 1; i <= 10; i++) {
-            if (!document.getElementById("score_" + i).value) {
-                alert("Please score all 10 parameters before submitting.");
-                return false;
+        function resetForm() {
+            scores = {};
+            for (let i=1;i<=10;i++) {
+                const si = document.getElementById("score_"+i); if(si) si.value = "";
+                const sEl = document.getElementById("s"+i); if(sEl) sEl.innerHTML = "<span>—</span>";
+                for (let s=1;s<=10;s++){ const b = document.getElementById(`btn_${i}_${s}`); if(b) b.classList.remove('sg','sa','sp'); }
             }
+            document.getElementById("scoreDisplay").textContent = "0";
+            document.getElementById("bar").style.width = "0%";
+            document.getElementById("totalScoreHidden").value = "0";
+            document.getElementById("paymentBadge").textContent = "0% Payment — No Payment";
+            document.getElementById("countText").textContent = "0 / 10 scored";
         }
 
-        // ✅ Staff name empty nahi hona chahiye
-        const staffName = document.querySelector('input[name="StaffName"]').value.trim();
-        if (!staffName) {
-            alert("Please enter Staff Name.");
-            return false;
+        // -----------------------
+        // Validation
+        // -----------------------
+        function validateForm() {
+            const providerId = document.getElementById("providerIdHidden").value;
+            if (!providerId || providerId === "0") { alert("Provider information not found. Please select a valid agreement."); return false; }
+            const hospitalId = document.getElementById("HospitalId").value;
+            if (!hospitalId || hospitalId === "0") { alert("Hospital information not found. Please select a valid agreement."); return false; }
+            if (!document.getElementById("fMonth").value) { alert("Please select a month."); return false; }
+            for (let i=1;i<=10;i++){ if (!document.getElementById("score_"+i).value) { alert("Please score all 10 parameters before submitting."); return false; } }
+            const staffName = (document.querySelector('input[name="StaffName"]').value || "").trim();
+            if (!staffName) { alert("Please enter Staff Name."); return false; }
+
+            document.getElementById("submitBtn").disabled = true;
+            document.getElementById("submitBtn").textContent = "Submitting...";
+            return true;
         }
 
-        // ✅ Double submit rokna
-        document.getElementById("submitBtn").disabled = true;
-        document.getElementById("submitBtn").textContent = "Submitting...";
+        // -----------------------
+        // Load performance: guarded ajax call — uses AgreementId/HospitalId/week/month/year
+        // -----------------------
+        function loadWeeklyPerformance() {
+            const agreementId = $("#AgreementId").val();
+            const hospitalId = $("#HospitalId").val();
+            const week = $("#Week").val();
+            const month = $("#fMonth").val();
+            const year = $("#fYear").val();
 
-        return true;
-    }
+            // guard: required values
+            if (!agreementId || agreementId === "0" || !hospitalId || hospitalId === "0" || !week || !month || !year) {
+                console.log("loadWeeklyPerformance skipped - missing values", { agreementId, hospitalId, week, month, year });
+                return;
+            }
 
-        function checkVerification() {
-
-        let weekNo = $("#Week").val();
-        let month = $("#fMonth").val();
-        let year = $("#fYear").val();
-
-        if (!weekNo || !month || !year) {
-
-            $("#verificationStatus")
-                .html("Select Month & Week");
-
-                $("#isVerified").val("false");
-
-    $("#submitBtn").prop("disabled", true);
-            return;
-        }
-
-        $.ajax({
-
-            url: '/WPR/CheckWeeklyVerification',
-
-            type: 'GET',
-
-            data: {
-                weekNo: weekNo,
+            $.get("/WPR/GetWeeklyPerformanceData", {
+                agreementId: agreementId,
+                hospitalId: hospitalId,
+                weekNo: week,
                 month: month,
                 year: year
-            },
+            }, function(res) {
+                buildPerformanceTable(res && res.data ? res.data : []);
+            }).fail(function() {
+                console.warn("GetWeeklyPerformanceData failed");
+            });
+        }
 
-            success: function (res) {
+        // -----------------------
+        // Build performance table from server response
+        // -----------------------
+        function buildPerformanceTable(data) {
+            $("#kpiRows").empty();
+            scores = {};
 
-                if (res.success) {
+            (data || []).forEach(function(item, index) {
+                const pid = item.parameterId;
+                const name = item.parameterName;
+                const systemScore = item.systemScore ?? 0;
+                const isEditable = !!item.isEditable;
+                const maxScore = item.maxScore || 10;
 
-                    $("#verificationStatus")
-                        .html("✅ Verified")
-                        .css({
-                            "color": "green",
-                            "background": "#edf9ed",
-                            "border": "1px solid green"
-                        });
+                let row = `<div class="kpi-row" id="row_${pid}">
+                    <div class="kpi-n">${index+1}</div>
+                    <div class="kpi-lbl">${name}
+                        <input type="hidden" name="Details[${index}].ParameterId" value="${pid}" />
+                        <input type="hidden" id="score_${pid}" name="Details[${index}].Score" />
+                        <input type="hidden" name="Details[${index}].ParameterName" value="${name}" />
+                    </div>`;
 
-                       $("#isVerified").val("true");
-
-     $("#submitBtn").prop("disabled", false);
+                if (isEditable) {
+                    row += `<div class="kpi-btns">`;
+                    for (let s=1;s<=maxScore;s++){
+                        row += `<button type="button" class="kb" id="btn_${pid}_${s}" onclick="setScore(${pid},${s})">${s}</button>`;
+                    }
+                    row += `</div><div class="kpi-sc" id="s${pid}"><span>—</span></div>`;
+                } else {
+                    // auto score: render disabled buttons and badge
+                    row += `<div class="kpi-btns">`;
+                    for (let s=1;s<=maxScore;s++){
+                        const css = (s===systemScore) ? (systemScore>=7 ? 'sg' : systemScore>=3 ? 'sa' : 'sp') : '';
+                        row += `<button type="button" class="kb ${css}" disabled>${s}</button>`;
+                    }
+                    row += `</div>`;
+                    const label = systemScore>=7 ? 'Good' : systemScore>=3 ? 'Average' : 'Poor';
+                    const cls = systemScore>=7 ? 'sc-good' : systemScore>=3 ? 'sc-avg' : 'sc-poor';
+                    row += `<div class="kpi-sc" id="s${pid}"><span class="sc-badge ${cls}">${label} (${systemScore}/10)</span><br/><small style="color:#777;font-size:11px;">Auto Calculated</small></div>`;
+                    scores[pid] = systemScore;
                 }
-                else {
 
-                    $("#verificationStatus")
-                        .html("❌ Before verification you can't fill WPR")
-                        .css({
-                            "color": "red",
-                            "background": "#fff0f0",
-                            "border": "1px solid red"
-                        });
+                row += `</div>`;
+                $("#kpiRows").append(row);
+                $("#score_" + pid).val(scores[pid] ?? "");
+            });
 
-                    $("#isVerified").val("false");
-                    $("#submitBtn").prop("disabled", true);
+            calc();
+        }
+
+        // -----------------------
+        // Initial flow: ensure agreement details are loaded, then attempt first performance load
+        // -----------------------
+        $(function() {
+            (async function initial() {
+                const agreementInput = document.getElementById("AgreementId");
+                const agreementId = agreementInput ? agreementInput.value : null;
+                if (agreementId && agreementId !== "0") {
+                    await fetchAgreementProviderDetails(agreementId);
                 }
-            },
-
-            error: function () {
-
-                $("#verificationStatus")
-                    .html("❌ Verification check failed")
-                    .css({
-                        "color": "red",
-                        "background": "#fff0f0"
-                    });
-
-                $("#isVerified").val("false");
-            }
+                // try loading performance once values are available
+                loadWeeklyPerformance();
+            })();
         });
-    }
-</script>
+    </script>
+}

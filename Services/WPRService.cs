@@ -1,4 +1,5 @@
 ﻿using LaudaryMis.Models;
+using LaudaryMis.Repositories;
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
@@ -47,31 +48,101 @@ namespace LaudaryMis.Services
 
                 int paymentPct = CalculatePaymentPercentage(model.TotalScore);
 
-                var wpr = new WeeklyPerformanceReport
+                var report = new WeeklyPerformanceReport
                 {
                     AgreementId = model.AgreementId,
-                    ProviderId = model.ProviderId, // ← ADD
+                    HospitalId = model.HospitalId,
+                    ProviderId = model.ProviderId,
+
                     Week = model.Week,
                     Month = model.Month,
                     Year = model.Year,
+
                     StaffName = model.StaffName.Trim(),
-                    Remarks = model.Remarks?.Trim(),
+                    Remarks = model.Remarks,
+
                     TotalScore = model.TotalScore,
                     PaymentPercentage = paymentPct,
                     SubmittedAt = DateTime.Now
                 };
+                DateTime weekStart;
+                DateTime weekEnd;
 
-                int wprId = await _repo.InsertWPRAsync(wpr);
+                int monthNumber = int.Parse(model.Month);
 
-                var details = model.Details.Select(d => new WPRDetail
+                switch (model.Week)
                 {
-                    WPRId = wprId,
-                    ParameterId = d.ParameterId,
-                    ParameterName = ParameterNames[d.ParameterId - 1],
-                    Score = d.Score
-                });
+                    case 1:
+                        weekStart = new DateTime(model.Year, monthNumber, 1);
+                        weekEnd = new DateTime(model.Year, monthNumber, 7);
+                        break;
 
-                await _repo.InsertWPRDetailsAsync(details);
+                    case 2:
+                        weekStart = new DateTime(model.Year, monthNumber, 8);
+                        weekEnd = new DateTime(model.Year, monthNumber, 14);
+                        break;
+
+                    case 3:
+                        weekStart = new DateTime(model.Year, monthNumber, 15);
+                        weekEnd = new DateTime(model.Year, monthNumber, 21);
+                        break;
+
+                    case 4:
+                        weekStart = new DateTime(model.Year, monthNumber, 22);
+                        weekEnd = new DateTime(model.Year, monthNumber, 28);
+                        break;
+
+                    default:
+                        weekStart = new DateTime(model.Year, monthNumber, 29);
+                        weekEnd = new DateTime(
+                            model.Year,
+                            monthNumber,
+                            DateTime.DaysInMonth(model.Year, monthNumber));
+                        break;
+                       
+                }
+                string grade;
+
+                if (model.TotalScore <= 20)
+                    grade = "No Payment";
+                else if (model.TotalScore <= 40)
+                    grade = "40% Payment";
+                else if (model.TotalScore <= 60)
+                    grade = "60% Payment";
+                else if (model.TotalScore <= 70)
+                    grade = "80% Payment";
+                else if (model.TotalScore <= 80)
+                    grade = "90% Payment";
+                else
+                    grade = "100% Payment";
+                var entry = new WPREntry
+                {
+                    AgreementId = model.AgreementId,
+                    HospitalId = model.HospitalId,
+                    ProviderId = model.ProviderId,
+
+                    WeekStart = weekStart,
+                    WeekEnd = weekEnd,
+
+                   
+                    TotalScore = model.TotalScore,
+
+                    MonthNo = int.Parse(model.Month),
+                    YearNo = model.Year,
+                    WeekNo = model.Week,
+
+                    PerformanceGrade = grade,
+                    Remarks = model.Remarks
+                };
+
+                var details = model.Details.Select(x => new WPRDetail
+                {
+                    ParameterId = x.ParameterId,
+                    ParameterName = ParameterNames[x.ParameterId - 1],
+                    Score = x.Score
+                }).ToList();
+
+                await _repo.SaveWPRAsync(report, entry, details);
 
                 return (true, "WPR submitted successfully.");
             }
@@ -95,6 +166,21 @@ namespace LaudaryMis.Services
         public async Task<bool> CheckWeeklyVerification(int weekNo, int month, int year)
         {
             return await _repo.CheckWeeklyVerification(weekNo, month, year);
+        }
+        public async Task<List<WeeklyPerformanceVM>>
+       GetWeeklyPerformanceData(
+           int agreementId,
+           int hospitalId,
+           int weekNo,
+           int month,
+           int year)
+        {
+            return await _repo.GetWeeklyPerformanceData(
+                agreementId,
+                hospitalId,
+                weekNo,
+                month,
+                year);
         }
     }
 }

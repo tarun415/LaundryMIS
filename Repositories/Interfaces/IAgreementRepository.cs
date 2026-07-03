@@ -9,5 +9,6 @@ namespace LaudaryMis.Repositories.Interfaces
         Task<AgreementVM> GetByIdAsync(int id);
         Task DeleteAsync(int id);
         Task SaveAsync(AgreementVM model, string? filePath);
+        Task<AgreementVM> GetByHosIdAsync(int HospitalId);
     }
 }

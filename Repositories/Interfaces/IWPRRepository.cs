@@ -14,6 +14,14 @@ namespace LaudaryMis.Repositories.Interfaces
         Task InsertWPRDetailsAsync(IEnumerable<WPRDetail> details);
 
         Task<bool> CheckWeeklyVerification(int weekNo, int month, int year);
+        Task<List<WeeklyPerformanceVM>> GetWeeklyPerformanceData(
+     int agreementId,  int hospitalId,  int weekNo,  int month,  int year);
 
+        Task<int> InsertWPREntryAsync(WPREntry entry);
+
+        Task<int> SaveWPRAsync(
+    WeeklyPerformanceReport wpr,
+    WPREntry entry,
+    List<WPRDetail> details);
     }
 }

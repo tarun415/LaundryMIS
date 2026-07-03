@@ -69,7 +69,7 @@ WHERE a.IsActive = 1
     }
     public async Task<AgreementVM> GetByIdAsync(int id)
     {
-        var query = "SELECT   Id,  ProviderId,  HospitalId,  BedCount,  RatePerBed,  StartDate,  EndDate,  AgreementFile AS FilePath FROM ProviderHospitalAgreements WHERE Id = @Id";
+        var query = "SELECT   agr.Id,  prv.ProviderId,prv.ProviderName,  agr.HospitalId,  agr.BedCount,  agr.RatePerBed,  agr.StartDate,  agr.EndDate,  agr.AgreementFile AS FilePath FROM ProviderHospitalAgreements agr left join tbl_Providers prv on agr.ProviderId=prv.ProviderId WHERE agr.Id = @Id";
         return await _db.QueryFirstOrDefaultAsync<AgreementVM>(query, new { Id = id });
     }
     public async Task DeleteAsync(int id)
@@ -127,4 +127,12 @@ WHERE a.IsActive = 1
             });
         }
     }
+
+
+    public async Task<AgreementVM> GetByHosIdAsync(int HospitalId)
+    {
+        var query = "SELECT   agr.Id,  prv.ProviderId,prv.ProviderName,  agr.HospitalId,  agr.BedCount,  agr.RatePerBed,  agr.StartDate,  agr.EndDate,  agr.AgreementFile AS FilePath FROM ProviderHospitalAgreements agr left join tbl_Providers prv on agr.ProviderId=prv.ProviderId WHERE agr.HospitalId = @HospitalId";
+        return await _db.QueryFirstOrDefaultAsync<AgreementVM>(query, new { HospitalId = HospitalId });
+    }
+
 }
