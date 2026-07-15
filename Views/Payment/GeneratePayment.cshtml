@@ -1,0 +1,547 @@
+﻿@model LaudaryMis.ViewModels.GeneratePaymentVM
+
+@{
+    ViewData["Title"] = "Generate Monthly Payment";
+}
+
+<div class="container-fluid mt-3">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4 class="mb-0">
+                <i class="fa fa-money"></i>
+                 Monthly Payment
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+
+            <form asp-action="GeneratePayment"
+                  asp-controller="Payment"
+                  method="post">
+
+                <!-- Hidden Fields -->
+
+                <input asp-for="AgreementId" type="hidden" id="AgreementId" />
+
+                <input asp-for="HospitalId" type="hidden" id="HospitalId" />
+
+                <input asp-for="ProviderId" type="hidden" id="ProviderId" />
+
+                <!-- Hospital / Provider -->
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="font-weight-bold">
+                            Hospital
+                        </label>
+
+                        <input asp-for="HospitalName"
+                               class="form-control"
+                               readonly />
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="font-weight-bold">
+                            Provider
+                        </label>
+
+                        <input asp-for="ProviderName"
+                               class="form-control"
+                               readonly />
+
+                    </div>
+
+                </div>
+
+                <!-- Month / Year -->
+
+                <div class="row">
+
+                    <div class="col-md-3 mb-3">
+
+                        <label class="font-weight-bold">
+                            Payment Month
+                        </label>
+
+                        <select asp-for="MonthNo"
+                                id="MonthNo"
+                                class="form-control">
+
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+
+                        <label class="font-weight-bold">
+                            Payment Year
+                        </label>
+
+                        <input asp-for="YearNo"
+                               id="YearNo"
+                               class="form-control" />
+
+                    </div>
+
+                </div>
+                <!-- Agreement Details -->
+
+                <div class="card border-info mt-3">
+
+                    <div class="card-header bg-info text-white">
+
+                        <strong>
+                            Agreement Details
+                        </strong>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="row">
+
+                            <div class="col-md-4 mb-3">
+
+                                <label class="font-weight-bold">
+                                    Agreement Status
+                                </label>
+
+                                <input class="form-control"
+                                       value="@(Model.IsActive ? "Active" : "Inactive")"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+
+                                <label class="font-weight-bold">
+                                    Start Date
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.StartDate.ToString("dd/MM/yyyy")"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+
+                                <label class="font-weight-bold">
+                                    End Date
+                                </label>
+
+                                <input class="form-control"
+                                       value="@(Model.EndDate?.ToString("dd/MM/yyyy") ?? "Running")"
+                                       readonly />
+
+                            </div>
+
+                        </div>
+
+                        <hr />
+
+                        <div class="row">
+
+                            <div class="col-md-3 mb-3">
+
+                                <label class="font-weight-bold">
+                                    Sanctioned Beds
+                                </label>
+
+                                <input asp-for="BedCount"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+
+                                <label class="font-weight-bold text-danger">
+                                    No. of Operational Beds
+                                </label>
+
+                                <input asp-for="BedOccupancy"
+                                       id="BedOccupancy"
+                                       class="form-control"
+                                       placeholder="Enter Operational Beds" />
+
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+
+                                <label class="font-weight-bold">
+                                    Rate / Bed
+                                </label>
+
+                                <input asp-for="RatePerBed"
+                                       id="RatePerBed"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+
+                                <label class="font-weight-bold">
+                                    Monthly Bill
+                                </label>
+
+                                <input asp-for="MonthlyBill"
+                                       id="MonthlyBill"
+                                       class="form-control font-weight-bold"
+                                       readonly />
+
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="font-weight-bold">
+                                    Average WPR Score
+                                </label>
+
+                                <input asp-for="AverageScore"
+                                       id="AverageScore"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="font-weight-bold">
+                                    Payment Percentage
+                                </label>
+
+                                <div class="input-group">
+
+                                    <input asp-for="PaymentPercentage"
+                                           id="PaymentPercentage"
+                                           class="form-control"
+                                           readonly />
+
+                                    <div class="input-group-append">
+
+                                        <span class="input-group-text">
+                                            %
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Payment Summary -->
+
+                <div class="card border-success mt-3">
+
+                    <div class="card-header bg-success text-white">
+
+                        <strong>
+                            Payment Summary
+                        </strong>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="row">
+
+                            <div class="col-md-3 mb-3">
+
+                                <label class="font-weight-bold">
+                                    Gross Payable
+                                </label>
+
+                                <input asp-for="GrossPayable"
+                                       id="GrossPayable"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+
+                                <label class="font-weight-bold">
+                                    GST %
+                                </label>
+
+                                <input asp-for="GSTPercentage"
+                                       id="GSTPercentage"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+
+                                <label class="font-weight-bold">
+                                    GST Amount
+                                </label>
+
+                                <input asp-for="GSTAmount"
+                                       id="GSTAmount"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+
+                                <label class="font-weight-bold">
+                                    Invoice Amount
+                                </label>
+
+                                <input asp-for="InvoiceAmount"
+                                       id="InvoiceAmount"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-4 mb-3">
+
+                                <label class="font-weight-bold">
+                                    TDS %
+                                </label>
+
+                                <input asp-for="TDSPercentage"
+                                       id="TDSPercentage"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+
+                                <label class="font-weight-bold">
+                                    TDS Amount
+                                </label>
+
+                                <input asp-for="TDSAmount"
+                                       id="TDSAmount"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+
+                                <label class="font-weight-bold text-success">
+                                    Net Payable
+                                </label>
+
+                                <input asp-for="NetPayable"
+                                       id="NetPayable"
+                                       class="form-control form-control-lg font-weight-bold bg-light"
+                                       readonly />
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <br />
+                <div class="text-center">
+
+                    <button type="submit"
+                            class="btn btn-success btn-lg">
+
+                        <i class="fa fa-check"></i>
+
+                        Submit
+
+                    </button>
+
+                    <a asp-action="PaymentList"
+                       class="btn btn-secondary btn-lg">
+
+                        Back
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        $(document).ready(function () {
+
+            CalculatePayment();
+
+            $("#BedOccupancy").on("keyup change", function () {
+
+                CalculatePayment();
+
+            });
+
+            $("#MonthNo").change(function () {
+
+                CalculatePayment();
+
+            });
+
+            $("#YearNo").change(function () {
+
+                CalculatePayment();
+
+            });
+
+        });
+
+        function CalculatePayment() {
+
+            var bedOccupancy = $("#BedOccupancy").val();
+
+            if (bedOccupancy == "" || parseInt(bedOccupancy) <= 0) {
+
+                ClearCalculation();
+
+                return;
+
+            }
+
+            $.ajax({
+
+                url: '@Url.Action("GetPaymentCalculation", "Payment")',
+
+                type: 'GET',
+
+                data: {
+
+                    agreementId: $("#AgreementId").val(),
+
+                    hospitalId: $("#HospitalId").val(),
+
+                    monthNo: $("#MonthNo").val(),
+
+                    yearNo: $("#YearNo").val(),
+
+                    bedOccupancy: bedOccupancy
+
+                },
+
+                success: function (response) {
+
+                    $("#MonthlyBill").val(response.monthlyBill);
+
+                    $("#AverageScore").val(response.averageScore);
+
+                    $("#PaymentPercentage").val(response.paymentPercentage);
+
+                    $("#GrossPayable").val(response.grossPayable);
+
+                    $("#GSTPercentage").val(response.gstPercentage);
+
+                    $("#GSTAmount").val(response.gstAmount);
+
+                    $("#InvoiceAmount").val(response.invoiceAmount);
+
+                    $("#TDSPercentage").val(response.tdsPercentage);
+
+                    $("#TDSAmount").val(response.tdsAmount);
+
+                    $("#NetPayable").val(response.netPayable);
+
+                },
+
+                error: function () {
+
+                    alert("Unable to calculate payment.");
+
+                    ClearCalculation();
+
+                }
+
+            });
+
+        }
+
+        function ClearCalculation() {
+
+            $("#MonthlyBill").val("");
+
+            $("#AverageScore").val("");
+
+            $("#PaymentPercentage").val("");
+
+            $("#GrossPayable").val("");
+
+            $("#GSTPercentage").val("");
+
+            $("#GSTAmount").val("");
+
+            $("#InvoiceAmount").val("");
+
+            $("#TDSPercentage").val("");
+
+            $("#TDSAmount").val("");
+
+            $("#NetPayable").val("");
+
+        }
+
+    </script>
+
+}

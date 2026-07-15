@@ -51,6 +51,8 @@ builder.Services.AddScoped<IDeliveryChallanRepository, DeliveryChallanRepository
 builder.Services.AddScoped<IDeliveryChallanService, DeliveryChallanService>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 // 🔥 FIX (IMPORTANT)
 builder.Services.AddScoped<IDbConnection>(sp =>
 {

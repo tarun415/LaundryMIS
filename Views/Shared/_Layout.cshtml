@@ -97,6 +97,7 @@
             Providers:  '@Url.Action("Providers", "Admin")',
             Wards:      '@Url.Action("Wards", "Admin")',
             allBills:   '@Url.Action("Index", "MonthlyBill")',  // ← ADD
+           
         },
                      hospital: {
             dashboard: '@Url.Action("Dashboard", "Hospital")',
@@ -108,6 +109,8 @@
              WeeklyDeliveryReport:    '@Url.Action("WeeklyDeliveryReport", "Report")',
              MonthlyDeliveryReport:    '@Url.Action("MonthlyReport", "Report")',
              DeliveryAgingReport:    '@Url.Action("DeliveryAgingReport", "Report")',
+              PaymentList: '@Url.Action("PaymentList", "Payment")',
+            GeneratePayment: '@Url.Action("GeneratePayment", "Payment")'
         },
         provider: {
             dashboard:  '@Url.Action("Dashboard", "Provider")',
@@ -134,6 +137,7 @@
                 { id: "wards", icon: "📄", label: "Wards", route: () => routes.admin.Wards },
                         { section: "Billing" },
         { id: "allBills", icon: "🧾", label: "Monthly Bills", route: () => routes.admin.allBills },
+           
             ],
             Hospital: [
              { section: "Overview" },
@@ -147,6 +151,21 @@
                   { id: "WeeklyDeliveryReport", icon: "📊", label: "Weekly Delivery Report", route: () => routes.provider.WeeklyDeliveryReport },
                    { id: "MonthlyDeliveryReport", icon: "📊", label: "Monthly Delivery Report", route: () => routes.provider.MonthlyDeliveryReport },
                    { id: "DeliveryAgingReport", icon: "📊", label: "Delivery Aging Report", route: () => routes.provider.DeliveryAgingReport },
+                        { section: "Finance" },
+
+        {
+            id: "GeneratePayment",
+            icon: "💰",
+            label: "Generate Payment",
+            route: () => routes.hospital.GeneratePayment
+        },
+
+        {
+            id: "PaymentList",
+            icon: "💳",
+            label: "Payment List",
+            route: () => routes.hospital.PaymentList
+        },
             ],
             Provider: [
                 { section: "Overview" },
