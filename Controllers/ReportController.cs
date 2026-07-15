@@ -14,13 +14,9 @@ namespace LaudaryMis.Controllers
             _rptservice = rptservice;
         }
         //Delivery Report for both provider and Hospital
-        public async Task<IActionResult>
-DeliverySummaryReport()
+        public async Task<IActionResult>DeliverySummaryReport()     
         {
-            var model =
-                await _rptservice
-                    .GetDeliverySummaryReport();
-
+            var model =  await _rptservice .GetDeliverySummaryReport();
             return View(model);
         }
         public async Task<IActionResult>
