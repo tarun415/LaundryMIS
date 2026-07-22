@@ -27,31 +27,47 @@ namespace LaudaryMis.Repositories
         // Generate Payment
         //-------------------------------------------------------------
 
-        public async Task<bool> GeneratePayment(
-      int agreementId,
-      int hospitalId,
-      int month,
-      int year,
-      int createdBy)
+        public async Task<bool> GeneratePayment(GeneratePaymentVM model)
         {
             using var con = CreateConnection();
 
-            var affected = await con.ExecuteAsync(
-
+            return await con.ExecuteScalarAsync<bool>(
                 "sp_GeneratePayment",
-
                 new
                 {
-                    AgreementId = agreementId,
-                    HospitalId = hospitalId,
-                    MonthNo = month,
-                    YearNo = year,
-                    CreatedBy = createdBy
+                    model.AgreementId,
+                    model.ProviderId,
+                    model.HospitalId,
+
+                    model.MonthNo,
+                    model.YearNo,
+
+                    model.BedCount,
+                    model.BedOccupancy,
+
+                    model.RatePerBed,
+
+                    model.MonthlyBill,
+
+                    model.AverageScore,
+
+                    model.PaymentPercentage,
+
+                    model.GrossPayable,
+
+                    model.GSTPercentage,
+                    model.GSTAmount,
+
+                    model.InvoiceAmount,
+
+                    model.TDSPercentage,
+                    model.TDSAmount,
+
+                    model.NetPayable,
+
+                    CreatedBy = model.HospitalId
                 },
-
                 commandType: CommandType.StoredProcedure);
-
-            return affected > 0;
         }
 
         //-------------------------------------------------------------
@@ -373,30 +389,6 @@ ORDER BY Id";
 
             return result.ToList();
         }
-        public async Task<bool> GeneratePayment(
-    int agreementId,
-    int hospitalId,
-    int providerId,
-    int monthNo,
-    int yearNo,
-    int bedOccupancy,
-    int createdBy)
-        {
-            using var con = CreateConnection();
-
-            return await con.ExecuteScalarAsync<bool>(
-                "sp_GeneratePayment",
-                new
-                {
-                    AgreementId = agreementId,
-                    HospitalId = hospitalId,
-                    ProviderId = providerId,
-                    MonthNo = monthNo,
-                    YearNo = yearNo,
-                    BedOccupancy = bedOccupancy,
-                    CreatedBy = createdBy
-                },
-                commandType: CommandType.StoredProcedure);
-        }
+      
     }
 }

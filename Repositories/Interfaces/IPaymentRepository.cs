@@ -6,16 +6,7 @@ namespace LaudaryMis.Repositories.Interfaces
 {
     public interface IPaymentRepository
     {
-        //---------------------------------------------------
-        // Payment Generation
-        //---------------------------------------------------
-
-        Task<bool> GeneratePayment(
-            int agreementId,
-            int hospitalId,
-            int month,
-            int year,
-            int createdBy);
+        
 
         //---------------------------------------------------
         // Payment Master
@@ -67,13 +58,18 @@ namespace LaudaryMis.Repositories.Interfaces
     string status);
         Task<AgreementDetailsVM?> GetAgreementDetails(int agreementId);
         Task<List<SelectListItem>> GetAgreementDropdown();
-        Task<GeneratePaymentVM> GetGeneratePaymentData(int hospitalId);
         Task<List<SelectListItem>> GetAgreementsByProvider( int hospitalId, int providerId);
+      
+        Task<GeneratePaymentVM> GetGeneratePaymentData(int hospitalId);
+
         Task<PaymentCalculationVM> GetPaymentCalculation(
-    int agreementId,
-    int hospitalId,
-    int monthNo,
-    int yearNo,
-    int bedOccupancy);
+            int agreementId,
+            int hospitalId,
+            int monthNo,
+            int yearNo,
+            int bedOccupancy);
+
+        Task<bool> GeneratePayment(GeneratePaymentVM model);
+
     }
 }

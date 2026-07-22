@@ -1,5 +1,6 @@
 ﻿using LaudaryMis.Repositories;
 using LaudaryMis.Repositories.Interfaces;
+using LaudaryMis.Repository;
 using LaudaryMis.Services;
 using LaudaryMis.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -53,6 +54,8 @@ builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 // 🔥 FIX (IMPORTANT)
 builder.Services.AddScoped<IDbConnection>(sp =>
 {

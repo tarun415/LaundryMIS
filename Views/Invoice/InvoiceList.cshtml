@@ -1,0 +1,363 @@
+﻿@model List<LaudaryMis.Models.InvoiceMaster>
+
+@{
+    ViewData["Title"] = "Invoice List";
+}
+
+
+
+<div class="container-fluid mt-3">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <div class="d-flex justify-content-between">
+
+                <h4 class="mb-0">
+
+                    <i class="fa fa-file-invoice"></i>
+
+                    Invoice Management
+
+                </h4>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+@if (TempData["Success"] != null)
+{
+                <div class="alert alert-success">
+
+                    @TempData["Success"]
+
+                </div>
+}
+
+@if (TempData["Error"] != null)
+{
+                <div class="alert alert-danger">
+
+                    @TempData["Error"]
+
+                </div>
+}
+
+            <form asp-action="InvoiceList"
+                  method="get">
+
+                <div class="row">
+
+                    <div class="col-md-3">
+
+                        <label>Month</label>
+
+                        <select class="form-control"
+                                name="monthNo">
+
+                            <option value="">All</option>
+
+                            @for (int i = 1; i <= 12; i++)
+                            {
+                                <option value="@i">
+
+                                    @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)
+
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>Year</label>
+
+                        <input type="number"
+                               class="form-control"
+                               name="yearNo"
+                               value="@DateTime.Now.Year" />
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>Status</label>
+
+                        <select class="form-control"
+                                name="status">
+
+                            <option value="">All</option>
+
+                            <option>Generated</option>
+
+                            <option>Approved</option>
+
+                            <option>Rejected</option>
+
+                            <option>Paid</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label>&nbsp;</label>
+
+                        <button class="btn btn-primary btn-block">
+
+                            <i class="fa fa-search"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+            <hr />
+
+            <div class="table-responsive">
+
+                <table id="tblInvoice"
+                       class="table table-bordered table-striped table-hover">
+
+                    <thead class="thead-dark">
+
+                        <tr>
+
+                            <th>Invoice No</th>
+
+                            <th>Hospital</th>
+
+                            <th>Provider</th>
+
+                            <th>Month</th>
+
+                            <th>Invoice Amount</th>
+
+                            <th>Net Payable</th>
+
+                            <th>Status</th>
+
+                            <th width="220">
+
+                                Action
+
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <td>
+                                        <strong>@item.InvoiceNo</strong>
+                                    </td>
+
+                                    <td>
+                                        @item.HospitalName
+                                    </td>
+
+                                    <td>
+                                        @item.ProviderName
+                                    </td>
+
+                                    <td>
+                                        @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.InvoiceMonth)
+                                        -
+                                        @item.InvoiceYear
+                                    </td>
+
+                                    <td class="text-end">
+                                        ₹ @item.InvoiceAmount.ToString("N2")
+                                    </td>
+
+                                    <td class="text-end">
+                                        ₹ @item.NetPayable.ToString("N2")
+                                    </td>
+
+                                    <td>
+
+                                        @if (item.Status == "Generated")
+                                        {
+                                            <span class="badge badge-warning">
+                                                Generated
+                                            </span>
+                                        }
+                                        else if (item.Status == "Approved")
+                                        {
+                                            <span class="badge badge-success">
+                                                Approved
+                                            </span>
+                                        }
+                                        else if (item.Status == "Rejected")
+                                        {
+                                            <span class="badge badge-danger">
+                                                Rejected
+                                            </span>
+                                        }
+                                        else if (item.Status == "Paid")
+                                        {
+                                            <span class="badge badge-primary">
+                                                Paid
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-secondary">
+                                                @item.Status
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        <a asp-action="InvoiceDetails"
+                                           asp-route-invoiceId="@item.InvoiceId"
+                                           class="btn btn-info btn-sm"
+                                           title="View">
+
+                                            <i class="fa fa-eye"></i>
+
+                                        </a>
+
+                                        <a asp-action="UploadInvoiceDocument"
+                                           asp-route-invoiceId="@item.InvoiceId"
+                                           class="btn btn-secondary btn-sm"
+                                           title="Upload PDF">
+
+                                            <i class="fa fa-upload"></i>
+
+                                        </a>
+
+                                        @if (item.Status == "Generated")
+                                        {
+                                           @*  <a asp-action="ApproveInvoice"
+                                               asp-route-invoiceId="@item.InvoiceId"
+                                               class="btn btn-success btn-sm"
+                                               onclick="return confirm('Approve this invoice?');"
+                                               title="Approve">
+
+                                                <i class="fa fa-check"></i>
+
+                                            </a>
+
+                                            <a asp-action="RejectInvoice"
+                                               asp-route-invoiceId="@item.InvoiceId"
+                                               class="btn btn-danger btn-sm"
+                                               onclick="return confirm('Reject this invoice?');"
+                                               title="Reject">
+
+                                                <i class="fa fa-times"></i>
+
+                                            </a> *@
+                                        }
+
+                                        <a asp-controller="Invoice"
+                                           asp-action="PreviewInvoice"
+                                           asp-route-invoiceId="@item.InvoiceId"
+                                           target="_blank"
+                                           class="btn btn-primary btn-sm"
+                                           title="Preview Invoice">
+                                            <i class="fa fa-download"></i>
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="8"
+                                    class="text-center text-danger">
+
+                                    No Invoice Found
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {   
+
+    <script>
+        $(document).ready(function () {
+
+            $('#tblInvoice').DataTable({
+
+                responsive: true,
+
+                processing: true,
+
+                pageLength: 10,
+
+                lengthMenu: [[10, 25, 50, 100, -1],
+                             [10, 25, 50, 100, "All"]],
+
+                order: [[0, "desc"]],
+
+                dom: 'Bfrtip',
+
+                buttons: [
+
+                    {
+                        extend: 'copy',
+                        className: 'btn btn-secondary btn-sm'
+                    },
+
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-success btn-sm',
+                        title: 'Invoice List'
+                    },
+
+                    {
+                        extend: 'pdf',
+                        className: 'btn btn-danger btn-sm',
+                        title: 'Invoice List'
+                    },
+
+                    {
+                        extend: 'print',
+                        className: 'btn btn-primary btn-sm',
+                        title: 'Invoice List'
+                    }
+
+                ]
+
+            });
+
+        });
+    </script>
+
+}

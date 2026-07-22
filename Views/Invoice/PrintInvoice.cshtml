@@ -1,0 +1,1595 @@
+﻿@model LaudaryMis.Models.InvoiceMaster
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Print Invoice";
+}
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <title>
+        LaundryMIS Invoice - @Model.InvoiceNo
+    </title>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1" />
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eceff3;
+            font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+            color: #222;
+            padding: 25px;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: auto;
+            background: white;
+            position: relative;
+            padding: 30px;
+            box-shadow: 0 0 18px rgba(0,0,0,.18);
+        }
+
+        .watermark {
+            position: absolute;
+            top: 43%;
+            left: 8%;
+            font-size: 90px;
+            font-weight: bold;
+            color: #f1f1f1;
+            transform: rotate(-30deg);
+            z-index: 0;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .content {
+            position: relative;
+            z-index: 5;
+        }
+
+        .govHeader {
+            border: 2px solid #0d4e96;
+        }
+
+            .govHeader table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .govHeader td {
+                padding: 12px;
+                vertical-align: middle;
+            }
+
+        .govLogo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+        }
+
+        .title1 {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #003366;
+        }
+
+        .title2 {
+            text-align: center;
+            font-size: 17px;
+            color: #555;
+            margin-top: 4px;
+        }
+
+        .title3 {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #0d5ba8;
+            margin-top: 10px;
+        }
+
+        .title4 {
+            text-align: center;
+            font-size: 17px;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .invoiceRibbon {
+            margin-top: 18px;
+            background: #0d5ba8;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 15px;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+
+        .summaryCards {
+            display: flex;
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .card {
+            flex: 1;
+            border-radius: 8px;
+            color: white;
+            padding: 18px;
+        }
+
+        .cardTitle {
+            font-size: 14px;
+            opacity: .95;
+        }
+
+        .cardValue {
+            font-size: 26px;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        .blue {
+            background: #0d6efd;
+        }
+
+        .green {
+            background: #198754;
+        }
+
+        .orange {
+            background: #fd7e14;
+        }
+
+        .red {
+            background: #dc3545;
+        }
+
+        .sectionTitle {
+            margin-top: 30px;
+            background: #0d5ba8;
+            color: white;
+            padding: 11px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: .5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+      
+
+        .invoiceNo {
+            font-weight: bold;
+            color: #003366;
+            font-size: 18px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            font-size: 13px;
+            background: #198754;
+        }
+
+        .pending {
+            background: #ffc107;
+            color: #222;
+        }
+                .approved{
+
+            background:#198754;
+
+            color:white;
+
+        }
+
+        .summaryTable{
+
+            margin-top:0;
+
+        }
+
+        .summaryTable th{
+
+            background:#0d5ba8;
+
+            color:white;
+
+            padding:12px;
+
+            border:1px solid #dcdcdc;
+
+            font-size:14px;
+
+        }
+
+        .summaryTable td{
+
+            border:1px solid #dcdcdc;
+
+            padding:11px;
+
+            font-size:14px;
+
+        }
+
+        .summaryTable tbody tr:nth-child(even){
+
+            background:#fafafa;
+
+        }
+
+        .summaryTable tbody tr:hover{
+
+            background:#f2f8ff;
+
+        }
+
+        .textRight{
+
+            text-align:right;
+
+        }
+
+        .highlight{
+
+            background:#eaf7ea;
+
+            font-weight:bold;
+
+            font-size:16px;
+
+        }
+
+        .amountWords{
+
+            margin-top:20px;
+
+            border:1px solid #d7d7d7;
+
+            padding:15px;
+
+            background:#fcfcfc;
+
+            line-height:28px;
+
+        }
+
+        .remarks{
+
+            margin-top:20px;
+
+            border:1px solid #d7d7d7;
+
+            min-height:80px;
+
+            padding:15px;
+
+            background:white;
+
+        }
+
+        .signatureTable{
+
+            margin-top:60px;
+
+        }
+
+        .signatureTable td{
+
+            width:33%;
+
+            text-align:center;
+
+            padding-top:50px;
+
+            font-size:14px;
+
+        }
+
+        .signatureLine{
+
+            border-top:1px solid #444;
+
+            margin:0 auto 10px;
+
+            width:180px;
+
+        }
+
+        .footer{
+
+            margin-top:40px;
+
+            border-top:2px solid #ddd;
+
+            padding-top:10px;
+
+            color:#666;
+
+            font-size:12px;
+
+            text-align:center;
+
+        }
+
+        .printArea{
+
+            margin-top:25px;
+
+            text-align:center;
+
+        }
+
+        .btn{
+
+            background:#0d6efd;
+
+            color:white;
+
+            border:none;
+
+            padding:12px 25px;
+
+            cursor:pointer;
+
+            border-radius:5px;
+
+            font-size:15px;
+
+            margin:5px;
+
+        }
+
+        .btn-danger{
+
+            background:#dc3545;
+
+        }
+
+        @@page{
+
+            size:A4;
+
+            margin:10mm;
+
+        }
+
+        @@media print{
+
+            body{
+
+                background:white;
+
+                padding:0;
+
+            }
+
+            .page{
+
+                width:100%;
+
+                min-height:auto;
+
+                margin:0;
+
+                padding:15px;
+
+                box-shadow:none;
+
+            }
+
+            .printArea{
+
+                display:none;
+
+            }
+
+            .summaryCards{
+
+                page-break-inside:avoid;
+
+            }
+
+            table{
+
+                page-break-inside:auto;
+
+            }
+
+            tr{
+
+                page-break-inside:avoid;
+
+            }
+
+        }
+
+        @@media(max-width:768px){
+
+            body{
+
+                padding:10px;
+
+            }
+
+            .page{
+
+                width:100%;
+
+                padding:15px;
+
+            }
+
+            .summaryCards{
+
+                display:block;
+
+            }
+
+            .card{
+
+                margin-bottom:15px;
+
+            }
+
+            .details {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+                table-layout: fixed;
+            }
+
+                .details td {
+                    border: 1px solid #cfcfcf;
+                    padding: 10px;
+                    vertical-align: middle;
+                    word-wrap: break-word;
+                    font-size: 13px;
+                }
+
+                    .details td.label {
+                        background: #f3f5f7;
+                        font-weight: 600;
+                        color: #1f3b64;
+                    }
+
+            .status-badge {
+                display: inline-block;
+                padding: 3px 10px;
+                border: 1px solid #28a745;
+                border-radius: 4px;
+                background: #eaf8ee;
+                color: #1e7e34;
+                font-weight: bold;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="page">
+
+<div class="watermark">
+
+LaundryMIS
+
+</div>
+
+<div class="content">
+
+<div class="govHeader">
+
+<table>
+
+<tr>
+
+<td style="width:100px;text-align:center;">
+
+<img src="~/images/up-logo.png"
+     class="govLogo"
+     alt="UP Logo" />
+</td>
+
+<td>
+
+<div class="title1">
+
+Government of Uttar Pradesh
+
+</div>
+
+<div class="title2">
+
+Directorate General Medical & Health Services
+
+</div>
+
+@* <div class="title3">
+
+LAUNDRY MANAGEMENT INFORMATION SYSTEM
+
+</div> *@
+
+<div class="title4">
+
+MONTHLY LAUNDRY SERVICE INVOICE
+
+</div>
+
+</td>
+
+@* <td style="width:100px;text-align:center;">
+
+<img src="~/images/laundry-logo.png"
+     class="govLogo"
+     alt="LaundryMIS" />
+
+</td> *@
+
+</tr>
+
+</table>
+
+</div>
+
+<div class="invoiceRibbon">
+
+OFFICIAL GOVERNMENT DOCUMENT
+
+</div>
+
+<div class="summaryCards">
+
+<div class="card blue">
+
+<div class="cardTitle">
+
+Invoice Number
+
+</div>
+
+<div class="cardValue">
+
+@Model.InvoiceNo
+
+</div>
+
+</div>
+
+<div class="card green">
+
+<div class="cardTitle">
+
+Invoice Amount
+
+</div>
+
+<div class="cardValue">
+
+₹ @Model.InvoiceAmount.ToString("N2")
+
+</div>
+
+</div>
+
+<div class="card orange">
+
+<div class="cardTitle">
+
+Net Payable
+
+</div>
+
+<div class="cardValue">
+
+₹ @Model.NetPayable.ToString("N2")
+
+</div>
+
+</div>
+
+<div class="card red">
+
+<div class="cardTitle">
+
+Status
+
+</div>
+
+<div class="cardValue">
+
+@if(Model.Status=="Approved")
+{
+<span class="status approved">Approved</span>
+}
+else
+{
+<span class="status pending">@Model.Status</span>
+}
+
+</div>
+
+</div>
+
+</div>
+            <div class="sectionTitle">
+                Hospital & Provider Information
+            </div>
+
+            <table class="details">
+                <colgroup>
+                    <col style="width:20%;" />
+                    <col style="width:30%;" />
+                    <col style="width:20%;" />
+                    <col style="width:30%;" />
+                </colgroup>
+
+                <tr>
+                    <td class="label">Hospital Name</td>
+                    <td>@Model.HospitalName</td>
+
+                    <td class="label">Provider Name</td>
+                    <td>@Model.ProviderName</td>
+                </tr>
+
+                <tr>
+                    <td class="label">Agreement ID</td>
+                    <td>@Model.AgreementId</td>
+
+                    <td class="label">Invoice Date</td>
+                    <td>@Model.InvoiceDate.ToString("dd-MMM-yyyy")</td>
+                </tr>
+
+                <tr>
+                    <td class="label">Billing Month</td>
+                    <td>
+                        @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.InvoiceMonth)
+                        @Model.InvoiceYear
+                    </td>
+
+                    <td class="label">Invoice Status</td>
+                    <td>
+                        <span class="status-badge">
+                            @Model.Status
+                        </span>
+                    </td>
+                </tr>
+            </table>
+
+<div class="sectionTitle">
+
+    Billing Summary
+
+</div>
+
+<table class="summaryTable">
+
+    <thead>
+
+        <tr>
+
+            <th style="width:70%">
+
+                Description
+
+            </th>
+
+            <th>
+
+                Value
+
+            </th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        <tr>
+
+            <td>
+
+                Sanctioned Beds
+
+            </td>
+
+            <td class="textRight">
+
+                @Model.SanctionedBeds
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                No of operational Bed
+
+            </td>
+
+            <td class="textRight">
+
+                @Model.BedOccupancy
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                Rate Per Bed
+
+            </td>
+
+            <td class="textRight">
+
+                ₹ @Model.RatePerBed.ToString("N2")
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                Monthly Bill
+
+            </td>
+
+            <td class="textRight">
+
+                ₹ @Model.MonthlyBill.ToString("N2")
+
+            </td>
+
+        </tr>
+
+    </tbody>
+
+</table>
+
+<div class="sectionTitle">
+
+    Performance Summary
+
+</div>
+
+<table class="summaryTable">
+
+    <thead>
+
+        <tr>
+
+            <th>
+
+                Parameter
+
+            </th>
+
+            <th>
+
+                Result
+
+            </th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        <tr>
+
+            <td>
+
+                Average WPR Score
+
+            </td>
+
+            <td class="textRight">
+
+                @Model.AverageScore.ToString("N2")
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                Payment Percentage
+
+            </td>
+
+            <td class="textRight">
+
+                @Model.PaymentPercentage %
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                Gross Payable
+
+            </td>
+
+            <td class="textRight">
+
+                ₹ @Model.GrossPayable.ToString("N2")
+
+            </td>
+
+        </tr>
+
+    </tbody>
+
+</table>
+
+<div class="sectionTitle">
+
+    GST & TDS Calculation
+
+</div>
+
+<table class="summaryTable">
+
+    <thead>
+
+        <tr>
+
+            <th>
+
+                Description
+
+            </th>
+
+            <th>
+
+                Amount
+
+            </th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        <tr>
+
+            <td>
+
+                Gross Payable
+
+            </td>
+
+            <td class="textRight">
+
+                ₹ @Model.GrossPayable.ToString("N2")
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                GST (@Model.GSTPercentage %)
+
+            </td>
+
+            <td class="textRight">
+
+                ₹ @Model.GSTAmount.ToString("N2")
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                Invoice Amount
+
+            </td>
+
+            <td class="textRight">
+
+                ₹ @Model.InvoiceAmount.ToString("N2")
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                TDS (@Model.TDSPercentage %)
+
+            </td>
+
+            <td class="textRight">
+
+                ₹ @Model.TDSAmount.ToString("N2")
+
+            </td>
+
+        </tr>
+
+        <tr class="highlight">
+
+            <td>
+
+                <strong>Net Payable</strong>
+
+            </td>
+
+            <td class="textRight">
+
+                <strong>
+
+                    ₹ @Model.NetPayable.ToString("N2")
+
+                </strong>
+
+            </td>
+
+        </tr>
+
+    </tbody>
+
+</table>
+<div class="sectionTitle">
+
+    Amount in Words
+
+</div>
+
+<div class="amountWords">
+
+    <strong>
+
+        Rupees :
+
+    </strong>
+
+    @(ViewBag.AmountInWords ?? "_____________________________________________")
+
+    Only.
+
+</div>
+
+<div class="sectionTitle">
+
+    Remarks
+
+</div>
+
+<div class="remarks">
+
+    @if (!string.IsNullOrWhiteSpace(Model.Remarks))
+    {
+        @Model.Remarks
+    }
+    else
+    {
+        <span>No Remarks.</span>
+    }
+
+</div>
+
+<div class="sectionTitle">
+
+    Invoice Verification
+
+</div>
+
+<table class="details">
+
+    <tr>
+
+        <td>
+
+            Invoice Number
+
+        </td>
+
+        <td>
+
+            @Model.InvoiceNo
+
+        </td>
+
+        <td>
+
+            Generated On
+
+        </td>
+
+        <td>
+
+            @Model.CreatedOn.ToString("dd-MMM-yyyy HH:mm")
+
+        </td>
+
+    </tr>
+
+    <tr>
+
+        <td>
+
+            Invoice Date
+
+        </td>
+
+        <td>
+
+            @Model.InvoiceDate.ToString("dd-MMM-yyyy")
+
+        </td>
+
+        <td>
+
+            Status
+
+        </td>
+
+        <td>
+
+            @Model.Status
+
+        </td>
+
+    </tr>
+
+@*     <tr>
+
+        <td>
+
+            Agreement Id
+
+        </td>
+
+        <td>
+
+            @Model.AgreementId
+
+        </td>
+
+        <td>
+
+            Invoice Id
+
+        </td>
+
+        <td>
+
+            @Model.InvoiceId
+
+        </td>
+
+    </tr> *@
+
+</table>
+
+@* <div class="sectionTitle">
+
+    Approval History
+
+</div>
+
+<table class="summaryTable">
+
+    <thead>
+
+        <tr>
+
+            <th>Activity</th>
+
+            <th>Date</th>
+
+            <th>User</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        <tr>
+
+            <td>
+
+                Invoice Generated
+
+            </td>
+
+            <td>
+
+                @Model.CreatedOn.ToString("dd-MMM-yyyy HH:mm")
+
+            </td>
+
+            <td>
+
+                @Model.CreatedBy
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                Invoice Approved
+
+            </td>
+
+            <td>
+
+                @(Model.ApprovedOn?.ToString("dd-MMM-yyyy HH:mm") ?? "-")
+
+            </td>
+
+            <td>
+
+                @(Model.ApprovedBy?.ToString() ?? "-")
+
+            </td>
+
+        </tr>
+
+    </tbody>
+
+</table> *@
+
+@* <div class="sectionTitle">
+
+    QR Verification
+
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #ddd;padding:20px;">
+
+    <div>
+
+        <strong>Scan QR Code to Verify Invoice</strong>
+
+        <br /><br />
+
+        Invoice No :
+        <strong>@Model.InvoiceNo</strong>
+
+        <br />
+
+        Invoice Date :
+        @Model.InvoiceDate.ToString("dd-MMM-yyyy")
+
+        <br />
+
+        Amount :
+        ₹ @Model.InvoiceAmount.ToString("N2")
+
+    </div>
+
+    <div style="width:130px;height:130px;border:2px dashed #999;display:flex;align-items:center;justify-content:center;">
+
+        QR CODE
+
+    </div>
+
+</div> *@
+
+<div class="sectionTitle">
+
+    Important Notes
+
+</div>
+
+<ul style="margin:20px;line-height:30px;">
+
+    <li>
+        This invoice has been generated through Laundry Management Information System.
+    </li>
+
+    <li>
+        Payment is subject to the terms and conditions of the Agreement.
+    </li>
+
+    <li>
+        GST and TDS have been calculated as per applicable Government rules.
+    </li>
+
+    <li>
+        Any discrepancy should be reported within seven working days.
+    </li>
+
+    <li>
+        This document is computer generated and is valid without a physical signature.
+    </li>
+
+</ul>
+<div class="sectionTitle">
+
+    Authorized Signatories
+
+</div>
+
+<table class="signatureTable">
+
+    <tr>
+
+        <td>
+
+            <div class="signatureLine"></div>
+
+            Prepared By
+
+            <br />
+
+            LaundryMIS Operator
+
+        </td>
+
+        <td>
+
+            <div class="signatureLine"></div>
+
+            Verified By
+
+            <br />
+
+            Hospital Authority
+
+        </td>
+
+        <td>
+
+            <div class="signatureLine"></div>
+
+            Approved By
+
+            <br />
+
+            Directorate
+
+        </td>
+
+    </tr>
+
+</table>
+
+@* <div class="sectionTitle">
+
+    Official Seal
+
+</div>
+
+<div style="margin-top:20px;">
+
+    <table class="details">
+
+        <tr>
+
+            <td style="width:30%;">
+
+                Office Seal
+
+            </td>
+
+            <td style="height:120px;">
+
+            </td>
+
+        </tr>
+
+    </table>
+
+</div> *@
+
+<div class="sectionTitle">
+
+    Digital Verification
+
+</div>
+
+<table class="details">
+
+    <tr>
+
+        <td>
+
+            Document Version
+
+        </td>
+
+        <td>
+
+            1.0
+
+        </td>
+
+        <td>
+
+            Generated By
+
+        </td>
+
+        <td>
+
+            LaundryMIS
+
+        </td>
+
+    </tr>
+
+    <tr>
+
+        <td>
+
+            Generated Date
+
+        </td>
+
+        <td>
+
+            @Model.CreatedOn.ToString("dd-MMM-yyyy HH:mm")
+
+        </td>
+
+        <td>
+
+            Verification Status
+
+        </td>
+
+        <td>
+
+            Digitally Generated
+
+        </td>
+
+    </tr>
+
+</table>
+
+<div class="sectionTitle">
+
+    Payment Summary
+
+</div>
+
+<table class="summaryTable">
+
+    <thead>
+
+        <tr>
+
+            <th>Description</th>
+
+            <th class="textRight">Amount (₹)</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        <tr>
+
+            <td>
+
+                Monthly Bill
+
+            </td>
+
+            <td class="textRight">
+
+                @Model.MonthlyBill.ToString("N2")
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                Gross Payable
+
+            </td>
+
+            <td class="textRight">
+
+                @Model.GrossPayable.ToString("N2")
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                GST
+
+            </td>
+
+            <td class="textRight">
+
+                @Model.GSTAmount.ToString("N2")
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td>
+
+                TDS
+
+            </td>
+
+            <td class="textRight">
+
+                @Model.TDSAmount.ToString("N2")
+
+            </td>
+
+        </tr>
+
+        <tr class="highlight">
+
+            <td>
+
+                Net Payable
+
+            </td>
+
+            <td class="textRight">
+
+                ₹ @Model.NetPayable.ToString("N2")
+
+            </td>
+
+        </tr>
+
+    </tbody>
+
+</table>
+
+<div class="printArea">
+
+  @*   <button class="btn"
+            onclick="window.print();">
+
+        🖨 Print Invoice
+
+    </button>
+ *@
+                <a asp-action="DownloadInvoice"
+                   asp-route-invoiceId="@Model.InvoiceId"
+                   class="btn btn-danger">
+
+                    <i class="fa fa-download"></i>
+                    Download PDF
+
+                </a>
+
+</div>
+
+<div class="footer">
+
+    <strong>
+
+        Laundry Management Information System (LaundryMIS)
+
+    </strong>
+
+    <br />
+
+    Directorate General Medical & Health Services
+
+    <br />
+
+    Government of Uttar Pradesh
+
+    <br /><br />
+
+    This is a computer-generated invoice.
+
+    <br />
+
+    No physical signature is required.
+
+    <br /><br />
+
+    Generated On :
+    @DateTime.Now.ToString("dd-MMM-yyyy HH:mm")
+
+</div>
+@section Scripts{
+
+<script>
+
+    function printInvoice() {
+
+        window.print();
+
+    }
+
+    // function downloadInvoice() {
+
+    //     window.location.href =
+    //         '@Url.Action("DownloadInvoice","Invoice",new { invoiceId = Model.InvoiceId })';
+
+    // }
+
+    // Future QR Integration
+    // Generate QR dynamically using QRCoder
+    // QR Data:
+    // Invoice No
+    // Invoice Date
+    // Invoice Amount
+    // Verification URL
+
+    // Example
+    // https://laundrymis.up.gov.in/VerifyInvoice?invoiceId=@Model.InvoiceId
+
+</script>
+
+}
+
+</div>
+
+</div>
+
+</body>
+
+</html>
