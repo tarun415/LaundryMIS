@@ -4,99 +4,129 @@
     ViewData["Title"] = "Payment List";
 }
 
-<div class="container-fluid">
 
-    <div class="card shadow-sm">
+<div class="container-fluid mt-3">
+
+    <div class="card shadow border-0">
 
         <div class="card-header bg-primary text-white">
 
-            <h4 class="mb-0">
-                Payment Management
-            </h4>
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h4 class="mb-0">
+
+                    <i class="fa fa-money-bill-wave"></i>
+
+                    Monthly Payment Management
+
+                </h4>
+
+                <a asp-action="GeneratePayment"
+                   class="btn btn-success">
+
+                    <i class="fa fa-plus-circle"></i>
+
+                    Generate Payment
+
+                </a>
+
+            </div>
 
         </div>
 
         <div class="card-body">
 
-            <form asp-action="PaymentList" method="get">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+
+                    @TempData["Success"]
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"></button>
+
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+
+                    @TempData["Error"]
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"></button>
+
+                </div>
+            }
+
+            <form asp-action="PaymentList"
+                  method="get">
 
                 <div class="row">
 
-                    <div class="col-md-2">
+                    <div class="col-md-3">
 
-                        <label>Agreement</label>
+                        <label class="form-label fw-bold">
 
-                        <select class="form-control" name="agreementId">
-                            <option value="">All</option>
-                        </select>
+                            Month
 
-                    </div>
+                        </label>
 
-                    <div class="col-md-2">
+                        <select class="form-select"
+                                name="monthNo">
 
-                        <label>Hospital</label>
-
-                        <select class="form-control" name="hospitalId">
-                            <option value="">All</option>
-                        </select>
-
-                    </div>
-
-                    <div class="col-md-2">
-
-                        <label>Month</label>
-
-                        <select class="form-control" name="monthNo">
-
-                            <option value="">All</option>
+                            <option value="">All Months</option>
 
                             @for (int i = 1; i <= 12; i++)
                             {
-                                <option value="@i">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                                <option value="@i">
+
+                                    @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)
+
+                                </option>
                             }
 
                         </select>
 
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-3">
 
-                        <label>Year</label>
+                        <label class="form-label fw-bold">
+
+                            Year
+
+                        </label>
 
                         <input type="number"
-                               name="yearNo"
                                class="form-control"
+                               name="yearNo"
                                value="@DateTime.Now.Year" />
 
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-3 d-flex align-items-end">
 
-                        <label>Status</label>
+                        <button type="submit"
+                                class="btn btn-primary me-2">
 
-                        <select class="form-control" name="status">
-
-                            <option value="">All</option>
-
-                            <option>Pending</option>
-
-                            <option>Approved</option>
-
-                            <option>Rejected</option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="col-md-2">
-
-                        <label>&nbsp;</label>
-
-                        <button class="btn btn-primary btn-block">
+                            <i class="fa fa-search"></i>
 
                             Search
 
                         </button>
+
+                        <a asp-action="PaymentList"
+                           class="btn btn-secondary">
+
+                            <i class="fa fa-refresh"></i>
+
+                            Reset
+
+                        </a>
 
                     </div>
 
@@ -106,140 +136,332 @@
 
             <hr />
 
-            <div class="text-end mb-3">
+            <div class="table-responsive">
 
-                <a asp-action="GeneratePayment"
-                   class="btn btn-success">
+                <table id="tblPayments"
+                       class="table table-hover table-bordered table-striped align-middle w-100">
 
-                    Generate Payment
+                    <thead class="table-primary">
 
-                </a>
+                        <tr>
 
-            </div>
+                            <th>Payment No</th>
 
-            <table class="table table-bordered table-striped">
+                            <th>Hospital</th>
 
-                <thead class="table-dark">
+                            <th>Provider</th>
 
-                    <tr>
+                            <th>Month</th>
 
-                        <th>Payment No</th>
+                            <th>Bed Occupancy</th>
 
-                        <th>Hospital</th>
+                            <th>Average Score</th>
 
-                        <th>Month</th>
+                            <th>Monthly Bill</th>
 
-                        <th>Score</th>
+                            <th>Invoice Amount</th>
 
-                        <th>Weekly Amount</th>
+                            <th>TDS</th>
 
-                        <th>Payable</th>
+                            <th>Net Payable</th>
 
-                        <th>Status</th>
+                            <th>Status</th>
 
-                        <th width="220">Action</th>
+                            <th width="180">Action</th>
 
-                    </tr>
+                        </tr>
 
-                </thead>
+                    </thead>
 
-                <tbody>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
 
-                    @if (Model.Any())
-                    {
-                        foreach (var item in Model)
+                                    <td>
+
+                                        <strong class="text-primary">
+
+                                            @item.PaymentNo
+
+                                        </strong>
+
+                                    </td>
+
+                                    <td>
+
+                                        @item.HospitalName
+
+                                    </td>
+
+                                    <td>
+
+                                        @item.ProviderName
+
+                                    </td>
+
+                                    <td>
+
+                                        @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.MonthNo)
+
+                                        @item.YearNo
+
+                                    </td>
+
+                                    <td class="text-center">
+
+                                        <span class="badge bg-info text-dark">
+
+                                            @item.BedOccupancy / @item.SanctionedBeds
+
+                                        </span>
+
+                                    </td>
+
+                                    <td class="text-center">
+
+                                        @if (item.AverageScore >= 81)
+                                        {
+                                            <span class="badge bg-success">
+
+                                                @item.AverageScore %
+
+                                            </span>
+                                        }
+                                        else if (item.AverageScore >= 61)
+                                        {
+                                            <span class="badge bg-warning text-dark">
+
+                                                @item.AverageScore %
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">
+
+                                                @item.AverageScore %
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        ₹ @item.MonthlyBill.ToString("N2")
+
+                                    </td>
+
+                                    <td class="text-end fw-bold text-primary">
+
+                                        ₹ @item.InvoiceAmount.ToString("N2")
+
+                                    </td>
+
+                                    <td class="text-end text-danger">
+
+                                        ₹ @item.TDSAmount.ToString("N2")
+
+                                    </td>
+
+                                    <td class="text-end fw-bold text-success">
+
+                                        ₹ @item.NetPayable.ToString("N2")
+
+                                    </td>
+
+                                    <td class="text-center">
+
+                                        @*   @if (item.Status == "Approved")
+                                        {
+                                            <span class="badge bg-success">
+
+                                                Approved
+
+                                            </span>
+                                        }
+                                        else if (item.Status == "Rejected")
+                                        {
+                                            <span class="badge bg-danger">
+
+                                                Rejected
+
+                                            </span>
+                                        } *@
+                                        @if (item.InvoiceId == null)
+                                        {
+                                            <span class="badge bg-success">
+                                                Pending                                             
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                Invoice Generated
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="btn-group">
+
+
+                                            @if (item.InvoiceId == null)
+                                            {
+                                                <a asp-controller="Invoice"
+                                                   asp-action="GenerateInvoice"
+                                                   asp-route-paymentId="@item.PaymentId"
+                                                   class="btn btn-primary btn-sm">
+                                                    <i class="fa fa-file-invoice"></i> Generate Invoice
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a asp-action="InvoiceDetails"
+                                                   asp-route-id="@item.InvoiceId"
+                                                   class="btn btn-success btn-sm">
+                                                    <i class="fa fa-eye"></i> View Invoice
+                                                </a>
+                                            }
+                                         @*    <a asp-action="PaymentDetails"
+                                               asp-route-paymentId="@item.PaymentId"
+                                               class="btn btn-info btn-sm">
+
+                                                <i class="fa fa-eye"></i>
+
+                                            </a> *@
+                                            @*   @if (item.Status == "Pending")
+                                            {
+                                                <a asp-action="ApprovePayment"
+                                                   asp-route-paymentId="@item.PaymentId"
+                                                   class="btn btn-success btn-sm">
+
+                                                    <i class="fa fa-check"></i>
+
+                                                </a>
+
+                                                <a asp-action="RejectPayment"
+                                                   asp-route-paymentId="@item.PaymentId"
+                                                   class="btn btn-danger btn-sm">
+
+                                                    <i class="fa fa-times"></i>
+
+                                                </a>
+                                            } *@
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
 
-                                <td>@item.PaymentNo</td>
+                                <td colspan="12"
+                                    class="text-center text-muted">
 
-                                <td>@item.HospitalId</td>
+                                    <i class="fa fa-info-circle"></i>
 
-                                <td>@item.MonthNo/@item.YearNo</td>
-
-                                <td>@item.PerformanceScore</td>
-
-                                <td>₹ @item.WeeklyContractAmount.ToString("N2")</td>
-
-                                <td>₹ @item.NetPayable.ToString("N2")</td>
-
-                                <td>
-
-                                    @if (item.Status == "Approved")
-                                    {
-                                        <span class="badge bg-success">
-                                            Approved
-                                        </span>
-                                    }
-                                    else if (item.Status == "Rejected")
-                                    {
-                                        <span class="badge bg-danger">
-                                            Rejected
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-warning">
-                                            Pending
-                                        </span>
-                                    }
-
-                                </td>
-
-                                <td>
-
-                                    <a asp-action="PaymentDetails"
-                                       asp-route-paymentId="@item.PaymentId"
-                                       class="btn btn-info btn-sm">
-
-                                        View
-
-                                    </a>
-
-                                    @if (item.Status == "Pending")
-                                    {
-                                        <a asp-action="ApprovePayment"
-                                           asp-route-paymentId="@item.PaymentId"
-                                           class="btn btn-success btn-sm">
-
-                                            Approve
-
-                                        </a>
-
-                                        <a asp-action="RejectPayment"
-                                           asp-route-paymentId="@item.PaymentId"
-                                           class="btn btn-danger btn-sm">
-
-                                            Reject
-
-                                        </a>
-                                    }
+                                    No Payment Records Found
 
                                 </td>
 
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
 
-                            <td colspan="8"
-                                class="text-center text-muted">
+                    </tbody>
 
-                                No Payment Found
+                </table>
 
-                            </td>
-
-                        </tr>
-                    }
-
-                </tbody>
-
-            </table>
+            </div>
 
         </div>
 
     </div>
 
 </div>
+@section Scripts {
+
+
+    <script>
+
+        $(document).ready(function () {
+
+            $("#tblPayments").DataTable({
+
+                responsive: true,
+
+                autoWidth: false,
+
+                pageLength: 10,
+
+                ordering: true,
+
+                searching: true,
+
+                lengthMenu: [
+                    [10, 25, 50, 100],
+                    [10, 25, 50, 100]
+                ],
+
+                order: [[0, "desc"]],
+
+                dom: 'Bfrtip',
+
+                buttons: [
+
+                    {
+                        extend: 'excel',
+                        className: 'btn btn-success btn-sm',
+                        text: '<i class="fa fa-file-excel"></i> Excel'
+                    },
+
+                    {
+                        extend: 'pdf',
+                        className: 'btn btn-danger btn-sm',
+                        text: '<i class="fa fa-file-pdf"></i> PDF'
+                    },
+
+                    {
+                        extend: 'print',
+                        className: 'btn btn-secondary btn-sm',
+                        text: '<i class="fa fa-print"></i> Print'
+                    }
+
+                ],
+
+                language: {
+
+                    emptyTable: "No Payment Records Found",
+
+                    search: "Search :",
+
+                    lengthMenu: "Show _MENU_ records",
+
+                    info: "Showing _START_ to _END_ of _TOTAL_ records",
+
+                    paginate: {
+
+                        previous: "Previous",
+
+                        next: "Next"
+
+                    }
+
+                }
+
+            });
+
+        });
+
+    </script>
+
+}

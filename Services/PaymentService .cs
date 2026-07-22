@@ -1,4 +1,5 @@
 ﻿using LaudaryMis.Models;
+using LaudaryMis.Repositories;
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
@@ -20,18 +21,9 @@ namespace LaudaryMis.Services
         //---------------------------------------------------
 
         public async Task<bool> GeneratePayment(
-       int agreementId,
-       int hospitalId,
-       int month,
-       int year,
-       int createdBy)
+     GeneratePaymentVM model)
         {
-            return await _repository.GeneratePayment(
-                agreementId,
-                hospitalId,
-                month,
-                year,
-                createdBy);
+            return await _repository.GeneratePayment(model);
         }
 
         //---------------------------------------------------

@@ -6,12 +6,7 @@ namespace LaudaryMis.Services.Interfaces
 {
     public interface IPaymentService
     {
-        Task<bool> GeneratePayment(
-            int agreementId,
-            int hospitalId,
-            int monthNo,
-            int yearNo,
-            int createdBy);
+       
 
         Task<List<PaymentMaster>> GetPayments(
             int? agreementId,
@@ -51,5 +46,6 @@ namespace LaudaryMis.Services.Interfaces
     int monthNo,
     int yearNo,
     int bedOccupancy);
+        Task<bool> GeneratePayment(GeneratePaymentVM model);
     }
 }

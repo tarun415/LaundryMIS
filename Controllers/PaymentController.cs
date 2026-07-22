@@ -52,11 +52,13 @@ public class PaymentController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> GeneratePayment(GeneratePaymentVM model)
+    public async Task<IActionResult> GeneratePayment(
+     GeneratePaymentVM model)
     {
         if (!ModelState.IsValid)
         {
-            var vm = await _paymentService.GetGeneratePaymentData(model.HospitalId);
+            var vm = await _paymentService
+                .GetGeneratePaymentData(model.HospitalId);
 
             vm.MonthNo = model.MonthNo;
             vm.YearNo = model.YearNo;
@@ -64,30 +66,28 @@ public class PaymentController : Controller
             return View(vm);
         }
 
-        int userId = 1; // Replace with logged-in UserId claim later
-
-        bool result = await _paymentService.GeneratePayment(
-            model.AgreementId,
-            model.HospitalId,
-            model.MonthNo,
-            model.YearNo,
-            userId);
+        bool result =
+            await _paymentService.GeneratePayment(model);
 
         if (result)
         {
-            TempData["Success"] = "Payment Generated Successfully.";
+            TempData["Success"] =
+                "Payment Generated Successfully.";
 
             return RedirectToAction(nameof(PaymentList));
         }
 
-        TempData["Error"] = "Payment already generated for the selected month.";
+        TempData["Error"] =
+            "Payment already generated.";
 
-        var generatePaymentVM = await _paymentService.GetGeneratePaymentData(model.HospitalId);
+        var data =
+            await _paymentService.GetGeneratePaymentData(
+                model.HospitalId);
 
-        generatePaymentVM.MonthNo = model.MonthNo;
-        generatePaymentVM.YearNo = model.YearNo;
+        data.MonthNo = model.MonthNo;
+        data.YearNo = model.YearNo;
 
-        return View(generatePaymentVM);
+        return View(data);
     }
 
     //-------------------------------------------------------

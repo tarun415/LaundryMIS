@@ -14,9 +14,19 @@ namespace LaudaryMis.ViewModels
 
         public string ProviderName { get; set; }
 
+        public int MonthNo { get; set; }
+
+        public int YearNo { get; set; }
+
+        //---------------------------------------------------
+        // Agreement
+        //---------------------------------------------------
+
         public int BedCount { get; set; }
 
         public decimal RatePerBed { get; set; }
+
+        public decimal ContractAmount { get; set; }
 
         public DateTime StartDate { get; set; }
 
@@ -24,13 +34,15 @@ namespace LaudaryMis.ViewModels
 
         public bool IsActive { get; set; }
 
-        public int MonthNo { get; set; }
-
-        public int YearNo { get; set; }
-
-        // New Properties
+        //---------------------------------------------------
+        // User Input
+        //---------------------------------------------------
 
         public int BedOccupancy { get; set; }
+
+        //---------------------------------------------------
+        // Calculation
+        //---------------------------------------------------
 
         public decimal MonthlyBill { get; set; }
 
@@ -38,7 +50,6 @@ namespace LaudaryMis.ViewModels
 
         public decimal PaymentPercentage { get; set; }
 
-        public decimal PayableAmount { get; set; }
         public decimal GrossPayable { get; set; }
 
         public decimal GSTPercentage { get; set; }

@@ -109,8 +109,11 @@
              WeeklyDeliveryReport:    '@Url.Action("WeeklyDeliveryReport", "Report")',
              MonthlyDeliveryReport:    '@Url.Action("MonthlyReport", "Report")',
              DeliveryAgingReport:    '@Url.Action("DeliveryAgingReport", "Report")',
-              PaymentList: '@Url.Action("PaymentList", "Payment")',
-            GeneratePayment: '@Url.Action("GeneratePayment", "Payment")'
+                   PaymentList: '@Url.Action("PaymentList", "Payment")',
+        GeneratePayment: '@Url.Action("GeneratePayment", "Payment")',
+
+        InvoiceList: '@Url.Action("InvoiceList", "Invoice")',
+        // GenerateInvoice: '@Url.Action("GenerateInvoice", "Invoice")'
         },
         provider: {
             dashboard:  '@Url.Action("Dashboard", "Provider")',
@@ -165,6 +168,19 @@
             icon: "💳",
             label: "Payment List",
             route: () => routes.hospital.PaymentList
+        },
+        //         {
+        //     id: "GenerateInvoice",
+        //     icon: "🧾",
+        //     label: "Generate Invoice",
+        //     route: () => routes.hospital.GenerateInvoice
+        // },
+
+        {
+            id: "InvoiceList",
+            icon: "📑",
+            label: "Invoice List",
+            route: () => routes.hospital.InvoiceList
         },
             ],
             Provider: [
