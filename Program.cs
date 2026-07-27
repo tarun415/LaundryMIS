@@ -7,12 +7,29 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Data.SqlClient;
 using Rotativa.AspNetCore;
 using System.Data;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // MVC
 builder.Services.AddControllersWithViews();
 
+
+// Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/Login";
+
+        options.Cookie.Name = "LaundryMISAuth";
+
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+
+        options.SlidingExpiration = true;
+    });
+
+builder.Services.AddAuthorization();
 // DI
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -63,14 +80,9 @@ builder.Services.AddScoped<IDbConnection>(sp =>
     return new SqlConnection(cs);
 });
 
-// Auth
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/Login";
-    });
 
+// Configure QuestPDF license
+QuestPDF.Settings.License = LicenseType.Community;  // This is for PDF a 
 var app = builder.Build();
 
 app.UseHttpsRedirection();

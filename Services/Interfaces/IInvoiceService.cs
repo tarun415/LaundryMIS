@@ -36,5 +36,6 @@ namespace LaudaryMis.Services
             InvoiceDocument model);
 
         Task<InvoiceDocument> GetInvoiceDocument(int invoiceId);
+        Task<byte[]> GenerateInvoicePdf(int invoiceId);
     }
 }
