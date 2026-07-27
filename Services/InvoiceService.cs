@@ -1,7 +1,9 @@
-﻿using LaudaryMis.Models;
+﻿using LaudaryMis.Documents;
+using LaudaryMis.Models;
 using LaudaryMis.Repository;
 using LaudaryMis.ViewModels;
 using LaundryMIS.Models.LaudaryMis.Models;
+using QuestPDF.Fluent;
 
 namespace LaudaryMis.Services
 {
@@ -73,6 +75,16 @@ namespace LaudaryMis.Services
         {
             return await _invoiceRepository.GetInvoiceDocument(invoiceId);
         }
+        public async Task<byte[]> GenerateInvoicePdf(int invoiceId)
+        {
+            var invoice = await _invoiceRepository.GetInvoiceDetails(invoiceId);
 
+            if (invoice == null)
+                return null;
+
+            var document = new InvoicePdfDocument(invoice);
+
+            return document.GeneratePdf();
+        }
     }
 }

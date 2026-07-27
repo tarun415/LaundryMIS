@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Helpers\" />
     <Folder Include="Views\Common\" />
     <Folder Include="wwwroot\uploads\agreements\" />
   </ItemGroup>

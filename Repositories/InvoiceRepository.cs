@@ -29,19 +29,12 @@ namespace LaudaryMis.Repository
     string status)
         {
             using var con = CreateConnection();
-
             var parameter = new DynamicParameters();
-
             parameter.Add("@AgreementId", agreementId);
-
             parameter.Add("@HospitalId", hospitalId);
-
             parameter.Add("@MonthNo", monthNo);
-
             parameter.Add("@YearNo", yearNo);
-
             parameter.Add("@Status", status);
-
             var result = await con.QueryAsync<InvoiceMaster>(
                 "sp_GetInvoiceList",
                 parameter,

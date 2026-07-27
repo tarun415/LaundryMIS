@@ -112,7 +112,7 @@
                    PaymentList: '@Url.Action("PaymentList", "Payment")',
         GeneratePayment: '@Url.Action("GeneratePayment", "Payment")',
 
-        InvoiceList: '@Url.Action("InvoiceList", "Invoice")',
+     
         // GenerateInvoice: '@Url.Action("GenerateInvoice", "Invoice")'
         },
         provider: {
@@ -120,13 +120,15 @@
             // linen:      '@Url.Action("DailyEntry", "Provider")',
             // Pending:    '@Url.Action("Pending", "Provider")',
             // reports:    '@Url.Action("DailyEntryList", "Provider")',
-            createBill: '@Url.Action("SelectHospital", "MonthlyBill")',
-            myBills:    '@Url.Action("MyBills", "MonthlyBill")',
+            // createBill: '@Url.Action("SelectHospital", "MonthlyBill")',
+            // myBills:    '@Url.Action("MyBills", "MonthlyBill")',
             AcceptPickup:    '@Url.Action("AcceptPickup", "Provider")',
             DeliverySummary:    '@Url.Action("DeliverySummaryReport", "Report")',
              WeeklyDeliveryReport:    '@Url.Action("WeeklyDeliveryReport", "Report")',
              MonthlyDeliveryReport:    '@Url.Action("MonthlyReport", "Report")',
              DeliveryAgingReport:    '@Url.Action("DeliveryAgingReport", "Report")',
+             GenerateInvoice: '@Url.Action("PaymentList", "Payment")',
+             InvoiceList: '@Url.Action("InvoiceList", "Invoice")',
         }
         };
 
@@ -176,12 +178,7 @@
         //     route: () => routes.hospital.GenerateInvoice
         // },
 
-        {
-            id: "InvoiceList",
-            icon: "📑",
-            label: "Invoice List",
-            route: () => routes.hospital.InvoiceList
-        },
+      
             ],
             Provider: [
                 { section: "Overview" },
@@ -197,8 +194,20 @@
                    { id: "MonthlyDeliveryReport", icon: "📊", label: "Monthly Delivery Report", route: () => routes.provider.MonthlyDeliveryReport },
                    { id: "DeliveryAgingReport", icon: "📊", label: "Delivery Aging Report", route: () => routes.provider.DeliveryAgingReport },
                         { section: "Billing" },
-        { id: "createBill", icon: "➕", label: "Create Bill",  route: () => routes.provider.createBill },
-        { id: "myBills",    icon: "🧾", label: "My Bills",     route: () => routes.provider.myBills },
+        // { id: "createBill", icon: "➕", label: "Create Bill",  route: () => routes.provider.createBill },
+        // { id: "myBills",    icon: "🧾", label: "My Bills",     route: () => routes.provider.myBills },
+           {
+            id: "GenerateInvoice",
+            icon: "📑",
+            label: "Generate Invoice",
+            route: () => routes.provider.GenerateInvoice
+        },
+          {
+            id: "InvoiceList",
+            icon: "📑",
+            label: "Invoice List",
+            route: () => routes.provider.InvoiceList
+        },
             ]
         };
 

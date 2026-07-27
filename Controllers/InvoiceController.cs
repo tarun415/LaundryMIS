@@ -38,6 +38,7 @@ namespace LaudaryMis.Controllers
         public async Task<IActionResult> GenerateInvoice(
     int paymentId)
         {
+
             var model = await _invoiceService
                 .GetGenerateInvoiceData(paymentId);
 
@@ -199,58 +200,87 @@ namespace LaudaryMis.Controllers
         //            "InvoiceDetails",
         //            new { invoiceId = model.InvoiceId });
         //    }
-        public async Task<IActionResult> PreviewInvoice(int invoiceId)
-        {
-            var document = await _invoiceService.GetInvoiceDocument(invoiceId);
+        //public async Task<IActionResult> PreviewInvoice(int invoiceId)
+        //{
+        //    var document = await _invoiceService.GetInvoiceDocument(invoiceId);
 
-            if (document == null)
-                return NotFound("Invoice document not found.");
+        //    if (document == null)
+        //        return NotFound("Invoice document not found.");
 
-            string filePath = Path.Combine(
-                _webHostEnvironment.WebRootPath,
-                document.FilePath);
+        //    string filePath = Path.Combine(
+        //        _webHostEnvironment.WebRootPath,
+        //        document.FilePath);
 
-            if (!System.IO.File.Exists(filePath))
-                return NotFound("PDF not found.");
+        //    if (!System.IO.File.Exists(filePath))
+        //        return NotFound("PDF not found.");
 
-            Response.Headers.Add(
-                "Content-Disposition",
-                $"inline; filename={document.FileName}");
+        //    Response.Headers.Add(
+        //        "Content-Disposition",
+        //        $"inline; filename={document.FileName}");
 
-            return PhysicalFile(filePath, "application/pdf");
-        }
+        //    return PhysicalFile(filePath, "application/pdf");
+        //}
+        //public async Task<IActionResult> PrintInvoice(int invoiceId)
+        //{
+        //    var invoice = await _invoiceService.GetInvoiceDetails(invoiceId);
+
+        //    if (invoice == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    // Optional - Amount in Words
+        //    ViewBag.AmountInWords = invoice.NetPayable.ToString("N2");
+        //    //  ViewBag.AmountInWords = NumberToWords.Convert((long)invoice.NetPayable);
+
+        //    return View(invoice);
+        //}
+        //public async Task<IActionResult> DownloadInvoice(int invoiceId)
+        //{
+        //    var invoice = await _invoiceService.GetInvoiceDetails(invoiceId);
+
+        //    if (invoice == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    return new ViewAsPdf("PrintInvoice", invoice)
+        //    {
+        //        FileName = $"{invoice.InvoiceNo}.pdf",
+        //        PageSize = Size.A4,
+        //        PageOrientation = Orientation.Portrait,
+        //        PageMargins = new Margins(10, 10, 10, 10),
+        //        CustomSwitches = "--print-media-type --enable-local-file-access"
+        //    };
+        //}
+        //public async Task<IActionResult> DownloadInvoice(int invoiceId)
+        //{
+        //    var pdf = await _invoiceService.GenerateInvoicePdf(invoiceId);
+
+        //    if (pdf == null)
+        //        return NotFound();
+
+        //    return File(pdf, "application/pdf", $"Invoice_{invoiceId}.pdf");
+        //}
         public async Task<IActionResult> PrintInvoice(int invoiceId)
         {
+            var pdf = await _invoiceService.GenerateInvoicePdf(invoiceId);
+
+            if (pdf == null)
+                return NotFound();
+
+            // Get invoice details to access InvoiceNo
             var invoice = await _invoiceService.GetInvoiceDetails(invoiceId);
 
             if (invoice == null)
-            {
                 return NotFound();
-            }
 
-            // Optional - Amount in Words
-            ViewBag.AmountInWords = invoice.NetPayable.ToString("N2");
-            //  ViewBag.AmountInWords = NumberToWords.Convert((long)invoice.NetPayable);
+            string fileName = $"{invoice.InvoiceNo}_{DateTime.Now:yyyyMMdd}_.pdf";
 
-            return View(invoice);
-        }
-        public async Task<IActionResult> DownloadInvoice(int invoiceId)
-        {
-            var invoice = await _invoiceService.GetInvoiceDetails(invoiceId);
-
-            if (invoice == null)
-            {
-                return NotFound();
-            }
-
-            return new ViewAsPdf("PrintInvoice", invoice)
-            {
-                FileName = $"{invoice.InvoiceNo}.pdf",
-                PageSize = Size.A4,
-                PageOrientation = Orientation.Portrait,
-                PageMargins = new Margins(10, 10, 10, 10),
-                CustomSwitches = "--print-media-type --enable-local-file-access"
-            };
+            return File(
+                pdf,
+                "application/pdf",
+                fileName);
         }
     }
 }
