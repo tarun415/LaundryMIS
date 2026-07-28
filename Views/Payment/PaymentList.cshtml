@@ -21,14 +21,14 @@
 
                 </h4>
 
-                <a asp-action="GeneratePayment"
-                   class="btn btn-success">
-
-                    <i class="fa fa-plus-circle"></i>
-
-                    Generate Payment
-
-                </a>
+                @if (User.IsInRole("Hospital"))
+                {
+                    <a asp-action="GeneratePayment"
+                       class="btn btn-success">
+                        <i class="fa fa-plus-circle"></i>
+                        Generate Payment
+                    </a>
+                }
 
             </div>
 
@@ -310,24 +310,30 @@
 
                                         <div class="btn-group">
 
-
                                             @if (item.InvoiceId == null)
                                             {
-                                                <a asp-controller="Invoice"
-                                                   asp-action="GenerateInvoice"
-                                                   asp-route-paymentId="@item.PaymentId"
-                                                   class="btn btn-primary btn-sm">
-                                                    <i class="fa fa-file-invoice"></i> Generate Invoice
-                                                </a>
+                                                @if (User.IsInRole("Provider"))
+                                                {
+                                                    <a asp-controller="Invoice"
+                                                       asp-action="GenerateInvoice"
+                                                       asp-route-paymentId="@item.PaymentId"
+                                                       class="btn btn-primary btn-sm">
+                                                        <i class="fa fa-file-invoice"></i> Generate Invoice
+                                                    </a>
+                                                }
                                             }
                                             else
                                             {
-                                                <a asp-action="InvoiceDetails"
-                                                   asp-route-id="@item.InvoiceId"
-                                                   class="btn btn-success btn-sm">
-                                                    <i class="fa fa-eye"></i> View Invoice
+                                                <a asp-controller="Invoice"
+                                                   asp-action="PreviewInvoice"
+                                                   asp-route-invoiceId="@item.InvoiceId"
+                                                   class="btn btn-info btn-sm"
+                                                   target="_blank"
+                                                   title="View Invoice">
+                                                    <i class="fa fa-eye"></i>
                                                 </a>
                                             }
+
                                          @*    <a asp-action="PaymentDetails"
                                                asp-route-paymentId="@item.PaymentId"
                                                class="btn btn-info btn-sm">

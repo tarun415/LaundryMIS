@@ -3,6 +3,7 @@ using LaudaryMis.Services;
 using LaudaryMis.ViewModels;
 using LaundryMIS.Models.LaudaryMis.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Rotativa.AspNetCore;
 using Rotativa.AspNetCore.Options;
 using System;
@@ -72,17 +73,17 @@ namespace LaudaryMis.Controllers
 
             if (result.Result == 1)
             {
+                //TempData["Success"] = "Invoice Generated Successfully.";
+
+                await _invoiceService.GenerateAndSaveInvoicePdf(
+     result.InvoiceId,
+     model.CreatedBy);
+
                 TempData["Success"] = "Invoice Generated Successfully.";
 
-                return RedirectToAction(
-                    "PrintInvoice",
-                    new
-                    {
-                        invoiceId = result.InvoiceId
-                    });
+                return RedirectToAction(nameof(InvoiceList));
             }
-
-            TempData["Error"] = result.ErrorMessage ?? "Unable to generate invoice.";
+           TempData["Error"] = result.ErrorMessage ?? "Unable to generate invoice.";
 
             var generateVM = await _invoiceService.GetGenerateInvoiceData(model.PaymentId);
 
@@ -281,6 +282,56 @@ namespace LaudaryMis.Controllers
                 pdf,
                 "application/pdf",
                 fileName);
+        }
+
+        public async Task<IActionResult> DownloadInvoice(
+int invoiceId)
+        {
+            var document =
+                await _invoiceService
+                .GetInvoiceDocument(invoiceId);
+
+            if (document == null)
+                return NotFound();
+
+            string path =
+                Path.Combine(
+                    _webHostEnvironment.WebRootPath,
+                    document.FilePath.TrimStart('/'));
+
+            if (!System.IO.File.Exists(path))
+                return NotFound();
+
+            return PhysicalFile(
+                path,
+                "application/pdf",
+                document.FileName);
+        }
+        public async Task<IActionResult> PreviewInvoice(
+int invoiceId)
+        {
+            var document =
+                await _invoiceService
+                .GetInvoiceDocument(invoiceId);
+
+            if (document == null)
+                return NotFound();
+
+            string path =
+                Path.Combine(
+                    _webHostEnvironment.WebRootPath,
+                    document.FilePath.TrimStart('/'));
+
+            if (!System.IO.File.Exists(path))
+                return NotFound();
+
+            Response.Headers.Add(
+                "Content-Disposition",
+                $"inline; filename={document.FileName}");
+
+            return PhysicalFile(
+                path,
+                "application/pdf");
         }
     }
 }
