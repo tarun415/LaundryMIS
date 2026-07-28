@@ -228,55 +228,27 @@
 
                                     <td>
 
-                                        <a asp-action="InvoiceDetails"
+                                        <!-- Preview -->
+                                        <a asp-action="PreviewInvoice"
                                            asp-route-invoiceId="@item.InvoiceId"
                                            class="btn btn-info btn-sm"
-                                           title="View">
-
+                                           target="_blank">
                                             <i class="fa fa-eye"></i>
-
                                         </a>
 
-                                        <a asp-action="UploadInvoiceDocument"
+                                        <!-- Download -->
+                                        <a asp-action="DownloadInvoice"
                                            asp-route-invoiceId="@item.InvoiceId"
-                                           class="btn btn-secondary btn-sm"
-                                           title="Upload PDF">
-
-                                            <i class="fa fa-upload"></i>
-
-                                        </a>
-
-                                        @if (item.Status == "Generated")
-                                        {
-                                           @*  <a asp-action="ApproveInvoice"
-                                               asp-route-invoiceId="@item.InvoiceId"
-                                               class="btn btn-success btn-sm"
-                                               onclick="return confirm('Approve this invoice?');"
-                                               title="Approve">
-
-                                                <i class="fa fa-check"></i>
-
-                                            </a>
-
-                                            <a asp-action="RejectInvoice"
-                                               asp-route-invoiceId="@item.InvoiceId"
-                                               class="btn btn-danger btn-sm"
-                                               onclick="return confirm('Reject this invoice?');"
-                                               title="Reject">
-
-                                                <i class="fa fa-times"></i>
-
-                                            </a> *@
-                                        }
-
-                                        <a asp-controller="Invoice"
-                                           asp-action="PreviewInvoice"
-                                           asp-route-invoiceId="@item.InvoiceId"
-                                           target="_blank"
-                                           class="btn btn-primary btn-sm"
-                                           title="Preview Invoice">
+                                           class="btn btn-success btn-sm">
                                             <i class="fa fa-download"></i>
                                         </a>
+
+                                        <!-- Upload -->
+                                   @*      <a asp-action="UploadInvoiceDocument"
+                                           asp-route-invoiceId="@item.InvoiceId"
+                                           class="btn btn-secondary btn-sm">
+                                            <i class="fa fa-upload"></i>
+                                        </a> *@
 
                                     </td>
 

@@ -9,11 +9,15 @@ namespace LaudaryMis.Services
 {
     public class InvoiceService : IInvoiceService
     {
+        private readonly IWebHostEnvironment _environment;
         private readonly IInvoiceRepository _invoiceRepository;
 
-        public InvoiceService(IInvoiceRepository invoiceRepository)
+        public InvoiceService(
+            IInvoiceRepository invoiceRepository,
+            IWebHostEnvironment environment)
         {
             _invoiceRepository = invoiceRepository;
+            _environment = environment;
         }
         public async Task<List<InvoiceMaster>> GetInvoiceList(
     int? agreementId,
@@ -85,6 +89,62 @@ namespace LaudaryMis.Services
             var document = new InvoicePdfDocument(invoice);
 
             return document.GeneratePdf();
+        }
+        public async Task<bool> GenerateAndSaveInvoicePdf(
+    int invoiceId,
+    int uploadedBy)
+        {
+            //Generate PDF
+            byte[] pdf = await GenerateInvoicePdf(invoiceId);
+
+            if (pdf == null)
+                return false;
+
+            //Invoice Details
+            var invoice =
+                await _invoiceRepository.GetInvoiceDetails(invoiceId);
+
+            if (invoice == null)
+                return false;
+
+            //Folder
+
+            string folder = Path.Combine(
+                _environment.WebRootPath,
+                "InvoiceDocuments");
+
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            //File Name
+
+            string fileName =
+                $"{invoice.InvoiceNo}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+
+            string fullPath =
+                Path.Combine(folder, fileName);
+
+            //Save PDF
+
+            await File.WriteAllBytesAsync(fullPath, pdf);
+
+            //Save DB
+
+            InvoiceDocument document =
+                new InvoiceDocument
+                {
+                    InvoiceId = invoice.InvoiceId,
+                    FileName = fileName,
+                    FilePath = "/InvoiceDocuments/" + fileName,
+                    UploadedBy = uploadedBy
+                };
+
+            await _invoiceRepository
+                .UploadInvoiceDocument(document);
+
+            return true;
         }
     }
 }
