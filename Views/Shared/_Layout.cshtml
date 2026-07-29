@@ -129,6 +129,7 @@
              DeliveryAgingReport:    '@Url.Action("DeliveryAgingReport", "Report")',
              GenerateInvoice: '@Url.Action("PaymentList", "Payment")',
              InvoiceList: '@Url.Action("InvoiceList", "Invoice")',
+             WarningLetterList: '@Url.Action("WarningLetterList", "WarningLetter")',
         }
         };
 
@@ -171,6 +172,15 @@
             label: "Payment List",
             route: () => routes.hospital.PaymentList
         },
+               { section: "Compliance Management" },
+
+        {
+            id: "WarningLetterList",
+            icon: "⚠️",
+            label: "Warning Letters",
+            route: () => routes.provider.WarningLetterList
+        }
+
         //         {
         //     id: "GenerateInvoice",
         //     icon: "🧾",
@@ -208,6 +218,13 @@
             label: "Invoice List",
             route: () => routes.provider.InvoiceList
         },
+           { section: "Compliance Management" },
+          {
+            id: "WarningLetterList",
+            icon: "⚠️",
+            label: "Warning Letters",
+            route: () => routes.provider.WarningLetterList
+        }
             ]
         };
 

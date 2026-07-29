@@ -1,0 +1,240 @@
+﻿@model IEnumerable<LaudaryMis.Models.WarningLetterMaster>
+
+@{
+    ViewData["Title"] = "Warning Letter List";
+    int srNo = 1;
+}
+
+<div class="card shadow-sm">
+
+    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="fa fa-exclamation-triangle"></i>
+            Warning Letter List
+        </h4>
+    </div>
+
+    <div class="card-body">
+
+        <!-- Filter Section -->
+        <form method="get" asp-action="WarningLetterList">
+
+            <div class="row">
+
+                <div class="col-md-3 mb-2">
+                    <label>Agreement</label>
+                    <input type="text"
+                           name="agreementId"
+                           value="@Context.Request.Query["agreementId"]"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-3 mb-2">
+                    <label>Hospital</label>
+                    <input type="text"
+                           name="hospitalId"
+                           value="@Context.Request.Query["hospitalId"]"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-2 mb-2">
+                    <label>Month</label>
+                    <input type="number"
+                           name="monthNo"
+                           value="@Context.Request.Query["monthNo"]"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-2 mb-2">
+                    <label>Year</label>
+                    <input type="number"
+                           name="yearNo"
+                           value="@Context.Request.Query["yearNo"]"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-2 mb-2">
+                    <label>Status</label>
+
+                    <select name="status"
+                            class="form-control">
+
+                        <option value="">All</option>
+
+                        <option value="Generated">Generated</option>
+
+                        <option value="Approved">Approved</option>
+
+                        <option value="Closed">Closed</option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="mt-2">
+
+                <button class="btn btn-primary">
+                    <i class="fa fa-search"></i>
+                    Search
+                </button>
+
+                <a asp-action="WarningLetterList"
+                   class="btn btn-secondary">
+                    Reset
+                </a>
+
+            </div>
+
+        </form>
+
+        <hr />
+
+        <table class="table table-bordered table-striped table-hover">
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th>S.No.</th>
+
+                    <th>Warning No</th>
+
+                    <th>Date</th>
+
+                    <th>Provider</th>
+
+                    <th>Hospital</th>
+
+                    <th>Month</th>
+
+                    <th>Year</th>
+
+                    <th>Level</th>
+
+                    <th>Status</th>
+
+                    <th width="220">Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @if (Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+
+                            <td>@srNo</td>
+
+                            <td>@item.WarningNo</td>
+
+                            <td>@item.WarningDate.ToString("dd-MMM-yyyy")</td>
+
+                            <td>@item.ProviderName</td>
+
+                            <td>@item.HospitalName</td>
+
+                            <td>@item.MonthNo</td>
+
+                            <td>@item.YearNo</td>
+
+                            <td>
+                                <span class="badge bg-warning text-dark">
+                                    @item.WarningLevel
+                                </span>
+                            </td>
+
+                            <td>
+
+                                @if (item.Status == "Generated")
+                                {
+                                    <span class="badge bg-success">
+                                        @item.Status
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        @item.Status
+                                    </span>
+                                }
+
+                            </td>
+
+                            <td>
+
+                                <!-- Preview -->
+
+                                <a asp-action="PreviewWarningLetter"
+                                   asp-route-warningId="@item.WarningId"
+                                   class="btn btn-info btn-sm"
+                                   target="_blank"
+                                   title="Preview">
+
+                                    <i class="fa fa-eye"></i>
+
+                                </a>
+
+                                <!-- Details -->
+
+                                <a asp-action="WarningLetterDetails"
+                                   asp-route-warningId="@item.WarningId"
+                                   class="btn btn-primary btn-sm"
+                                   title="Details">
+
+                                    <i class="fa fa-file-text"></i>
+
+                                </a>
+
+                                <!-- Download -->
+
+                                <a asp-action="DownloadWarningLetter"
+                                   asp-route-warningId="@item.WarningId"
+                                   class="btn btn-success btn-sm"
+                                   title="Download">
+
+                                    <i class="fa fa-download"></i>
+
+                                </a>
+
+                                <!-- Upload Signed Copy -->
+
+                               @*  <a asp-action="UploadWarningLetter"
+                                   asp-route-warningId="@item.WarningId"
+                                   class="btn btn-warning btn-sm"
+                                   title="Upload Signed Copy">
+
+                                    <i class="fa fa-upload"></i>
+
+                                </a> *@
+
+                            </td>
+
+                        </tr>
+
+                        srNo++;
+                    }
+                }
+                else
+                {
+                    <tr>
+
+                        <td colspan="10" class="text-center text-danger">
+                            No Warning Letters Found.
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>

@@ -169,6 +169,11 @@
 
                             <th width="180">Action</th>
 
+                            @if (User.IsInRole("Hospital"))
+                            {
+                                <th>Warning Letter</th>
+                            }
+                           
                         </tr>
 
                     </thead>
@@ -363,7 +368,38 @@
                                         </div>
 
                                     </td>
-
+        @if (User.IsInRole("Hospital"))
+                                    {
+                                        <td>
+                                            @if (item.AverageScore < 80)
+                                            {
+                                                if (item.WarningGenerated == false)
+                                                {
+                                                    <a asp-controller="WarningLetter"
+                                                       asp-action="GenerateWarningLetter"
+                                                       asp-route-paymentId="@item.PaymentId"
+                                                       class="btn btn-warning btn-sm">
+                                                        <i class="fa fa-exclamation-triangle"></i> Generate
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <a asp-controller="WarningLetter"
+                                                       asp-action="PreviewWarningLetter"
+                                                       asp-route-warningId="@item.WarningId"
+                                                       target="_blank"
+                                                       class="btn btn-success btn-sm">
+                                                        <i class="fa fa-eye"></i> View
+                                                    </a>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">Not Required</span>
+                                            }
+                                        </td>
+                                    }
+                                  
                                 </tr>
                             }
                         }
