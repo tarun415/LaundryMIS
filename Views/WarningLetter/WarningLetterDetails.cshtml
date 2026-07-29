@@ -1,0 +1,211 @@
+﻿@model LaudaryMis.Models.WarningLetterMaster
+
+@{
+    ViewData["Title"] = "Warning Letter Details";
+}
+
+<div class="card shadow-sm">
+
+    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="fa fa-exclamation-triangle"></i>
+            Warning Letter Details
+        </h4>
+
+        <div>
+
+            <a asp-action="PreviewWarningLetter"
+               asp-route-warningId="@Model.WarningId"
+               class="btn btn-info btn-sm"
+               target="_blank">
+
+                <i class="fa fa-eye"></i>
+                Preview
+
+            </a>
+
+            <a asp-action="DownloadWarningLetter"
+               asp-route-warningId="@Model.WarningId"
+               class="btn btn-success btn-sm">
+
+                <i class="fa fa-download"></i>
+                Download
+
+            </a>
+
+            <a asp-action="WarningLetterList"
+               class="btn btn-secondary btn-sm">
+
+                <i class="fa fa-arrow-left"></i>
+                Back
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="card-body">
+
+        <!-- Warning Information -->
+
+        <h5 class="text-primary">Warning Information</h5>
+
+        <table class="table table-bordered">
+
+            <tr>
+                <th width="25%">Warning No</th>
+                <td>@Model.WarningNo</td>
+
+                <th width="25%">Warning Date</th>
+                <td>@Model.WarningDate.ToString("dd-MMM-yyyy")</td>
+            </tr>
+
+            <tr>
+                <th>Status</th>
+                <td>@Model.Status</td>
+
+                <th>Warning Level</th>
+                <td>@Model.WarningLevel</td>
+            </tr>
+
+        </table>
+
+        <hr />
+
+        <!-- Agreement Information -->
+
+        <h5 class="text-primary">Agreement Information</h5>
+
+        <table class="table table-bordered">
+
+            <tr>
+
+                <th width="25%">Agreement No</th>
+                <td>@Model.AgreementNo</td>
+
+                <th width="25%">Agreement Date</th>
+               @*  <td>@Model.AgreementDate?.ToString("dd-MMM-yyyy")</td> *@
+
+            </tr>
+
+            <tr>
+
+                <th>Hospital</th>
+                <td>@Model.HospitalName</td>
+
+                <th>Provider</th>
+                <td>@Model.ProviderName</td>
+
+            </tr>
+
+        </table>
+
+        <hr />
+
+        <!-- Performance -->
+
+        <h5 class="text-primary">Performance Details</h5>
+
+        <table class="table table-bordered">
+
+            <tr>
+
+                <th width="25%">Month</th>
+                <td>@Model.MonthNo</td>
+
+                <th width="25%">Year</th>
+                <td>@Model.YearNo</td>
+
+            </tr>
+
+            <tr>
+
+                <th>Performance Score</th>
+                <td>@Model.PerformanceScore %</td>
+
+                <th>Payment Percentage</th>
+              @*   <td>@Model.PaymentPercentage %</td> *@
+
+            </tr>
+
+        </table>
+
+        <hr />
+
+        <!-- Warning -->
+
+        <h5 class="text-primary">Warning Details</h5>
+
+        <table class="table table-bordered">
+
+            <tr>
+
+                <th width="25%">Subject</th>
+
+                <td>@Model.Subject</td>
+
+            </tr>
+
+            <tr>
+
+                <th>Reason</th>
+
+                <td>@Model.Reason</td>
+
+            </tr>
+
+            <tr>
+
+                <th>Remarks</th>
+
+                <td>@Model.Remarks</td>
+
+            </tr>
+
+        </table>
+
+        <hr />
+
+        <!-- Upload Signed Copy -->
+
+        <h5 class="text-primary">Signed Warning Letter</h5>
+
+        <form asp-action="UploadWarningLetterDocument"
+              method="post"
+              enctype="multipart/form-data">
+
+            <input type="hidden"
+                   name="WarningId"
+                   value="@Model.WarningId" />
+
+            <div class="row">
+
+                <div class="col-md-8">
+
+                    <input type="file"
+                           name="file"
+                           accept=".pdf"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <button class="btn btn-warning">
+
+                        <i class="fa fa-upload"></i>
+
+                        Upload Signed Copy
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

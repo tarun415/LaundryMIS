@@ -1,0 +1,184 @@
+﻿@model LaudaryMis.ViewModels.GenerateWarningLetterVM
+
+@{
+    ViewData["Title"] = "Generate Warning Letter";
+}
+
+<div class="card shadow-sm">
+
+    <div class="card-header bg-warning text-dark">
+        <h4>Generate Warning Letter</h4>
+    </div>
+
+    <div class="card-body">
+
+        <form asp-action="GenerateWarningLetter" method="post">
+
+            @Html.AntiForgeryToken()
+
+            <input asp-for="PaymentId" type="hidden" />
+            <input asp-for="AgreementId" type="hidden" />
+            <input asp-for="HospitalId" type="hidden" />
+            <input asp-for="ProviderId" type="hidden" />
+
+            <div class="row">
+
+               @*  <div class="col-md-4 mb-3">
+                    <label>Agreement No</label>
+                    <input asp-for="AgreementNo"
+                           class="form-control"
+                           readonly />
+                </div> *@
+
+                <div class="col-md-4 mb-3">
+                    <label>Hospital</label>
+                    <input asp-for="HospitalName"
+                           class="form-control"
+                           readonly />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label>Provider</label>
+                    <input asp-for="ProviderName"
+                           class="form-control"
+                           readonly />
+                </div>
+
+            </div>
+
+            <hr />
+
+            <div class="row">
+
+                <div class="col-md-3 mb-3">
+                    <label>Month</label>
+                    <input asp-for="MonthNo"
+                           class="form-control"
+                           readonly />
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label>Year</label>
+                    <input asp-for="YearNo"
+                           class="form-control"
+                           readonly />
+                </div>
+               @*  <div class="col-md-3 mb-3">
+                    <label asp-for="Week"></label>
+
+                    <select asp-for="WarningLevel"
+                            class="form-control">
+
+                        <option value="">--Select--</option>
+
+                        <option>First Warning</option>
+
+                        <option>Second Warning</option>
+
+                        <option>Final Warning</option>
+
+                    </select>
+                </div> *@
+
+                <div class="col-md-3 mb-3">
+                    <label>Performance Score (%)</label>
+                    <input asp-for="PerformanceScore"
+                           class="form-control"
+                           readonly />
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label>Payment Percentage (%)</label>
+                    <input asp-for="PaymentPercentage"
+                           class="form-control"
+                           readonly />
+                </div>
+
+            </div>
+
+            <hr />
+
+            <div class="row">
+
+                <div class="col-md-4 mb-3">
+
+                    <label asp-for="WarningDate"></label>
+
+                    <input asp-for="WarningDate"
+                           type="date"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-4 mb-3">
+
+                    <label asp-for="WarningLevel"></label>
+
+                    <select asp-for="WarningLevel"
+                            class="form-control">
+
+                        <option value="">--Select--</option>
+
+                        <option>First Warning</option>
+
+                        <option>Second Warning</option>
+
+                        <option>Final Warning</option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="mb-3">
+
+                <label asp-for="Subject"></label>
+
+                <input asp-for="Subject"
+                       class="form-control"
+                       placeholder="Enter warning subject" />
+
+            </div>
+
+            <div class="mb-3">
+
+                <label asp-for="Reason"></label>
+
+                <textarea asp-for="Reason"
+                          class="form-control"
+                          rows="4"></textarea>
+
+            </div>
+
+            <div class="mb-3">
+
+                <label asp-for="Remarks"></label>
+
+                <textarea asp-for="Remarks"
+                          class="form-control"
+                          rows="3"></textarea>
+
+            </div>
+
+            <button type="submit"
+                    class="btn btn-warning">
+
+                <i class="fa fa-exclamation-triangle"></i>
+
+                Generate Warning Letter
+
+            </button>
+
+            <a asp-action="WarningLetterList"
+               class="btn btn-secondary">
+
+                Cancel
+
+            </a>
+
+        </form>
+
+    </div>
+
+</div>

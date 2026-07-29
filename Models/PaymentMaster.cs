@@ -52,5 +52,8 @@ namespace LaudaryMis.Models
 
         public bool InvoiceGenerated { get; set; }
         public int? InvoiceId { get; set; }
+
+        public bool WarningGenerated { get; set; } = false;
+        public int? WarningId { get; set; }
     }
 }
