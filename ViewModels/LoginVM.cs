@@ -1,4 +1,6 @@
-﻿namespace LaudaryMis.ViewModels
+﻿using LaudaryMis.Models;
+
+namespace LaudaryMis.ViewModels
 {
     public class LoginVM
     {
@@ -11,5 +13,11 @@
         public int? ProviderId { get; set; }
 
         public string Password { get; set; } = string.Empty;
+    }
+    public class LoginResult
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+        public User? User { get; set; }
     }
 }

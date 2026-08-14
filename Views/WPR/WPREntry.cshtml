@@ -51,7 +51,8 @@
                 <div class="g2">
                     <div class="form-group">
                         <label class="form-label">Month</label>
-                        <select name="Month" id="fMonth" class="form-control" onchange="loadWeeklyPerformance();">
+                        <select name="Month" id="fMonth" class="form-control"
+                                onchange="setWeeksByMonth();">
                             <option value="">Select Month</option>
                             <option value="1">January</option>
                             <option value="2">February</option>
@@ -67,8 +68,14 @@
                             <option value="12">December</option>
                         </select>
                     </div>
-
                     <div class="form-group">
+                        <label class="form-label">Week</label>
+                        <select name="Week" id="Week" class="form-control"
+                                onchange="loadWeeklyPerformance();">
+                            <option value="">Select Week</option>
+                        </select>
+                    </div>
+                  @*   <div class="form-group">
                         <label class="form-label">Week</label>
                         <select name="Week" id="Week" class="form-control" onchange="loadWeeklyPerformance();">
                             <option value="">Select Week</option>
@@ -78,13 +85,20 @@
                             <option value="4">Week 4</option>
                             <option value="5">Week 5</option>
                         </select>
-                    </div>
+                    </div> *@
                 </div>
 
                 <div class="g2">
-                    <div class="form-group">
+                   @*  <div class="form-group">
                         <label class="form-label">Year</label>
                         <input name="Year" id="fYear" class="form-control" readonly />
+                    </div> *@
+                    <div class="form-group">
+                        <label class="form-label">Year</label>
+                        <select name="Year" id="fYear" class="form-control"
+                                onchange="setWeeksByMonth();">
+                            <option value="">Select Year</option>
+                        </select>
                     </div>
                  @*    <div class="form-group">
                         <label class="form-label">Staff Name</label>
@@ -167,6 +181,42 @@
 
 @section Scripts {
     <script>
+                        function setWeeksByMonth() {
+
+            const month = parseInt(document.getElementById("fMonth").value);
+            const year = parseInt(document.getElementById("fYear").value);
+
+            const weekDropdown = document.getElementById("Week");
+
+            // Clear existing weeks
+            weekDropdown.innerHTML = '<option value="">Select Week</option>';
+
+            if (!month || !year) {
+                return;
+            }
+
+            // Get number of days in selected month
+            const daysInMonth = new Date(year, month, 0).getDate();
+
+            // Calculate number of weeks
+            const numberOfWeeks = Math.ceil(daysInMonth / 7);
+
+            // Populate weeks
+            for (let week = 1; week <= numberOfWeeks; week++) {
+
+                const option = document.createElement("option");
+
+                option.value = week;
+                option.textContent = "Week " + week;
+
+                weekDropdown.appendChild(option);
+            }
+
+            // Select Week 1 by default
+            weekDropdown.value = "1";
+
+            loadWeeklyPerformance();
+        }
         // -----------------------
         // Constants and small helpers
         // -----------------------
@@ -177,12 +227,43 @@
         ];
 
         // init month/year/week defaults
-        (function initDateDefaults() {
+               (function initDateDefaults() {
+
             const now = new Date();
-            document.getElementById("fMonth").value = now.getMonth() + 1;
-            document.getElementById("fYear").value = now.getFullYear();
-            document.getElementById("Week").value = Math.min(Math.ceil(now.getDate() / 7), 5);
+            const currentYear = now.getFullYear();
+
+            // Current month
+            document.getElementById("fMonth").value =
+                now.getMonth() + 1;
+
+            // Current year + next 5 years
+            const yearDropdown =
+                document.getElementById("fYear");
+
+            for (let i = 0; i <= 5; i++) {
+
+                const year = currentYear + i;
+
+                const option = document.createElement("option");
+
+                option.value = year;
+                option.textContent = year;
+
+                yearDropdown.appendChild(option);
+            }
+
+            // Select current year
+            yearDropdown.value = currentYear;
+
+            // Set weeks according to selected month
+            setWeeksByMonth();
+
         })();
+
+
+
+
+
 
         // -----------------------
         // Agreement fetch (populates HospitalId, ProviderId, StaffName, Hospital display)
