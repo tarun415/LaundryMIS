@@ -1,156 +1,105 @@
-﻿@model List<LaudaryMis.ViewModels.PendingLinenReportVM>
+@model List<LaudaryMis.ViewModels.PendingLinenReportVM>
 
-<div class="container-fluid mt-4">
+@{
+    ViewBag.Title = "Pending Linen Report";
 
-    <div class="card shadow border-0">
+    var totalPending = Model?.Sum(x => x.PendingQty) ?? 0;
+    var overdue = Model?.Count(x => x.PendingDays > 7) ?? 0;
+}
 
-        <div class="card-header bg-danger text-white">
+<div class="page-header">
+    <div class="ph-icon" style="background: linear-gradient(135deg, var(--danger), #7d1a14);">
+        <i class="fa-solid fa-hourglass-half"></i>
+    </div>
+    <div class="ph-text">
+        <h1>Pending Linen Report</h1>
+        <p class="ph-sub">
+            @totalPending.ToString("N0") items pending
+            @if (overdue > 0)
+            {
+                <span class="text-danger fw-bold">&middot; @overdue pickup(s) overdue beyond 7 days</span>
+            }
+        </p>
+    </div>
+</div>
 
-            <h4 class="mb-0">
-                Pending Linen Report
-            </h4>
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="reportTable" class="table table-hover align-middle w-100">
 
-        </div>
-
-        <div class="card-body">
-
-            <table id="reportTable"
-                   class="table table-bordered table-hover">
-
-                <thead class="table-light">
-
+                <thead>
                     <tr>
-
-                        <th>Pickup No</th>
-
-                        <th>Hospital</th>
-
-                        <th>Ward</th>
-
-                        <th>Pickup Date</th>
-
-                        <th>Collected Qty</th>
-
-                        <th>Delivered Qty</th>
-
-                        <th>Pending Qty</th>
-
-                        <th>Pending Days</th>
-
-                        <th>Status</th>
-
+                        <th data-priority="1">Pickup No</th>
+                        <th data-priority="3">Hospital</th>
+                        <th data-priority="5">Ward</th>
+                        <th data-priority="6">Pickup Date</th>
+                        <th data-priority="7" class="text-end">Collected</th>
+                        <th data-priority="7" class="text-end">Delivered</th>
+                        <th data-priority="2" class="text-end">Pending</th>
+                        <th data-priority="2">Pending Days</th>
+                        <th data-priority="4">Status</th>
                     </tr>
-
                 </thead>
 
                 <tbody>
-
                     @foreach (var item in Model)
                     {
                         <tr>
+                            <td class="fw-semibold text-teal">@item.PickupNo</td>
+                            <td>@item.HospitalName</td>
+                            <td>@item.WardName</td>
+                            <td class="nowrap">@item.PickupDate.ToString("dd MMM yyyy")</td>
+
+                            <td class="text-end fw-bold">@item.TotalCollectedQty</td>
+                            <td class="text-end fw-bold text-success">@item.TotalDeliveredQty</td>
+                            <td class="text-end fw-bold text-danger">@item.PendingQty</td>
 
                             <td>
-                                @item.PickupNo
-                            </td>
-
-                            <td>
-                                @item.HospitalName
-                            </td>
-
-                            <td>
-                                @item.WardName
-                            </td>
-
-                            <td>
-                                @item.PickupDate.ToString("dd MMM yyyy")
-                            </td>
-
-                            <td class="fw-bold">
-                                @item.TotalCollectedQty
-                            </td>
-
-                            <td class="text-success fw-bold">
-                                @item.TotalDeliveredQty
-                            </td>
-
-                            <td class="text-danger fw-bold">
-                                @item.PendingQty
-                            </td>
-
-                            <td>
-
                                 @if (item.PendingDays > 7)
                                 {
-                                    <span class="badge bg-danger">
-                                        @item.PendingDays Days
+                                    <span class="badge badge-danger">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> @item.PendingDays Days
                                     </span>
                                 }
                                 else if (item.PendingDays >= 3)
                                 {
-                                    <span class="badge bg-warning text-dark">
-                                        @item.PendingDays Days
-                                    </span>
+                                    <span class="badge badge-warn">@item.PendingDays Days</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-success">
-                                        @item.PendingDays Days
-                                    </span>
+                                    <span class="badge badge-ok">@item.PendingDays Days</span>
                                 }
-
                             </td>
 
                             <td>
-
                                 @if (item.Status == "Partial Delivered")
                                 {
-                                    <span class="badge bg-warning text-dark">
-                                        Partial Delivered
-                                    </span>
+                                    <span class="badge badge-warn">Partial Delivered</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">
-                                        @item.Status
-                                    </span>
+                                    <span class="badge badge-navy">@item.Status</span>
                                 }
-
                             </td>
 
                         </tr>
                     }
-
                 </tbody>
 
             </table>
-
         </div>
-
     </div>
-
 </div>
 
-@section Scripts
-{
+@section Scripts {
     <script>
-
-        $(function(){
-
-            $('#reportTable').DataTable({
-
-                pageLength:25,
-
-                dom:'Bfrtip',
-
-                buttons:[
-                    'copy',
-                    'excel',
-                    'pdf',
-                    'print'
-                ]
+        $(function () {
+            LMIS.initTable('#reportTable', {
+                exportTitle: 'Pending Linen Report',
+                pageLength: 25,
+                order: [[7, 'desc']]
             });
-
         });
-
     </script>
 }

@@ -1,141 +1,76 @@
-﻿@model IEnumerable<dynamic>
+@model IEnumerable<dynamic>
 
-<style>
-    .btn-primary {
-        background: linear-gradient(135deg, #3b82f6, #1e40af);
-        border: none;
-        color: #fff;
-        font-weight: 500;
-    }
+@{
+    ViewBag.Title = "Pending Deliveries";
+}
 
-    .dt-buttons {
-        display: flex;
-        gap: 6px;
-    }
-
-        .dt-buttons .btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff !important;
-            border: none;
-        }
-
-    .buttons-copy {
-        background: #6c757d !important;
-    }
-
-    .buttons-excel {
-        background: #198754 !important;
-    }
-
-    .buttons-pdf {
-        background: #dc3545 !important;
-    }
-
-    .buttons-print {
-        background: #0d6efd !important;
-    }
-
-    .dataTables_filter input {
-        border-radius: 20px;
-        padding: 5px 10px;
-    }
-</style>
-
-<div class="container mt-4">
-
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold">🚚 Pending Deliveries</h4>
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+    <div class="ph-text">
+        <h1>Pending Deliveries</h1>
+        <p class="ph-sub">Entries still awaiting clean linen delivery</p>
     </div>
+</div>
 
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body">
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="deliveryTable" class="table table-hover align-middle w-100">
 
-            <div class="table-responsive">
-                <table id="deliveryTable" class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th data-priority="2">Date</th>
+                        <th data-priority="1">Hospital</th>
+                        <th data-priority="3">Status</th>
+                        <th data-priority="1" class="no-sort text-end">Action</th>
+                    </tr>
+                </thead>
 
-                    <thead class="table-light">
+                <tbody>
+                    @foreach (var item in Model)
+                    {
                         <tr>
-                            <th>Date</th>
-                            <th>Hospital</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <td class="nowrap">@Convert.ToDateTime(item.EntryDate).ToString("dd MMM yyyy")</td>
+                            <td class="fw-semibold">@item.HospitalName</td>
+
+                            <td>
+                                @if (item.Status == "Delivered")
+                                {
+                                    <span class="badge badge-ok">Delivered</span>
+                                }
+                                else if (item.Status == "Partial")
+                                {
+                                    <span class="badge badge-warn">Partial</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger">Pending</span>
+                                }
+                            </td>
+
+                            <td class="text-end">
+                                <a href="/Provider/Deliver/@item.EntryId" class="btn btn-sm btn-success">
+                                    <i class="fa-solid fa-truck"></i> Deliver
+                                </a>
+                            </td>
                         </tr>
-                    </thead>
+                    }
+                </tbody>
 
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@Convert.ToDateTime(item.EntryDate).ToString("dd MMM yyyy")</td>
-                                <td class="fw-semibold">@item.HospitalName</td>
-
-                                <!-- STATUS -->
-                                <td>
-                                    @if (item.Status == "Delivered")
-                                    {
-                                        <span class="badge bg-success">Delivered</span>
-                                    }
-                                    else if (item.Status == "Partial")
-                                    {
-                                        <span class="badge bg-warning text-dark">Partial</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">Pending</span>
-                                    }
-                                </td>
-
-                                <!-- ACTION -->
-                                <td>
-                                    <a href="/Provider/Deliver/@item.EntryId"
-                                       class="btn btn-sm btn-success rounded-pill px-3">
-                                        <i class="fa fa-truck"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-
-                </table>
-            </div>
-
+            </table>
         </div>
     </div>
-
 </div>
 
 @section Scripts {
     <script>
-        $(document).ready(function () {
-
-            $('#deliveryTable').DataTable({
-                pageLength: 10,
-                responsive: true,
-
-                dom:
-                    "<'row mb-2 align-items-center'<'col-md-4'l><'col-md-8 d-flex justify-content-end gap-2'Bf>>" +
-                    "<'row'<'col-12'tr>>" +
-                    "<'row mt-2'<'col-md-5'i><'col-md-7 text-end'p>>",
-
-                buttons: [
-                    { extend: 'copy', className: 'btn buttons-copy', text: '📋' },
-                    { extend: 'excel', className: 'btn buttons-excel', text: '📊' },
-                    { extend: 'pdf', className: 'btn buttons-pdf', text: '📄' },
-                    { extend: 'print', className: 'btn buttons-print', text: '🖨️' }
-                ],
-
-                language: {
-                    search: "",
-                    searchPlaceholder: "🔍 Search deliveries..."
-                }
+        $(function () {
+            LMIS.initTable('#deliveryTable', {
+                exportTitle: 'Pending Deliveries',
+                columnDefs: [
+                    { targets: 'no-sort', orderable: false }
+                ]
             });
-
         });
     </script>
 }

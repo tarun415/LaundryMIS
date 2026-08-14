@@ -1,335 +1,133 @@
-﻿@model List<LaudaryMis.Models.InvoiceMaster>
+@model List<LaudaryMis.Models.InvoiceMaster>
 
 @{
     ViewData["Title"] = "Invoice List";
+    var total = Model?.Count ?? 0;
+    var netTotal = Model?.Sum(i => i.NetPayable) ?? 0m;
 }
 
-
-
-<div class="container-fluid mt-3">
-
-    <div class="card shadow">
-
-        <div class="card-header bg-primary text-white">
-
-            <div class="d-flex justify-content-between">
-
-                <h4 class="mb-0">
-
-                    <i class="fa fa-file-invoice"></i>
-
-                    Invoice Management
-
-                </h4>
-
-            </div>
-
-        </div>
-
-        <div class="card-body">
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-file-invoice"></i></div>
+    <div class="ph-text">
+        <h1>Invoice Management</h1>
+        <p class="ph-sub">@total invoice@(total == 1 ? "" : "s") &middot; ₹@netTotal.ToString("N2") net payable</p>
+    </div>
+</div>
 
 @if (TempData["Success"] != null)
 {
-                <div class="alert alert-success">
-
-                    @TempData["Success"]
-
-                </div>
+    <div class="alert alert-success" data-auto-dismiss>
+        <i class="fa-solid fa-circle-check"></i>
+        <span>@TempData["Success"]</span>
+    </div>
 }
 
 @if (TempData["Error"] != null)
 {
-                <div class="alert alert-danger">
-
-                    @TempData["Error"]
-
-                </div>
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>@TempData["Error"]</span>
+    </div>
 }
 
-            <form asp-action="InvoiceList"
-                  method="get">
-
-                <div class="row">
-
-                    <div class="col-md-3">
-
-                        <label>Month</label>
-
-                        <select class="form-control"
-                                name="monthNo">
-
-                            <option value="">All</option>
-
-                            @for (int i = 1; i <= 12; i++)
-                            {
-                                <option value="@i">
-
-                                    @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)
-
-                                </option>
-                            }
-
-                        </select>
-
-                    </div>
-
-                    <div class="col-md-3">
-
-                        <label>Year</label>
-
-                        <input type="number"
-                               class="form-control"
-                               name="yearNo"
-                               value="@DateTime.Now.Year" />
-
-                    </div>
-
-                  @*   <div class="col-md-3">
-
-                        <label>Status</label>
-
-                        <select class="form-control"
-                                name="status">
-
-                            <option value="">All</option>
-
-                            <option>Generated</option>
-
-                            <option>Approved</option>
-
-                            <option>Rejected</option>
-
-                            <option>Paid</option>
-
-                        </select>
-
-                    </div> *@
-
-                    <div class="col-md-3">
-
-                        <label>&nbsp;</label>
-
-                        <button class="btn btn-primary btn-block">
-
-                            <i class="fa fa-search"></i>
-
-                            Search
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </form>
-
-            <hr />
-
-            <div class="table-responsive">
-
-                <table id="tblInvoice"
-                       class="table table-bordered table-striped table-hover">
-
-                    <thead class="thead-dark">
-
-                        <tr>
-
-                            <th>Invoice No</th>
-
-                            <th>Hospital</th>
-
-                            <th>Provider</th>
-
-                            <th>Month</th>
-
-                            <th>Invoice Amount</th>
-
-                            <th>Net Payable</th>
-
-                           @*  <th>Status</th> *@
-
-                            <th width="220">
-
-                                Action
-
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-                        @if (Model != null && Model.Any())
-                        {
-                            foreach (var item in Model)
-                            {
-                                <tr>
-
-                                    <td>
-                                        <strong>@item.InvoiceNo</strong>
-                                    </td>
-
-                                    <td>
-                                        @item.HospitalName
-                                    </td>
-
-                                    <td>
-                                        @item.ProviderName
-                                    </td>
-
-                                    <td>
-                                        @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.InvoiceMonth)
-                                        -
-                                        @item.InvoiceYear
-                                    </td>
-
-                                    <td class="text-end">
-                                        ₹ @item.InvoiceAmount.ToString("N2")
-                                    </td>
-
-                                    <td class="text-end">
-                                        ₹ @item.NetPayable.ToString("N2")
-                                    </td>
-
-                                 @*    <td>
-
-                                        @if (item.Status == "Generated")
-                                        {
-                                            <span class="badge badge-warning">
-                                                Generated
-                                            </span>
-                                        }
-                                        else if (item.Status == "Approved")
-                                        {
-                                            <span class="badge badge-success">
-                                                Approved
-                                            </span>
-                                        }
-                                        else if (item.Status == "Rejected")
-                                        {
-                                            <span class="badge badge-danger">
-                                                Rejected
-                                            </span>
-                                        }
-                                        else if (item.Status == "Paid")
-                                        {
-                                            <span class="badge badge-primary">
-                                                Paid
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge badge-secondary">
-                                                @item.Status
-                                            </span>
-                                        }
-
-                                    </td> *@
-
-                                    <td>
-
-                                        <!-- Preview -->
-                                        <a asp-action="PreviewInvoice"
-                                           asp-route-invoiceId="@item.InvoiceId"
-                                           class="btn btn-info btn-sm"
-                                           target="_blank">
-                                            <i class="fa fa-eye"></i>
-                                        </a>
-
-                                        <!-- Download -->
-                                        <a asp-action="DownloadInvoice"
-                                           asp-route-invoiceId="@item.InvoiceId"
-                                           class="btn btn-success btn-sm">
-                                            <i class="fa fa-download"></i>
-                                        </a>
-
-                                        <!-- Upload -->
-                                   @*      <a asp-action="UploadInvoiceDocument"
-                                           asp-route-invoiceId="@item.InvoiceId"
-                                           class="btn btn-secondary btn-sm">
-                                            <i class="fa fa-upload"></i>
-                                        </a> *@
-
-                                    </td>
-
-                                </tr>
-                            }
-                        }
-                        else
+<!-- FILTER -->
+<form asp-action="InvoiceList" method="get">
+    <div class="filter-bar">
+
+        <div class="filter-field">
+            <label class="form-label" for="monthNo">Month</label>
+            <select class="form-select" name="monthNo" id="monthNo">
+                <option value="">All</option>
+                @for (int i = 1; i <= 12; i++)
+                {
+                    <option value="@i">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-field">
+            <label class="form-label" for="yearNo">Year</label>
+            <input type="number" class="form-control" name="yearNo" id="yearNo" value="@DateTime.Now.Year" />
+        </div>
+
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+        </div>
+
+    </div>
+</form>
+
+<!-- TABLE -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="tblInvoice" class="table table-hover align-middle w-100">
+
+                <thead>
+                    <tr>
+                        <th data-priority="1">Invoice No</th>
+                        <th data-priority="3">Hospital</th>
+                        <th data-priority="4">Provider</th>
+                        <th data-priority="5">Month</th>
+                        <th data-priority="6" class="text-end">Invoice Amount</th>
+                        <th data-priority="2" class="text-end">Net Payable</th>
+                        <th data-priority="1" class="no-sort text-end">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (var item in Model)
                         {
                             <tr>
+                                <td class="fw-semibold text-teal">@item.InvoiceNo</td>
+                                <td>@item.HospitalName</td>
+                                <td>@item.ProviderName</td>
+                                <td class="nowrap">
+                                    @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.InvoiceMonth) @item.InvoiceYear
+                                </td>
+                                <td class="text-end nowrap">₹ @item.InvoiceAmount.ToString("N2")</td>
+                                <td class="text-end nowrap fw-bold">₹ @item.NetPayable.ToString("N2")</td>
 
-                                <td colspan="8"
-                                    class="text-center text-danger">
-
-                                    No Invoice Found
-
+                                <td class="text-end">
+                                    <div class="action-group justify-content-end">
+                                        <a asp-action="PreviewInvoice" asp-route-invoiceId="@item.InvoiceId"
+                                           class="btn btn-sm btn-icon btn-outline-primary"
+                                           target="_blank" rel="noopener"
+                                           data-bs-toggle="tooltip" title="Preview">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        <a asp-action="DownloadInvoice" asp-route-invoiceId="@item.InvoiceId"
+                                           class="btn btn-sm btn-icon btn-outline-success"
+                                           data-bs-toggle="tooltip" title="Download">
+                                            <i class="fa-solid fa-download"></i>
+                                        </a>
+                                    </div>
                                 </td>
 
                             </tr>
                         }
+                    }
+                </tbody>
 
-                    </tbody>
-
-                </table>
-
-            </div>
+            </table>
         </div>
-
     </div>
-
 </div>
 
-@section Scripts {   
-
+@section Scripts {
     <script>
-        $(document).ready(function () {
-
-            $('#tblInvoice').DataTable({
-
-                responsive: true,
-
-                processing: true,
-
-                pageLength: 10,
-
-                lengthMenu: [[10, 25, 50, 100, -1],
-                             [10, 25, 50, 100, "All"]],
-
-                order: [[0, "desc"]],
-
-                dom: 'Bfrtip',
-
-                buttons: [
-
-                    {
-                        extend: 'copy',
-                        className: 'btn btn-secondary btn-sm'
-                    },
-
-                    {
-                        extend: 'excel',
-                        className: 'btn btn-success btn-sm',
-                        title: 'Invoice List'
-                    },
-
-                    {
-                        extend: 'pdf',
-                        className: 'btn btn-danger btn-sm',
-                        title: 'Invoice List'
-                    },
-
-                    {
-                        extend: 'print',
-                        className: 'btn btn-primary btn-sm',
-                        title: 'Invoice List'
-                    }
-
+        $(function () {
+            LMIS.initTable('#tblInvoice', {
+                exportTitle: 'Invoice List',
+                order: [[0, 'desc']],
+                columnDefs: [
+                    { targets: 'no-sort', orderable: false }
                 ]
-
             });
-
         });
     </script>
-
 }

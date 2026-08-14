@@ -1,44 +1,64 @@
-﻿@model LaudaryMis.ViewModels.WardVM
+@model LaudaryMis.ViewModels.WardVM
 
-<div class="main-container mt-2">
+@{
+    var isEdit = Model != null && Model.WardId > 0;
+    ViewBag.Title = isEdit ? "Edit Ward" : "Add Ward";
+}
 
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body">
-
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                @(Model == null || Model.WardId == 0 ? "➕ Add Ward" : "✏️ Edit Ward")
-
-                <a href="/Admin/Wards" class="btn btn-outline-secondary rounded-pill px-3">
-                    ← Back to List
-                </a>
-            </div>
-
-            <!-- Form -->
-            <form asp-action="CreateWard" asp-controller="Admin" method="post">
-                <input type="hidden" asp-for="WardId" />
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Ward Name</label>
-                        <input asp-for="WardName" class="form-control" placeholder="Enter ward name" />
-                    </div>
-                </div>
-
-                <!-- Buttons -->
-                <div class="d-flex justify-content-end gap-2 mt-3">
-                    <a href="/Admin/Wards" class="btn btn-light border rounded-pill px-4">
-                        Cancel
-                    </a>
-
-
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">
-                        @(Model == null || Model.WardId == 0 ? "💾 Save" : "✏️ Update")
-                    </button>
-                </div>
-
-            </form>
-
-        </div>
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-bed"></i></div>
+    <div class="ph-text">
+        <h1>@(isEdit ? "Edit Ward" : "Add Ward")</h1>
+        <p class="ph-sub">@(isEdit ? "Rename this ward" : "Add a ward to the master list")</p>
+    </div>
+    <div class="ph-actions">
+        <a href="/Admin/Wards" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
     </div>
 </div>
+
+<div class="card">
+    <div class="card-header">
+        <i class="fa-solid fa-circle-info text-teal"></i>
+        <span class="card-title">Ward Details</span>
+    </div>
+
+    <div class="card-body">
+
+        <form id="wardForm" asp-action="CreateWard" asp-controller="Admin" method="post" novalidate>
+            <input type="hidden" asp-for="WardId" />
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="WardName">Ward Name <span class="text-danger">*</span></label>
+                    <input asp-for="WardName" class="form-control" placeholder="Enter ward name" />
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
+                <a href="/Admin/Wards" class="btn btn-light">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid @(isEdit ? "fa-pen" : "fa-floppy-disk")"></i>
+                    @(isEdit ? "Update Ward" : "Save Ward")
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('#wardForm').on('submit', function (e) {
+                var name = $('#WardName').val();
+                if (!name || name.trim() === '') {
+                    e.preventDefault();
+                    LMIS.alert('Missing information', 'Ward Name is required.', 'warning');
+                }
+            });
+        });
+    </script>
+}

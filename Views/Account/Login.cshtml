@@ -1,144 +1,165 @@
-﻿@model LaudaryMis.ViewModels.LoginVM
+@model LaudaryMis.ViewModels.LoginVM
 @{
     Layout = null;
 }
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Laundry MIS Login</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1f3a" />
+    <title>Sign In &middot; Laundry MIS</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
 
     <style>
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at 20% 30%, #1c3b57, #0f2a44);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .container {
-            width: 380px;
-            background: #f9fbfc;
-            padding: 30px;
-            border-radius: 18px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-            text-align: center;
-        }
-
-        .role-container {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .role {
-            flex: 1;
-            padding: 12px;
-            border-radius: 12px;
-            border: 2px solid #dce3e8;
-            cursor: pointer;
-        }
-
-            .role.active {
-                border-color: #0c6b75;
-                background: #e6f3f5;
-            }
-
-        .label {
-            text-align: left;
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid #ccd6dd;
-            margin-top: 5px;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 20px;
-            border-radius: 12px;
-            background: #0c6b75;
-            color: white;
+        /* Password field affordance — only needed on this page */
+        .pwd-wrap { position: relative; }
+        .pwd-wrap input { padding-right: 42px; }
+        .pwd-toggle {
+            position: absolute;
+            top: 50%;
+            right: 6px;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
             border: none;
+            background: transparent;
+            color: var(--ink-3);
+            cursor: pointer;
+            border-radius: var(--r-sm);
         }
+        .pwd-toggle:hover { color: var(--teal-700); background: var(--surface-3); }
 
-        .error {
-            color: red;
-            font-size: 12px;
+        .login-foot {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid var(--line);
+            text-align: center;
+            font-size: .7rem;
+            color: var(--ink-3);
+            letter-spacing: .04em;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="container">
+    <div class="login-page">
 
-        <h2>Laundry MIS</h2>
+        <div class="login-box">
 
-        <form method="post" asp-action="Login">
-
-            @Html.AntiForgeryToken()
-
-            <!-- ROLE -->
-            <div class="role-container">
-                <div class="role active" onclick="setRole(1,this)">Admin</div>
-                <div class="role" onclick="setRole(2,this)">Hospital</div>
-                <div class="role" onclick="setRole(3,this)">Provider</div>
+            <div class="login-logo">
+                <div class="emblem"><i class="fa-solid fa-shirt"></i></div>
+                <h1>DGMH UP &middot; Laundry MIS</h1>
+                <p>Mechanized Laundry Services</p>
             </div>
 
-            <input type="hidden" id="RoleId" name="RoleId" value="1" />
+            <form method="post" asp-action="Login" id="loginForm" novalidate>
 
-            <!-- ADMIN -->
-            <div id="adminFields">
-                <div class="label">Username</div>
-                <input type="text" name="Username" />
+                @Html.AntiForgeryToken()
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="login-err">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i>
+                        @Html.ValidationSummary(false, "", new { @class = "d-inline" })
+                    </div>
+                }
+
+                <!-- ROLE SELECTOR -->
+                <div class="role-selector" role="radiogroup" aria-label="Sign in as">
+
+                    <div class="role-btn selected" role="radio" tabindex="0" aria-checked="true" onclick="setRole(1, this)">
+                        <div class="role-icon"><i class="fa-solid fa-user-shield"></i></div>
+                        <div class="role-label">Admin</div>
+                        <div class="role-sub">Directorate</div>
+                    </div>
+
+                    <div class="role-btn" role="radio" tabindex="0" aria-checked="false" onclick="setRole(2, this)">
+                        <div class="role-icon"><i class="fa-solid fa-hospital"></i></div>
+                        <div class="role-label">Hospital</div>
+                        <div class="role-sub">Facility</div>
+                    </div>
+
+                    <div class="role-btn" role="radio" tabindex="0" aria-checked="false" onclick="setRole(3, this)">
+                        <div class="role-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                        <div class="role-label">Provider</div>
+                        <div class="role-sub">Vendor</div>
+                    </div>
+
+                </div>
+
+                <input type="hidden" id="RoleId" name="RoleId" value="1" />
+
+                <!-- ADMIN -->
+                <div id="adminFields">
+                    <div class="login-field">
+                        <label for="Username">Username</label>
+                        <input type="text" id="Username" name="Username" autocomplete="username" placeholder="Enter your username" />
+                    </div>
+                </div>
+
+                <!-- HOSPITAL -->
+                <div id="hospitalFields" style="display:none;">
+                    <div class="login-field">
+                        <label for="DistrictId">District</label>
+                        <select id="DistrictId" name="DistrictId" onchange="loadHospitals(this.value)">
+                            <option value="">Select District</option>
+                        </select>
+                    </div>
+
+                    <div class="login-field">
+                        <label for="HospitalId">Hospital</label>
+                        <select id="HospitalId" name="HospitalId">
+                            <option value="">Select Hospital</option>
+                        </select>
+                        <div class="login-hint">Choose a district first to load its hospitals.</div>
+                    </div>
+                </div>
+
+                <!-- PROVIDER -->
+                <div id="providerFields" style="display:none;">
+                    <div class="login-field">
+                        <label for="ProviderId">Provider</label>
+                        <select id="ProviderId" name="ProviderId">
+                            <option value="">Select Provider</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- PASSWORD -->
+                <div class="login-field">
+                    <label for="Password">Password</label>
+                    <div class="pwd-wrap">
+                        <input type="password" id="Password" name="Password" autocomplete="current-password" placeholder="Enter your password" required />
+                        <button type="button" class="pwd-toggle" id="pwdToggle" aria-label="Show password">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <i class="fa-solid fa-right-to-bracket me-1"></i> Sign In
+                </button>
+
+            </form>
+
+            <div class="login-foot">
+                Directorate General of Medical &amp; Health Services, Uttar Pradesh
             </div>
 
-            <!-- HOSPITAL -->
-            <div id="hospitalFields" style="display:none;">
-                <div class="label">District</div>
-                <select id="DistrictId" name="DistrictId" onchange="loadHospitals(this.value)">
-                    <option value="">Select District</option>
-                </select>
+        </div>
 
-                <div class="label">Hospital</div>
-                <select id="HospitalId" name="HospitalId">
-                    <option value="">Select Hospital</option>
-                </select>
-            </div>
-
-            <!-- PROVIDER -->
-            <div id="providerFields" style="display:none;">
-                <div class="label">Provider</div>
-                <select id="ProviderId" name="ProviderId">
-                    <option value="">Select Provider</option>
-                </select>
-            </div>
-
-            <!-- COMMON PASSWORD -->
-            <div class="label">Password</div>
-            <input type="password" name="Password" required />
-
-            <button type="submit">Login</button>
-
-            <div class="error">
-                @Html.ValidationSummary()
-            </div>
-
-        </form>
     </div>
 
     <script>
@@ -150,15 +171,18 @@
 
             document.getElementById("RoleId").value = roleId;
 
-            document.querySelectorAll(".role").forEach(r => r.classList.remove("active"));
-            el.classList.add("active");
+            document.querySelectorAll(".role-btn").forEach(r => {
+                r.classList.remove("selected");
+                r.setAttribute("aria-checked", "false");
+            });
+            el.classList.add("selected");
+            el.setAttribute("aria-checked", "true");
 
-            // clear values
-            document.querySelectorAll("input, select").forEach(e => {
+            // Clear previously entered credentials when switching role
+            document.querySelectorAll("#loginForm input, #loginForm select").forEach(e => {
                 if (e.type !== "hidden") e.value = "";
             });
 
-            // hide all
             document.getElementById("adminFields").style.display = "none";
             document.getElementById("hospitalFields").style.display = "none";
             document.getElementById("providerFields").style.display = "none";
@@ -175,6 +199,16 @@
                 loadProviders();
             }
         }
+
+        // Keyboard support for the role radios
+        document.querySelectorAll(".role-btn").forEach(btn => {
+            btn.addEventListener("keydown", e => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    btn.click();
+                }
+            });
+        });
 
         function loadDistricts() {
             if (districtLoaded) return;
@@ -222,6 +256,23 @@
                     providerLoaded = true;
                 });
         }
+
+        // Password visibility
+        document.getElementById("pwdToggle").addEventListener("click", function () {
+            const input = document.getElementById("Password");
+            const icon = this.querySelector("i");
+            const show = input.type === "password";
+            input.type = show ? "text" : "password";
+            icon.className = show ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+            this.setAttribute("aria-label", show ? "Hide password" : "Show password");
+        });
+
+        // Prevent double submission
+        document.getElementById("loginForm").addEventListener("submit", function () {
+            const btn = document.getElementById("loginBtn");
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Signing in…';
+        });
 
     </script>
 

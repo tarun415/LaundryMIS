@@ -1,401 +1,198 @@
-﻿@model LaudaryMis.ViewModels.GenerateInvoiceVM
+@model LaudaryMis.ViewModels.GenerateInvoiceVM
 
 @{
     ViewData["Title"] = "Generate Invoice";
 }
 
-<div class="container-fluid mt-3">
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+    <div class="ph-text">
+        <h1>Generate Invoice</h1>
+        <p class="ph-sub">Raise an invoice against an approved payment</p>
+    </div>
+    <div class="ph-actions">
+        <a asp-action="InvoiceList" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
 
-    <div class="card shadow">
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" data-auto-dismiss>
+        <i class="fa-solid fa-circle-check"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
 
-        <div class="card-header bg-primary text-white">
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
 
-            <h4 class="mb-0">
+<form asp-action="GenerateInvoice" method="post">
 
-                <i class="fa fa-file-invoice"></i>
+    <input asp-for="PaymentId" type="hidden" />
+    <input asp-for="AgreementId" type="hidden" />
+    <input asp-for="ProviderId" type="hidden" />
+    <input asp-for="HospitalId" type="hidden" />
 
-                Generate Invoice
-
-            </h4>
-
+    <!-- REFERENCE -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="fa-solid fa-circle-info text-teal"></i>
+            <span class="card-title">Invoice Reference</span>
         </div>
 
         <div class="card-body">
+            <div class="row g-3">
 
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success">
-
-                    @TempData["Success"]
-
-                </div>
-            }
-
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger">
-
-                    @TempData["Error"]
-
-                </div>
-            }
-
-            <form asp-action="GenerateInvoice"
-                  method="post">
-
-                <input asp-for="PaymentId" type="hidden" />
-
-                <input asp-for="AgreementId" type="hidden" />
-
-                <input asp-for="ProviderId" type="hidden" />
-
-                <input asp-for="HospitalId" type="hidden" />
-
-                <div class="row">
-
-                    <div class="col-md-4">
-
-                        <label class="font-weight-bold">
-
-                            Payment No
-
-                        </label>
-
-                        <input asp-for="PaymentNo"
-                               class="form-control"
-                               readonly />
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <label class="font-weight-bold">
-
-                            Hospital
-
-                        </label>
-
-                        <input asp-for="HospitalName"
-                               class="form-control"
-                               readonly />
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <label class="font-weight-bold">
-
-                            Provider
-
-                        </label>
-
-                        <input asp-for="ProviderName"
-                               class="form-control"
-                               readonly />
-
-                    </div>
-
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label class="form-label" asp-for="PaymentNo">Payment No</label>
+                    <input asp-for="PaymentNo" class="form-control input-static" readonly />
                 </div>
 
-                <br />
-
-                <div class="row">
-
-                    <div class="col-md-3">
-
-                        <label class="font-weight-bold">
-
-                            Invoice Date
-
-                        </label>
-
-                        <input asp-for="InvoiceDate"
-                               type="date"
-                               class="form-control" />
-
-                    </div>
-
-                    <div class="col-md-3">
-
-                        <label class="font-weight-bold">
-
-                            Month
-
-                        </label>
-
-                        <input class="form-control"
-                               value="@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.MonthNo)"
-                               readonly />
-
-                    </div>
-
-                    <div class="col-md-3">
-
-                        <label class="font-weight-bold">
-
-                            Year
-
-                        </label>
-
-                        <input asp-for="YearNo"
-                               class="form-control"
-                               readonly />
-
-                    </div>
-
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label class="form-label" asp-for="HospitalName">Hospital</label>
+                    <input asp-for="HospitalName" class="form-control input-static" readonly />
                 </div>
 
-                <br />
-
-                <div class="card border-info">
-
-                    <div class="card-header bg-info text-white">
-
-                        <strong>
-
-                            Payment Summary
-
-                        </strong>
-
-                    </div>
-
-                    <div class="card-body">
-                        <div class="row">
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    Sanctioned Beds
-                                </label>
-
-                                <input asp-for="SanctionedBeds"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    No of Operational Bed
-                                </label>
-
-                                <input asp-for="BedOccupancy"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    Rate Per Bed
-                                </label>
-
-                                <input asp-for="RatePerBed"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    Monthly Bill
-                                </label>
-
-                                <input asp-for="MonthlyBill"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                        </div>
-
-                        <br />
-
-                        <div class="row">
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    Average Score
-                                </label>
-
-                                <input asp-for="AverageScore"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    Payment %
-                                </label>
-
-                                <input asp-for="PaymentPercentage"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    Gross Payable
-                                </label>
-
-                                <input asp-for="GrossPayable"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    GST %
-                                </label>
-
-                                <input asp-for="GSTPercentage"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                        </div>
-
-                        <br />
-
-                        <div class="row">
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    GST Amount
-                                </label>
-
-                                <input asp-for="GSTAmount"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    Invoice Amount
-                                </label>
-
-                                <input asp-for="InvoiceAmount"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    TDS %
-                                </label>
-
-                                <input asp-for="TDSPercentage"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <label class="font-weight-bold">
-                                    TDS Amount
-                                </label>
-
-                                <input asp-for="TDSAmount"
-                                       class="form-control"
-                                       readonly />
-
-                            </div>
-
-                        </div>
-
-                        <br />
-
-                        <div class="row">
-
-                            <div class="col-md-4">
-
-                                <label class="font-weight-bold text-success">
-                                    Net Payable
-                                </label>
-
-                                <input asp-for="NetPayable"
-                                       class="form-control font-weight-bold text-success"
-                                       readonly />
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label class="form-label" asp-for="ProviderName">Provider</label>
+                    <input asp-for="ProviderName" class="form-control input-static" readonly />
                 </div>
 
-                <br />
-                <div class="row">
-
-                    <div class="col-md-12">
-
-                        <label class="font-weight-bold">
-
-                            Remarks
-
-                        </label>
-
-                        <textarea asp-for="Remarks"
-                                  class="form-control"
-                                  rows="3"
-                                  placeholder="Enter Remarks (Optional)"></textarea>
-
-                    </div>
-
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label class="form-label" asp-for="InvoiceDate">Invoice Date</label>
+                    <input asp-for="InvoiceDate" type="date" class="form-control" />
                 </div>
 
-                <br />
-
-                <div class="text-center">
-
-                    <button type="submit"
-                            class="btn btn-success">
-
-                        <i class="fa fa-file-invoice"></i>
-
-                        Generate Invoice
-
-                    </button>
-
-                    <a asp-action="InvoiceList"
-                       class="btn btn-secondary">
-
-                        <i class="fa fa-arrow-left"></i>
-
-                        Back
-
-                    </a>
-
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label class="form-label" for="monthName">Month</label>
+                    <input id="monthName" class="form-control input-static" readonly
+                           value="@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.MonthNo)" />
                 </div>
 
-            </form>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label class="form-label" asp-for="YearNo">Year</label>
+                    <input asp-for="YearNo" class="form-control input-static" readonly />
+                </div>
 
+            </div>
         </div>
-
     </div>
 
-</div>
+    <!-- PAYMENT SUMMARY -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="fa-solid fa-calculator text-teal"></i>
+            <span class="card-title">Payment Summary</span>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="SanctionedBeds">Sanctioned Beds</label>
+                    <input asp-for="SanctionedBeds" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="BedOccupancy">Operational Beds</label>
+                    <input asp-for="BedOccupancy" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="RatePerBed">Rate Per Bed</label>
+                    <input asp-for="RatePerBed" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="MonthlyBill">Monthly Bill</label>
+                    <input asp-for="MonthlyBill" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="AverageScore">Average Score</label>
+                    <input asp-for="AverageScore" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="PaymentPercentage">Payment %</label>
+                    <input asp-for="PaymentPercentage" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="GrossPayable">Gross Payable</label>
+                    <input asp-for="GrossPayable" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="GSTPercentage">GST %</label>
+                    <input asp-for="GSTPercentage" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="GSTAmount">GST Amount</label>
+                    <input asp-for="GSTAmount" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="InvoiceAmount">Invoice Amount</label>
+                    <input asp-for="InvoiceAmount" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="TDSPercentage">TDS %</label>
+                    <input asp-for="TDSPercentage" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-4 col-xl-3">
+                    <label class="form-label" asp-for="TDSAmount">TDS Amount</label>
+                    <input asp-for="TDSAmount" class="form-control input-static" readonly />
+                </div>
+
+            </div>
+
+            <div class="row g-3 mt-1">
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="total-box d-flex align-items-center justify-content-between">
+                        <span><i class="fa-solid fa-indian-rupee-sign text-teal"></i> Net Payable</span>
+                        <span class="text-success">
+                            <input asp-for="NetPayable" readonly
+                                   class="border-0 bg-transparent text-end fw-bold text-success p-0"
+                                   style="max-width: 160px;" />
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- REMARKS -->
+    <div class="card">
+        <div class="card-body">
+
+            <label class="form-label" asp-for="Remarks">Remarks</label>
+            <textarea asp-for="Remarks" class="form-control" rows="3"
+                      placeholder="Enter remarks (optional)"></textarea>
+
+            <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
+                <a asp-action="InvoiceList" class="btn btn-light">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-file-invoice"></i> Generate Invoice
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</form>
 
 @section Scripts {
-
     <partial name="_ValidationScriptsPartial" />
-
 }

@@ -1,44 +1,75 @@
-﻿@model IEnumerable<LaudaryMis.ViewModels.BillListItemVM>
+@model IEnumerable<LaudaryMis.ViewModels.BillListItemVM>
+
 @{
     ViewData["Title"] = "Monthly Bills";
+
+    var list = Model.ToList();
+    var draft = list.Count(x => x.Status == "Draft");
+    var subm  = list.Count(x => x.Status == "Submitted");
+    var appr  = list.Count(x => x.Status == "CMSApproved");
+    var rej   = list.Count(x => x.Status == "CMSRejected");
 }
 
-<style>
-    .page-header { background:linear-gradient(135deg,#1a3c5e,#2563a8); color:white; border-radius:12px; padding:20px 24px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; }
-    .stat-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:14px 18px; text-align:center; }
-    .stat-card .num { font-size:2rem; font-weight:800; }
-    .stat-card .lbl { font-size:.75rem; text-transform:uppercase; color:#6b7280; }
-    .filter-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:14px 18px; margin-bottom:18px; }
-    .table-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); padding:18px 20px; }
-</style>
-
 <div class="page-header">
-    <div>
-        <h4 class="mb-1">🧾 Monthly Bills</h4>
-        <p class="mb-0 opacity-75">Sab hospitals ke bills</p>
+    <div class="ph-icon"><i class="fa-solid fa-file-invoice"></i></div>
+    <div class="ph-text">
+        <h1>Monthly Bills</h1>
+        <p class="ph-sub">Sab hospitals ke bills</p>
     </div>
 </div>
 
-@{
-    var list = Model.ToList();
-    var draft   = list.Count(x => x.Status == "Draft");
-    var subm    = list.Count(x => x.Status == "Submitted");
-    var appr    = list.Count(x => x.Status == "CMSApproved");
-    var rej     = list.Count(x => x.Status == "CMSRejected");
-}
-
+<!-- STATUS SUMMARY -->
 <div class="row g-3 mb-3">
-    <div class="col-6 col-md-3"><div class="stat-card"><div class="num text-secondary">@draft</div><div class="lbl">Draft</div></div></div>
-    <div class="col-6 col-md-3"><div class="stat-card"><div class="num text-warning">@subm</div><div class="lbl">Pending CMS</div></div></div>
-    <div class="col-6 col-md-3"><div class="stat-card"><div class="num text-success">@appr</div><div class="lbl">Approved</div></div></div>
-    <div class="col-6 col-md-3"><div class="stat-card"><div class="num text-danger">@rej</div><div class="lbl">Rejected</div></div></div>
+
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-navy h-100">
+            <div class="card-icon"><i class="fa-solid fa-pen-ruler"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@draft</div>
+                <div class="stat-lbl">Draft</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-warn h-100">
+            <div class="card-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@subm</div>
+                <div class="stat-lbl">Pending CMS</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-ok h-100">
+            <div class="card-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@appr</div>
+                <div class="stat-lbl">Approved</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-danger h-100">
+            <div class="card-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@rej</div>
+                <div class="stat-lbl">Rejected</div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
+<!-- FILTER -->
 <form method="get" asp-action="Index">
-    <div class="filter-card d-flex gap-3 flex-wrap align-items-end">
-        <div>
-            <label class="form-label small fw-bold mb-1">Status</label>
-            <select name="status" class="form-select form-select-sm" style="min-width:140px">
+    <div class="filter-bar">
+
+        <div class="filter-field">
+            <label class="form-label" for="status">Status</label>
+            <select name="status" id="status" class="form-select">
                 <option value="">All</option>
                 <option value="Draft" selected="@(ViewBag.FilterStatus as string == "Draft")">Draft</option>
                 <option value="Submitted" selected="@(ViewBag.FilterStatus as string == "Submitted")">Submitted</option>
@@ -46,62 +77,101 @@
                 <option value="CMSRejected" selected="@(ViewBag.FilterStatus as string == "CMSRejected")">Rejected</option>
             </select>
         </div>
-        <div>
-            <button type="submit" class="btn btn-primary btn-sm">🔍 Filter</button>
-            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear</a>
+
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-filter"></i> Filter
+            </button>
+            <a asp-action="Index" class="btn btn-light">
+                <i class="fa-solid fa-rotate-left"></i> Clear
+            </a>
         </div>
+
     </div>
 </form>
 
-<div class="table-card">
-    <table id="tblBills" class="table table-hover mb-0">
-        <thead class="table-light">
-            <tr>
-                <th>Bill #</th>
-                <th>Hospital</th>
-                <th>District</th>
-                <th>Period</th>
-                <th>WPR Score</th>
-                <th>Band%</th>
-                <th class="text-end">Net Payable</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (!list.Any()) {
-                <tr><td colspan="9" class="text-center text-muted py-4">Koi bill nahi mila 📭</td></tr>
-            }
-            @foreach (var b in list) {
-                var sc = b.Status switch { "CMSApproved"=>"success","CMSRejected"=>"danger","Submitted"=>"warning",_=>"secondary" };
-                <tr>
-                    <td class="text-muted">#@b.BillId</td>
-                    <td class="fw-semibold">@b.HospitalName</td>
-                    <td>@b.District</td>
-                    <td>@b.MonthLabel</td>
-                    <td>
-                        @b.WPRAvgScore.ToString("N1")
-                        @if (b.IsScoreOverridden) { <span class="badge bg-warning ms-1" title="Override">✏️</span> }
-                    </td>
-                    <td><span class="badge bg-primary">@b.PaymentBandPercent%</span></td>
-                    <td class="text-end fw-bold">₹@b.NetPayableAmount.ToString("N0")</td>
-                    <td><span class="badge bg-@sc">@b.Status</span></td>
-                    <td>
-                        <a asp-action="Detail" asp-route-id="@b.BillId" class="btn btn-sm btn-outline-primary">View</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<!-- TABLE -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="tblBills" class="table table-hover align-middle w-100">
+
+                <thead>
+                    <tr>
+                        <th data-priority="5">Bill #</th>
+                        <th data-priority="1">Hospital</th>
+                        <th data-priority="6">District</th>
+                        <th data-priority="4">Period</th>
+                        <th data-priority="7" class="text-end">WPR Score</th>
+                        <th data-priority="8" class="text-center">Band %</th>
+                        <th data-priority="2" class="text-end">Net Payable</th>
+                        <th data-priority="3">Status</th>
+                        <th data-priority="1" class="no-sort text-end">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var b in list)
+                    {
+                        var badgeClass = b.Status switch
+                        {
+                            "CMSApproved" => "badge-ok",
+                            "CMSRejected" => "badge-danger",
+                            "Submitted" => "badge-warn",
+                            _ => "badge-navy"
+                        };
+
+                        <tr>
+                            <td class="text-muted">#@b.BillId</td>
+                            <td class="fw-semibold">@b.HospitalName</td>
+                            <td>@b.District</td>
+                            <td class="nowrap">@b.MonthLabel</td>
+
+                            <td class="text-end">
+                                @b.WPRAvgScore.ToString("N1")
+                                @if (b.IsScoreOverridden)
+                                {
+                                    <i class="fa-solid fa-pen-to-square text-warning ms-1"
+                                       data-bs-toggle="tooltip" title="Score overridden"></i>
+                                }
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge badge-teal">@b.PaymentBandPercent%</span>
+                            </td>
+
+                            <td class="text-end fw-bold nowrap">₹@b.NetPayableAmount.ToString("N0")</td>
+
+                            <td><span class="badge @badgeClass">@b.Status</span></td>
+
+                            <td class="text-end">
+                                <a asp-action="Detail" asp-route-id="@b.BillId" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa-solid fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-<script>
-    $(function() {
-        $('#tblBills').DataTable({
-            order:[[0,'desc']], pageLength:25,
-            language: { search:"Search:", info:"_START_–_END_ of _TOTAL_" }
+    <script>
+        $(function () {
+            LMIS.initTable('#tblBills', {
+                exportTitle: 'Monthly Bills',
+                order: [[0, 'desc']],
+                pageLength: 25,
+                columnDefs: [
+                    { targets: 'no-sort', orderable: false }
+                ],
+                language: {
+                    emptyTable: 'Koi bill nahi mila'
+                }
+            });
         });
-    });
-</script>
+    </script>
 }

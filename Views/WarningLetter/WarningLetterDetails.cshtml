@@ -1,218 +1,193 @@
-﻿@model LaudaryMis.Models.WarningLetterMaster
+@model LaudaryMis.Models.WarningLetterMaster
 
 @{
     ViewData["Title"] = "Warning Letter Details";
 }
-<style>
-    .table th {
-        background: none;
-        color:black;
-        padding: 10px;
-        font-size: 12px;
-    }
-</style>
-<div class="card shadow-sm">
 
-    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">
-            <i class="fa fa-exclamation-triangle"></i>
-            Warning Letter Details
-        </h4>
+<div class="page-header">
+    <div class="ph-icon" style="background: linear-gradient(135deg, var(--gold-500), var(--gold-600));">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <div class="ph-text">
+        <h1>Warning Letter Details</h1>
+        <p class="ph-sub">@Model.WarningNo &middot; @Model.WarningDate.ToString("dd MMM yyyy")</p>
+    </div>
+    <div class="ph-actions">
+        <a asp-action="PreviewWarningLetter" asp-route-warningId="@Model.WarningId"
+           class="btn btn-outline-primary" target="_blank" rel="noopener">
+            <i class="fa-solid fa-eye"></i> Preview
+        </a>
+        <a asp-action="DownloadWarningLetter" asp-route-warningId="@Model.WarningId"
+           class="btn btn-outline-success">
+            <i class="fa-solid fa-download"></i> Download
+        </a>
+        <a asp-action="WarningLetterList" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
 
-        <div>
+<div class="row g-3">
 
-            <a asp-action="PreviewWarningLetter"
-               asp-route-warningId="@Model.WarningId"
-               class="btn btn-info btn-sm"
-               target="_blank">
+    <!-- WARNING INFORMATION -->
+    <div class="col-12 col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fa-solid fa-circle-exclamation text-teal"></i>
+                <span class="card-title">Warning Information</span>
+            </div>
+            <div class="card-body">
 
-                <i class="fa fa-eye"></i>
-                Preview
+                <div class="info-row">
+                    <span class="info-k">Warning No</span>
+                    <span class="info-v">@Model.WarningNo</span>
+                </div>
 
-            </a>
+                <div class="info-row">
+                    <span class="info-k">Warning Date</span>
+                    <span class="info-v">@Model.WarningDate.ToString("dd MMM yyyy")</span>
+                </div>
 
-            <a asp-action="DownloadWarningLetter"
-               asp-route-warningId="@Model.WarningId"
-               class="btn btn-success btn-sm">
+                <div class="info-row">
+                    <span class="info-k">Status</span>
+                    <span class="info-v">
+                        @if (Model.Status == "Generated")
+                        {
+                            <span class="badge badge-info">@Model.Status</span>
+                        }
+                        else if (Model.Status == "Approved")
+                        {
+                            <span class="badge badge-ok">@Model.Status</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-navy">@Model.Status</span>
+                        }
+                    </span>
+                </div>
 
-                <i class="fa fa-download"></i>
-                Download
+                <div class="info-row">
+                    <span class="info-k">Warning Level</span>
+                    <span class="info-v"><span class="badge badge-warn">@Model.WarningLevel</span></span>
+                </div>
 
-            </a>
-
-            <a asp-action="WarningLetterList"
-               class="btn btn-secondary btn-sm">
-
-                <i class="fa fa-arrow-left"></i>
-                Back
-
-            </a>
-
+            </div>
         </div>
+    </div>
 
+    <!-- AGREEMENT INFORMATION -->
+    <div class="col-12 col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fa-solid fa-file-signature text-teal"></i>
+                <span class="card-title">Agreement Information</span>
+            </div>
+            <div class="card-body">
+
+                <div class="info-row">
+                    <span class="info-k">Agreement No</span>
+                    <span class="info-v">@Model.AgreementNo</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-k">Hospital</span>
+                    <span class="info-v">@Model.HospitalName</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-k">Provider</span>
+                    <span class="info-v">@Model.ProviderName</span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- PERFORMANCE -->
+    <div class="col-12 col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fa-solid fa-chart-line text-teal"></i>
+                <span class="card-title">Performance Details</span>
+            </div>
+            <div class="card-body">
+
+                <div class="info-row">
+                    <span class="info-k">Month</span>
+                    <span class="info-v">@Model.MonthNo</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-k">Year</span>
+                    <span class="info-v">@Model.YearNo</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-k">Performance Score</span>
+                    <span class="info-v">@Model.PerformanceScore %</span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- WARNING DETAILS -->
+    <div class="col-12 col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fa-solid fa-file-lines text-teal"></i>
+                <span class="card-title">Warning Details</span>
+            </div>
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <div class="stat-lbl mb-1">Subject</div>
+                    <div>@Model.Subject</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="stat-lbl mb-1">Reason</div>
+                    <div>@Model.Reason</div>
+                </div>
+
+                <div>
+                    <div class="stat-lbl mb-1">Remarks</div>
+                    <div>@(string.IsNullOrWhiteSpace(Model.Remarks) ? "—" : Model.Remarks)</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- SIGNED COPY -->
+<div class="card mt-3">
+    <div class="card-header">
+        <i class="fa-solid fa-file-signature text-teal"></i>
+        <span class="card-title">Signed Warning Letter</span>
     </div>
 
     <div class="card-body">
+        <form asp-action="UploadWarningLetterDocument" method="post" enctype="multipart/form-data">
 
-        <!-- Warning Information -->
+            <input type="hidden" name="WarningId" value="@Model.WarningId" />
 
-        <h5 class="text-primary">Warning Information</h5>
+            <div class="row g-3 align-items-end">
 
-        <table class="table table-bordered">
-
-            <tr>
-                <th width="25%">Warning No</th>
-                <td>@Model.WarningNo</td>
-
-                <th width="25%">Warning Date</th>
-                <td>@Model.WarningDate.ToString("dd-MMM-yyyy")</td>
-            </tr>
-
-            <tr>
-                <th>Status</th>
-                <td>@Model.Status</td>
-
-                <th>Warning Level</th>
-                <td>@Model.WarningLevel</td>
-            </tr>
-
-        </table>
-
-        <hr />
-
-        <!-- Agreement Information -->
-
-        <h5 class="text-primary">Agreement Information</h5>
-
-        <table class="table table-bordered">
-
-            <tr>
-
-                <th width="25%">Agreement No</th>
-                <td>@Model.AgreementNo</td>
-
-                <th width="25%">Agreement Date</th>
-               @*  <td>@Model.AgreementDate?.ToString("dd-MMM-yyyy")</td> *@
-
-            </tr>
-
-            <tr>
-
-                <th>Hospital</th>
-                <td>@Model.HospitalName</td>
-
-                <th>Provider</th>
-                <td>@Model.ProviderName</td>
-
-            </tr>
-
-        </table>
-
-        <hr />
-
-        <!-- Performance -->
-
-        <h5 class="text-primary">Performance Details</h5>
-
-        <table class="table table-bordered">
-
-            <tr>
-
-                <th width="25%">Month</th>
-                <td>@Model.MonthNo</td>
-
-                <th width="25%">Year</th>
-                <td>@Model.YearNo</td>
-
-            </tr>
-
-            <tr>
-
-                <th>Performance Score</th>
-                <td>@Model.PerformanceScore %</td>
-
-                <th>Payment Percentage</th>
-              @*   <td>@Model.PaymentPercentage %</td> *@
-
-            </tr>
-
-        </table>
-
-        <hr />
-
-        <!-- Warning -->
-
-        <h5 class="text-primary">Warning Details</h5>
-
-        <table class="table table-bordered">
-
-            <tr>
-
-                <th width="25%">Subject</th>
-
-                <td>@Model.Subject</td>
-
-            </tr>
-
-            <tr>
-
-                <th>Reason</th>
-
-                <td>@Model.Reason</td>
-
-            </tr>
-
-            <tr>
-
-                <th>Remarks</th>
-
-                <td>@Model.Remarks</td>
-
-            </tr>
-
-        </table>
-
-        <hr />
-
-        <!-- Upload Signed Copy -->
-
-        <h5 class="text-primary">Signed Warning Letter</h5>
-
-        <form asp-action="UploadWarningLetterDocument"
-              method="post"
-              enctype="multipart/form-data">
-
-            <input type="hidden"
-                   name="WarningId"
-                   value="@Model.WarningId" />
-
-            <div class="row">
-
-                <div class="col-md-8">
-
-                    <input type="file"
-                           name="file"
-                           accept=".pdf"
-                           class="form-control" />
-
+                <div class="col-12 col-md-8">
+                    <label class="form-label" for="file">Upload signed PDF</label>
+                    <input type="file" name="file" id="file" accept=".pdf" class="form-control" />
                 </div>
 
-                <div class="col-md-4">
-
-                    <button class="btn btn-warning">
-
-                        <i class="fa fa-upload"></i>
-
-                        Upload Signed Copy
-
+                <div class="col-12 col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fa-solid fa-upload"></i> Upload Signed Copy
                     </button>
-
                 </div>
 
             </div>
 
         </form>
-
     </div>
-
 </div>

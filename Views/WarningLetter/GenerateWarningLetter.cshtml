@@ -1,184 +1,129 @@
-﻿@model LaudaryMis.ViewModels.GenerateWarningLetterVM
+@model LaudaryMis.ViewModels.GenerateWarningLetterVM
 
 @{
     ViewData["Title"] = "Generate Warning Letter";
 }
 
-<div class="card shadow-sm">
-
-    <div class="card-header bg-warning text-dark">
-        <h4>Generate Warning Letter</h4>
+<div class="page-header">
+    <div class="ph-icon" style="background: linear-gradient(135deg, var(--gold-500), var(--gold-600));">
+        <i class="fa-solid fa-triangle-exclamation"></i>
     </div>
-
-    <div class="card-body">
-
-        <form asp-action="GenerateWarningLetter" method="post">
-
-            @Html.AntiForgeryToken()
-
-            <input asp-for="PaymentId" type="hidden" />
-            <input asp-for="AgreementId" type="hidden" />
-            <input asp-for="HospitalId" type="hidden" />
-            <input asp-for="ProviderId" type="hidden" />
-
-            <div class="row">
-
-               @*  <div class="col-md-4 mb-3">
-                    <label>Agreement No</label>
-                    <input asp-for="AgreementNo"
-                           class="form-control"
-                           readonly />
-                </div> *@
-
-                <div class="col-md-4 mb-3">
-                    <label>Hospital</label>
-                    <input asp-for="HospitalName"
-                           class="form-control"
-                           readonly />
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label>Provider</label>
-                    <input asp-for="ProviderName"
-                           class="form-control"
-                           readonly />
-                </div>
-
-            </div>
-
-            <hr />
-
-            <div class="row">
-
-                <div class="col-md-3 mb-3">
-                    <label>Month</label>
-                    <input asp-for="MonthNo"
-                           class="form-control"
-                           readonly />
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label>Year</label>
-                    <input asp-for="YearNo"
-                           class="form-control"
-                           readonly />
-                </div>
-               @*  <div class="col-md-3 mb-3">
-                    <label asp-for="Week"></label>
-
-                    <select asp-for="WarningLevel"
-                            class="form-control">
-
-                        <option value="">--Select--</option>
-
-                        <option>First Warning</option>
-
-                        <option>Second Warning</option>
-
-                        <option>Final Warning</option>
-
-                    </select>
-                </div> *@
-
-                <div class="col-md-3 mb-3">
-                    <label>Performance Score (%)</label>
-                    <input asp-for="PerformanceScore"
-                           class="form-control"
-                           readonly />
-                </div>
-
-                <div class="col-md-3 mb-3">
-                    <label>Payment Percentage (%)</label>
-                    <input asp-for="PaymentPercentage"
-                           class="form-control"
-                           readonly />
-                </div>
-
-            </div>
-
-            <hr />
-
-            <div class="row">
-
-                <div class="col-md-4 mb-3">
-
-                    <label asp-for="WarningDate"></label>
-
-                    <input asp-for="WarningDate"
-                           type="date"
-                           class="form-control" />
-
-                </div>
-
-                <div class="col-md-4 mb-3">
-
-                    <label asp-for="WarningLevel"></label>
-
-                    <select asp-for="WarningLevel"
-                            class="form-control">
-
-                        <option value="">--Select--</option>
-
-                        <option>First Warning</option>
-
-                        <option>Second Warning</option>
-
-                        <option>Final Warning</option>
-
-                    </select>
-
-                </div>
-
-            </div>
-
-            <div class="mb-3">
-
-                <label asp-for="Subject"></label>
-
-                <input asp-for="Subject"
-                       class="form-control"
-                       placeholder="Enter warning subject" />
-
-            </div>
-
-            <div class="mb-3">
-
-                <label asp-for="Reason"></label>
-
-                <textarea asp-for="Reason"
-                          class="form-control"
-                          rows="4"></textarea>
-
-            </div>
-
-            <div class="mb-3">
-
-                <label asp-for="Remarks"></label>
-
-                <textarea asp-for="Remarks"
-                          class="form-control"
-                          rows="3"></textarea>
-
-            </div>
-
-            <button type="submit"
-                    class="btn btn-warning">
-
-                <i class="fa fa-exclamation-triangle"></i>
-
-                Generate Warning Letter
-
-            </button>
-
-            <a asp-action="WarningLetterList"
-               class="btn btn-secondary">
-
-                Cancel
-
-            </a>
-
-        </form>
-
+    <div class="ph-text">
+        <h1>Generate Warning Letter</h1>
+        <p class="ph-sub">Issue a formal warning for below-threshold performance</p>
     </div>
-
+    <div class="ph-actions">
+        <a asp-action="WarningLetterList" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
+    </div>
 </div>
+
+<form asp-action="GenerateWarningLetter" method="post">
+
+    @Html.AntiForgeryToken()
+
+    <input asp-for="PaymentId" type="hidden" />
+    <input asp-for="AgreementId" type="hidden" />
+    <input asp-for="HospitalId" type="hidden" />
+    <input asp-for="ProviderId" type="hidden" />
+
+    <!-- CONTEXT -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="fa-solid fa-circle-info text-teal"></i>
+            <span class="card-title">Performance Context</span>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label class="form-label" asp-for="HospitalName">Hospital</label>
+                    <input asp-for="HospitalName" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label class="form-label" asp-for="ProviderName">Provider</label>
+                    <input asp-for="ProviderName" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-3 col-xl-3">
+                    <label class="form-label" asp-for="MonthNo">Month</label>
+                    <input asp-for="MonthNo" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-6 col-md-3 col-xl-3">
+                    <label class="form-label" asp-for="YearNo">Year</label>
+                    <input asp-for="YearNo" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label class="form-label" asp-for="PerformanceScore">Performance Score (%)</label>
+                    <input asp-for="PerformanceScore" class="form-control input-static" readonly />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <label class="form-label" asp-for="PaymentPercentage">Payment Percentage (%)</label>
+                    <input asp-for="PaymentPercentage" class="form-control input-static" readonly />
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- LETTER -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fa-solid fa-file-pen text-teal"></i>
+            <span class="card-title">Letter Details</span>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label class="form-label" asp-for="WarningDate">Warning Date</label>
+                    <input asp-for="WarningDate" type="date" class="form-control" />
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <label class="form-label" asp-for="WarningLevel">Warning Level</label>
+                    <select asp-for="WarningLevel" class="form-select">
+                        <option value="">Select level</option>
+                        <option>First Warning</option>
+                        <option>Second Warning</option>
+                        <option>Final Warning</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label" asp-for="Subject">Subject</label>
+                    <input asp-for="Subject" class="form-control" placeholder="Enter warning subject" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label" asp-for="Reason">Reason</label>
+                    <textarea asp-for="Reason" class="form-control" rows="4"
+                              placeholder="Describe the performance shortfall"></textarea>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label" asp-for="Remarks">Remarks</label>
+                    <textarea asp-for="Remarks" class="form-control" rows="3"
+                              placeholder="Additional remarks (optional)"></textarea>
+                </div>
+
+            </div>
+
+            <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
+                <a asp-action="WarningLetterList" class="btn btn-light">Cancel</a>
+                <button type="submit" class="btn btn-gold">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Generate Warning Letter
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</form>

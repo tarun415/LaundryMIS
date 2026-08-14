@@ -1,218 +1,185 @@
-﻿@model LaudaryMis.ViewModels.AgreementVM
+@model LaudaryMis.ViewModels.AgreementVM
 
-<div class="container mt-5">
+@{
+    var isEdit = Model != null && Model.Id > 0;
+    ViewBag.Title = isEdit ? "Edit Agreement" : "Create Agreement";
+}
 
-    <div class="card shadow-lg border-0 rounded-4">
-
-        <!-- Header -->
-        <div class="card-header d-flex justify-content-between align-items-center text-white"
-             style="background: linear-gradient(135deg, #4f46e5, #1e3a8a);">
-
-            <h4 class="mb-0">
-                <i class="fa fa-file-contract me-2"></i>
-                @(Model == null || Model.Id == 0 ? "Create Agreement" : "Edit Agreement")
-            </h4>
-
-            <a asp-action="Agreements" asp-controller="Admin"
-               class="btn btn-light rounded-pill px-3">
-                ← Back to List
-            </a>
-        </div>
-
-        <div class="card-body p-4">
-
-            <!-- ✅ SUCCESS MESSAGE -->
-            @if (TempData["success"] != null)
-            {
-                <script>
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: '@TempData["success"]',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                </script>
-            }
-
-            <!-- FORM -->
-            <form id="agreementForm" asp-action="CreateAgreement" method="post" enctype="multipart/form-data">
-
-                <input type="hidden" asp-for="Id" />
-                <input type="hidden" asp-for="FilePath" />
-
-                <div class="row g-3">
-
-                    <!-- Provider -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">
-                            Provider <span class="text-danger">*</span>
-                        </label>
-                        <select asp-for="ProviderId" class="form-select shadow-sm" required>
-                            <option value="">-- Select Provider --</option>
-                            @foreach (var p in Model.Providers)
-                            {
-                                <option value="@p.ProviderId">@p.ProviderName</option>
-                            }
-                        </select>
-                    </div>
-
-                    <!-- Hospital -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">
-                            Hospital <span class="text-danger">*</span>
-                        </label>
-                        <select asp-for="HospitalId" class="form-select shadow-sm" required>
-                            <option value="">-- Select Hospital --</option>
-                            @foreach (var h in Model.Hospitals)
-                            {
-                                <option value="@h.HospitalId">@h.HospitalName</option>
-                            }
-                        </select>
-                    </div>
-
-                    <!-- Bed Count -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">
-                            Bed Count <span class="text-danger">*</span>
-                        </label>
-                        <input asp-for="BedCount" id="BedCount" class="form-control" required />
-                    </div>
-
-                    <!-- Rate -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">
-                            Rate Per Bed <span class="text-danger">*</span>
-                        </label>
-                        <input asp-for="RatePerBed" id="RatePerBed" class="form-control" required />
-                    </div>
-
-                    <!-- Start Date -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">
-                            Start Date <span class="text-danger">*</span>
-                        </label>
-                        <input asp-for="StartDate" id="StartDate" type="date" class="form-control shadow-sm" required />
-                    </div>
-
-                    <!-- End Date -->
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">
-                            End Date  <span class="text-danger">*</span>
-                        </label>
-                        <input asp-for="EndDate" id="EndDate" type="date" class="form-control shadow-sm required" />
-                    </div>
-
-                    <!-- File Upload -->
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">
-                            Agreement File <span class="text-danger">*</span>
-                        </label>
-
-                        <div class="border rounded-3 p-3 bg-light">
-
-                            <input type="file" id="AgreementFile" name="AgreementFile" class="form-control mb-2" />
-
-                            <!-- Existing file -->
-                            @if (!string.IsNullOrEmpty(Model.FilePath))
-                            {
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="fa fa-file text-primary"></i>
-                                    <a href="@Model.FilePath" target="_blank">
-                                        View Existing File
-                                    </a>
-                                </div>
-                            }
-
-                            <small class="text-muted">
-                                Allowed: PDF, JPG, PNG | Max: 2MB
-                            </small>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Buttons -->
-                <div class="d-flex justify-content-end mt-4">
-
-                    <button type="reset" class="btn btn-outline-secondary rounded-pill px-4 me-2">
-                        Reset
-                    </button>
-
-                    <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm">
-                        @(Model == null || Model.Id == 0 ? "💾 Save Agreement" : "✏️ Update Agreement")
-                    </button>
-
-                </div>
-
-            </form>
-
-        </div>
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-file-signature"></i></div>
+    <div class="ph-text">
+        <h1>@(isEdit ? "Edit Agreement" : "Create Agreement")</h1>
+        <p class="ph-sub">Link a provider to a hospital with agreed beds, rate and term</p>
+    </div>
+    <div class="ph-actions">
+        <a asp-action="Agreements" asp-controller="Admin" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
     </div>
 </div>
 
+<div class="card">
+    <div class="card-header">
+        <i class="fa-solid fa-file-contract text-teal"></i>
+        <span class="card-title">Agreement Details</span>
+    </div>
 
+    <div class="card-body">
 
-<!-- ✅ VALIDATION SCRIPT -->
-<script>
-    document.getElementById("agreementForm").addEventListener("submit", function (e) {
+        <form id="agreementForm" asp-action="CreateAgreement" method="post" enctype="multipart/form-data" novalidate>
 
-        e.preventDefault();
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="FilePath" />
 
-        let provider = document.getElementById("ProviderId").value;
-        let hospital = document.getElementById("HospitalId").value;
-        let bed = document.getElementById("BedCount").value;
-        let rate = document.getElementById("RatePerBed").value;
-        let start = document.getElementById("StartDate").value;
-        let end = document.getElementById("EndDate").value;
+            <div class="row g-3">
 
-        let fileInput = document.getElementById("AgreementFile");
-        let existingFile = document.querySelector('input[name="FilePath"]').value;
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="ProviderId">Provider <span class="text-danger">*</span></label>
+                    <select asp-for="ProviderId" class="form-select">
+                        <option value="">Select Provider</option>
+                        @foreach (var p in Model.Providers)
+                        {
+                            <option value="@p.ProviderId">@p.ProviderName</option>
+                        }
+                    </select>
+                </div>
 
-        if (!provider) return Swal.fire("Validation Error", "Select provider", "warning");
-        if (!hospital) return Swal.fire("Validation Error", "Select hospital", "warning");
-        if (!bed || bed <= 0) return Swal.fire("Validation Error", "Invalid bed count", "warning");
-        if (!rate || rate <= 0) return Swal.fire("Validation Error", "Invalid rate", "warning");
-        if (!start) return Swal.fire("Validation Error", "Start date required", "warning");
-         if (!end) return Swal.fire("Validation Error", "End date required", "warning");
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="HospitalId">Hospital <span class="text-danger">*</span></label>
+                    <select asp-for="HospitalId" class="form-select">
+                        <option value="">Select Hospital</option>
+                        @foreach (var h in Model.Hospitals)
+                        {
+                            <option value="@h.HospitalId">@h.HospitalName</option>
+                        }
+                    </select>
+                </div>
 
-        if (end) {
-            let s = new Date(start);
-            let eDate = new Date(end);
-            if (eDate < s) return Swal.fire("Validation Error", "End date must be after start", "warning");
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="BedCount">Bed Count <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fa-solid fa-bed"></i></span>
+                        <input asp-for="BedCount" id="BedCount" class="form-control" inputmode="numeric" placeholder="0" />
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="RatePerBed">Rate Per Bed <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input asp-for="RatePerBed" id="RatePerBed" class="form-control" inputmode="decimal" placeholder="0.00" />
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="StartDate">Start Date <span class="text-danger">*</span></label>
+                    <input asp-for="StartDate" id="StartDate" type="date" class="form-control" />
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="EndDate">End Date <span class="text-danger">*</span></label>
+                    <input asp-for="EndDate" id="EndDate" type="date" class="form-control" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label" for="AgreementFile">Agreement File <span class="text-danger">*</span></label>
+
+                    <div class="p-3 rounded" style="background: var(--surface-2); border: 1px dashed var(--line-strong);">
+
+                        <input type="file" id="AgreementFile" name="AgreementFile"
+                               class="form-control mb-2" accept=".pdf,.jpg,.jpeg,.png" />
+
+                        @if (!string.IsNullOrEmpty(Model.FilePath))
+                        {
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-paperclip text-teal"></i>
+                                <a href="@Model.FilePath" target="_blank" rel="noopener">View existing file</a>
+                            </div>
+                        }
+
+                        <small class="text-muted">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Allowed: PDF, JPG, PNG &middot; Maximum 2 MB
+                        </small>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
+                <button type="reset" class="btn btn-light">Reset</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid @(isEdit ? "fa-pen" : "fa-floppy-disk")"></i>
+                    @(isEdit ? "Update Agreement" : "Save Agreement")
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        @if (TempData["success"] != null)
+        {
+            <text>
+        LMIS.toast('@TempData["success"]');
+            </text>
         }
 
-        // File validation
-        if (!fileInput.files.length && !existingFile) {
-            return Swal.fire("Validation Error", "Upload agreement file", "warning");
-        }
+        document.getElementById("agreementForm").addEventListener("submit", function (e) {
 
-        if (fileInput.files.length > 0) {
-            let file = fileInput.files[0];
+            e.preventDefault();
 
-            let allowed = ["application/pdf", "image/jpeg", "image/png"];
+            var provider = document.getElementById("ProviderId").value;
+            var hospital = document.getElementById("HospitalId").value;
+            var bed = document.getElementById("BedCount").value;
+            var rate = document.getElementById("RatePerBed").value;
+            var start = document.getElementById("StartDate").value;
+            var end = document.getElementById("EndDate").value;
 
-            if (!allowed.includes(file.type)) {
-                return Swal.fire("Invalid File", "Only PDF/JPG/PNG allowed", "error");
+            var fileInput = document.getElementById("AgreementFile");
+            var existingFile = document.querySelector('input[name="FilePath"]').value;
+
+            if (!provider) return LMIS.alert("Missing information", "Select a provider.", "warning");
+            if (!hospital) return LMIS.alert("Missing information", "Select a hospital.", "warning");
+            if (!bed || Number(bed) <= 0) return LMIS.alert("Invalid bed count", "Enter a bed count greater than zero.", "warning");
+            if (!rate || Number(rate) <= 0) return LMIS.alert("Invalid rate", "Enter a rate greater than zero.", "warning");
+            if (!start) return LMIS.alert("Missing information", "Start date is required.", "warning");
+            if (!end) return LMIS.alert("Missing information", "End date is required.", "warning");
+
+            if (new Date(end) < new Date(start)) {
+                return LMIS.alert("Invalid dates", "End date must be after the start date.", "warning");
             }
 
-            if (file.size > 2 * 1024 * 1024) {
-                return Swal.fire("File Too Large", "Max 2MB allowed", "error");
+            if (!fileInput.files.length && !existingFile) {
+                return LMIS.alert("Missing file", "Upload the agreement document.", "warning");
             }
-        }
 
-        // Confirm
-        Swal.fire({
-            title: "Are you sure?",
-            text: "Save this agreement?",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonColor: "#198754"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                e.target.submit();
+            if (fileInput.files.length > 0) {
+                var file = fileInput.files[0];
+                var allowed = ["application/pdf", "image/jpeg", "image/png"];
+
+                if (allowed.indexOf(file.type) === -1) {
+                    return LMIS.alert("Invalid file", "Only PDF, JPG or PNG files are allowed.", "error");
+                }
+
+                if (file.size > 2 * 1024 * 1024) {
+                    return LMIS.alert("File too large", "Maximum allowed size is 2 MB.", "error");
+                }
             }
+
+            LMIS.confirm({
+                title: 'Save this agreement?',
+                text: 'The details above will be recorded.',
+                icon: 'question',
+                confirmText: 'Yes, save',
+                danger: false
+            }).then(function (ok) {
+                if (ok) e.target.submit();
+            });
+
         });
-
-    });
-</script>
+    </script>
+}

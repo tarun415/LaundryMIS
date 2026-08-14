@@ -1,260 +1,263 @@
-﻿<!DOCTYPE html>
+@{
+    var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+    var displayName = User.Identity?.Name ?? "";
+    var initials = string.Join("", displayName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2)
+        .Select(p => char.ToUpperInvariant(p[0])));
+    if (string.IsNullOrEmpty(initials)) { initials = "U"; }
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1f3a" />
     <title>@ViewData["Title"] - Laundry MIS</title>
 
-    <!-- Fonts & CSS -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet" />
+
+    <!-- Bootstrap -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
-    <link rel="stylesheet" href="~/css/Custom.css" />
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 
-    <!-- SweetAlert -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- DataTables CSS (GLOBAL) -->
+    <!-- DataTables + Responsive + Buttons -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css" />
+
+    <!-- Application theme (must come last so it wins) -->
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 
 <body>
 
-    <!-- TOP BAR -->
-    <div class="topbar-custom">
+    <!-- ================= TOP BAR ================= -->
+    <header class="app-topbar">
 
-        <div class="topbar-left">
-            <div>
+        <button class="topbar-toggle" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebarNav">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="topbar-identity">
+            <div class="topbar-emblem"><i class="fa-solid fa-shirt"></i></div>
+            <div class="min-w-0">
                 <div class="topbar-brand">DGMH UP <span>Laundry MIS</span></div>
-                <div class="topbar-sub">Mechanized Laundry Services · 197 Hospitals</div>
+                <div class="topbar-sub">Mechanized Laundry Services &middot; 197 Hospitals</div>
             </div>
         </div>
 
         <div class="topbar-right">
 
             <div class="user-pill">
-                <span>👤 @User.Identity?.Name</span>
-                <span class="role-tag">
-                    @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
-                </span>
+                <div class="user-avatar">@initials</div>
+                <div class="user-meta">
+                    <div class="user-name">@displayName</div>
+                    <div class="role-tag">@roleClaim</div>
+                </div>
             </div>
 
             <a href="/Account/Logout" class="btn-logout">
-                Logout
+                <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
             </a>
 
         </div>
 
-    </div>
-    <div class="d-flex">
+    </header>
 
-        <!-- SIDEBAR -->
-        <nav class="sidebar" id="sidebarNav"></nav>
+    <!-- ================= SHELL ================= -->
+    <div class="app-shell">
 
-        <!-- MAIN CONTENT -->
-        <div class="flex-grow-1 p-4">
+        <nav class="app-sidebar" id="sidebarNav" aria-label="Main navigation"></nav>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <main class="app-content">
             @RenderBody()
-        </div>
+        </main>
 
     </div>
 
     <!-- ================= SCRIPTS ================= -->
-    <!-- 1. jQuery (ONLY ONCE) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- 2. Bootstrap -->
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- 3. DataTables (GLOBAL - IMPORTANT) -->
+    <!-- DataTables core + Responsive extension (the extension was previously missing,
+         which is why `responsive: true` had no effect and wide tables overflowed) -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
 
-    <!-- DataTables Buttons -->
+    <!-- DataTables Buttons + export dependencies -->
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-
-    <!-- Export dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
-    <!-- ================= SIDEBAR SCRIPT ================= -->
+    <!-- Shared helpers: DataTable defaults, toasts, confirm dialogs -->
+    <script src="~/js/app.js" asp-append-version="true"></script>
+
+    <!-- ================= NAVIGATION ================= -->
     <script>
-        const userRole = "@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value";
+        const userRole = "@roleClaim";
 
         const routes = {
-                admin: {
-            dashboard:  '@Url.Action("Dashboard", "Admin")',
-            Hospitals:  '@Url.Action("Hospitals", "Admin")',
-            Agreements: '@Url.Action("Agreements", "Admin")',
-            Providers:  '@Url.Action("Providers", "Admin")',
-            Wards:      '@Url.Action("Wards", "Admin")',
-            // allBills:   '@Url.Action("Index", "MonthlyBill")',  // ← ADD
-           
-        },
-                     hospital: {
-            dashboard: '@Url.Action("Dashboard", "Hospital")',
-            WPREntry: '@Url.Action("WPREntry", "WPR")',
-            // billQueue: '@Url.Action("HospitalQueue", "MonthlyBill")',
-            // MonthlyVerification: '@Url.Action("MonthlyVerification", "Hospital")',
-             CreatePickUp:    '@Url.Action("PickupList", "Hospital")',
-             DeliverySummary:    '@Url.Action("DeliverySummaryReport", "Report")',
-             WeeklyDeliveryReport:    '@Url.Action("WeeklyDeliveryReport", "Report")',
-             MonthlyDeliveryReport:    '@Url.Action("MonthlyReport", "Report")',
-             DeliveryAgingReport:    '@Url.Action("DeliveryAgingReport", "Report")',
-                   PaymentList: '@Url.Action("PaymentList", "Payment")',
-        GeneratePayment: '@Url.Action("GeneratePayment", "Payment")',
-
-     
-        // GenerateInvoice: '@Url.Action("GenerateInvoice", "Invoice")'
-        },
-        provider: {
-            dashboard:  '@Url.Action("Dashboard", "Provider")',
-            // linen:      '@Url.Action("DailyEntry", "Provider")',
-            // Pending:    '@Url.Action("Pending", "Provider")',
-            // reports:    '@Url.Action("DailyEntryList", "Provider")',
-            // createBill: '@Url.Action("SelectHospital", "MonthlyBill")',
-            // myBills:    '@Url.Action("MyBills", "MonthlyBill")',
-            AcceptPickup:    '@Url.Action("AcceptPickup", "Provider")',
-            DeliverySummary:    '@Url.Action("DeliverySummaryReport", "Report")',
-             WeeklyDeliveryReport:    '@Url.Action("WeeklyDeliveryReport", "Report")',
-             MonthlyDeliveryReport:    '@Url.Action("MonthlyReport", "Report")',
-             DeliveryAgingReport:    '@Url.Action("DeliveryAgingReport", "Report")',
-             GenerateInvoice: '@Url.Action("PaymentList", "Payment")',
-             InvoiceList: '@Url.Action("InvoiceList", "Invoice")',
-             WarningLetterList: '@Url.Action("WarningLetterList", "WarningLetter")',
-        }
+            admin: {
+                dashboard:  '@Url.Action("Dashboard", "Admin")',
+                Hospitals:  '@Url.Action("Hospitals", "Admin")',
+                Agreements: '@Url.Action("Agreements", "Admin")',
+                Providers:  '@Url.Action("Providers", "Admin")',
+                Wards:      '@Url.Action("Wards", "Admin")'
+            },
+            hospital: {
+                dashboard:             '@Url.Action("Dashboard", "Hospital")',
+                WPREntry:              '@Url.Action("WPREntry", "WPR")',
+                CreatePickUp:          '@Url.Action("PickupList", "Hospital")',
+                DeliverySummary:       '@Url.Action("DeliverySummaryReport", "Report")',
+                WeeklyDeliveryReport:  '@Url.Action("WeeklyDeliveryReport", "Report")',
+                MonthlyDeliveryReport: '@Url.Action("MonthlyReport", "Report")',
+                DeliveryAgingReport:   '@Url.Action("DeliveryAgingReport", "Report")',
+                GeneratePayment:       '@Url.Action("GeneratePayment", "Payment")',
+                PaymentList:           '@Url.Action("PaymentList", "Payment")',
+                WarningLetterList:     '@Url.Action("WarningLetterList", "WarningLetter")'
+            },
+            provider: {
+                dashboard:             '@Url.Action("Dashboard", "Provider")',
+                AcceptPickup:          '@Url.Action("AcceptPickup", "Provider")',
+                DeliverySummary:       '@Url.Action("DeliverySummaryReport", "Report")',
+                WeeklyDeliveryReport:  '@Url.Action("WeeklyDeliveryReport", "Report")',
+                MonthlyDeliveryReport: '@Url.Action("MonthlyReport", "Report")',
+                DeliveryAgingReport:   '@Url.Action("DeliveryAgingReport", "Report")',
+                GenerateInvoice:       '@Url.Action("PaymentList", "Payment")',
+                InvoiceList:           '@Url.Action("InvoiceList", "Invoice")',
+                WarningLetterList:     '@Url.Action("WarningLetterList", "WarningLetter")'
+            }
         };
 
         const MENU_CONFIG = {
             Admin: [
                 { section: "Overview" },
-                { id: "dashboard", icon: "📊", label: "Dashboard", route: () => routes.admin.dashboard },
-                { id: "hospitals", icon: "🏥", label: "Hospitals", route: () => routes.admin.Hospitals },
-                { id: "agreements", icon: "📄", label: "Agreements", route: () => routes.admin.Agreements },
-                { id: "providers", icon: "📄", label: "Providers", route: () => routes.admin.Providers },
-                { id: "wards", icon: "📄", label: "Wards", route: () => routes.admin.Wards },
-                        { section: "Billing" },
-        // { id: "allBills", icon: "🧾", label: "Monthly Bills", route: () => routes.admin.allBills },
-           
+                { id: "dashboard",  icon: "fa-chart-pie",       label: "Dashboard",  route: routes.admin.dashboard },
+                { section: "Masters" },
+                { id: "hospitals",  icon: "fa-hospital",        label: "Hospitals",  route: routes.admin.Hospitals },
+                { id: "providers",  icon: "fa-truck-fast",      label: "Providers",  route: routes.admin.Providers },
+                { id: "wards",      icon: "fa-bed",             label: "Wards",      route: routes.admin.Wards },
+                { id: "agreements", icon: "fa-file-signature",  label: "Agreements", route: routes.admin.Agreements }
             ],
             Hospital: [
-             { section: "Overview" },
-            { id: "dashboard", icon: "🏥", label: "Dashboard", route: () => routes.hospital.dashboard },
-            { id: "WPREntry", icon: "📋", label: "WPR Entry", route: () => routes.hospital.WPREntry },
-              // { id: "MonthlyVerification", icon: "📋", label: "Verify Linen", route: () => routes.hospital.MonthlyVerification },
-             { section: "Billing" },
-        // { id: "billQueue", icon: "🧾", label: "Bill Verify", route: () => routes.hospital.billQueue },
-            { id: "CreatePickUp", icon: "📋", label: "PickUp Linen", route: () => routes.hospital.CreatePickUp },
-                             { id: "DeliverySummary", icon: "📊", label: "Delivery Report", route: () => routes.provider.DeliverySummary },
-                  { id: "WeeklyDeliveryReport", icon: "📊", label: "Weekly Delivery Report", route: () => routes.provider.WeeklyDeliveryReport },
-                   { id: "MonthlyDeliveryReport", icon: "📊", label: "Monthly Delivery Report", route: () => routes.provider.MonthlyDeliveryReport },
-                   { id: "DeliveryAgingReport", icon: "📊", label: "Delivery Aging Report", route: () => routes.provider.DeliveryAgingReport },
-                        { section: "Finance" },
-
-        {
-            id: "GeneratePayment",
-            icon: "💰",
-            label: "Generate Payment",
-            route: () => routes.hospital.GeneratePayment
-        },
-
-        {
-            id: "PaymentList",
-            icon: "💳",
-            label: "Payment List",
-            route: () => routes.hospital.PaymentList
-        },
-               { section: "Compliance Management" },
-
-        {
-            id: "WarningLetterList",
-            icon: "⚠️",
-            label: "Warning Letters",
-            route: () => routes.provider.WarningLetterList
-        }
-
-        //         {
-        //     id: "GenerateInvoice",
-        //     icon: "🧾",
-        //     label: "Generate Invoice",
-        //     route: () => routes.hospital.GenerateInvoice
-        // },
-
-      
+                { section: "Overview" },
+                { id: "dashboard",    icon: "fa-gauge-high",      label: "Dashboard",     route: routes.hospital.dashboard },
+                { section: "Operations" },
+                { id: "CreatePickUp", icon: "fa-boxes-packing",   label: "Pickup Linen",  route: routes.hospital.CreatePickUp },
+                { id: "WPREntry",     icon: "fa-clipboard-check", label: "WPR Entry",     route: routes.hospital.WPREntry },
+                { section: "Reports" },
+                { id: "DeliverySummary",       icon: "fa-chart-column",  label: "Delivery Report",  route: routes.hospital.DeliverySummary },
+                { id: "WeeklyDeliveryReport",  icon: "fa-calendar-week", label: "Weekly Delivery",  route: routes.hospital.WeeklyDeliveryReport },
+                { id: "MonthlyDeliveryReport", icon: "fa-calendar-days", label: "Monthly Delivery", route: routes.hospital.MonthlyDeliveryReport },
+                { id: "DeliveryAgingReport",   icon: "fa-hourglass-half",label: "Delivery Aging",   route: routes.hospital.DeliveryAgingReport },
+                { section: "Finance" },
+                { id: "GeneratePayment", icon: "fa-money-bill-wave", label: "Generate Payment", route: routes.hospital.GeneratePayment },
+                { id: "PaymentList",     icon: "fa-credit-card",     label: "Payment List",     route: routes.hospital.PaymentList },
+                { section: "Compliance" },
+                { id: "WarningLetterList", icon: "fa-triangle-exclamation", label: "Warning Letters", route: routes.hospital.WarningLetterList }
             ],
             Provider: [
                 { section: "Overview" },
-                { id: "dashboard", icon: "🚚", label: "Dashboard", route: () => routes.provider.dashboard },
+                { id: "dashboard", icon: "fa-gauge-high", label: "Dashboard", route: routes.provider.dashboard },
                 { section: "Operations" },
-                // { id: "linen", icon: "🧺", label: "Daily Linen Log", route: () => routes.provider.linen },
-                // { id: "Pending", icon: "🧺", label: "Pending", route: () => routes.provider.Pending },
-                // { id: "Deliver", icon: "🧺", label: "Deliver", route: () => routes.provider.Deliver },
-                // { id: "reports", icon: "📊", label: "Reports", route: () => routes.provider.reports },
-                { id: "AcceptPickup", icon: "📊", label: "AcceptPickup", route: () => routes.provider.AcceptPickup },
-                 { id: "DeliverySummary", icon: "📊", label: "Delivery Report", route: () => routes.provider.DeliverySummary },
-                  { id: "WeeklyDeliveryReport", icon: "📊", label: "Weekly Delivery Report", route: () => routes.provider.WeeklyDeliveryReport },
-                   { id: "MonthlyDeliveryReport", icon: "📊", label: "Monthly Delivery Report", route: () => routes.provider.MonthlyDeliveryReport },
-                   { id: "DeliveryAgingReport", icon: "📊", label: "Delivery Aging Report", route: () => routes.provider.DeliveryAgingReport },
-                        { section: "Billing" },
-        // { id: "createBill", icon: "➕", label: "Create Bill",  route: () => routes.provider.createBill },
-        // { id: "myBills",    icon: "🧾", label: "My Bills",     route: () => routes.provider.myBills },
-           {
-            id: "GenerateInvoice",
-            icon: "📑",
-            label: "Generate Invoice",
-            route: () => routes.provider.GenerateInvoice
-        },
-          {
-            id: "InvoiceList",
-            icon: "📑",
-            label: "Invoice List",
-            route: () => routes.provider.InvoiceList
-        },
-           { section: "Compliance Management" },
-          {
-            id: "WarningLetterList",
-            icon: "⚠️",
-            label: "Warning Letters",
-            route: () => routes.provider.WarningLetterList
-        }
+                { id: "AcceptPickup", icon: "fa-hand-holding-hand", label: "Accept Pickup", route: routes.provider.AcceptPickup },
+                { section: "Reports" },
+                { id: "DeliverySummary",       icon: "fa-chart-column",   label: "Delivery Report",  route: routes.provider.DeliverySummary },
+                { id: "WeeklyDeliveryReport",  icon: "fa-calendar-week",  label: "Weekly Delivery",  route: routes.provider.WeeklyDeliveryReport },
+                { id: "MonthlyDeliveryReport", icon: "fa-calendar-days",  label: "Monthly Delivery", route: routes.provider.MonthlyDeliveryReport },
+                { id: "DeliveryAgingReport",   icon: "fa-hourglass-half", label: "Delivery Aging",   route: routes.provider.DeliveryAgingReport },
+                { section: "Billing" },
+                { id: "GenerateInvoice", icon: "fa-file-invoice-dollar", label: "Generate Invoice", route: routes.provider.GenerateInvoice },
+                { id: "InvoiceList",     icon: "fa-file-invoice",        label: "Invoice List",     route: routes.provider.InvoiceList },
+                { section: "Compliance" },
+                { id: "WarningLetterList", icon: "fa-triangle-exclamation", label: "Warning Letters", route: routes.provider.WarningLetterList }
             ]
         };
 
-        function buildSidebar() {
-            const nav = document.getElementById("sidebarNav");
-            const menu = MENU_CONFIG[userRole];
+        (function () {
 
-            if (!menu) return;
+            function buildSidebar() {
+                var nav = document.getElementById("sidebarNav");
+                var menu = MENU_CONFIG[userRole];
+                if (!nav || !menu) return;
 
-            nav.innerHTML = "";
+                var currentPath = window.location.pathname.toLowerCase();
+                var html = "";
+                var matched = null;
 
-            menu.forEach(item => {
-                if (item.section) {
-                    nav.innerHTML += `<div class="sidebar-section">${item.section}</div>`;
-                } else {
-                    nav.innerHTML += `
-                        <a href="${item.route()}" class="nav-item">
-                            <span>${item.icon}</span> ${item.label}
-                        </a>
-                    `;
+                // Longest matching route wins, so /Payment/PaymentList doesn't light up /Payment
+                menu.forEach(function (item) {
+                    if (item.section || !item.route) return;
+                    var routePath = item.route.split('?')[0].toLowerCase();
+                    if (routePath.length > 1 && currentPath.indexOf(routePath) === 0) {
+                        if (!matched || routePath.length > matched.length) matched = routePath;
+                    }
+                });
+
+                menu.forEach(function (item) {
+                    if (item.section) {
+                        html += '<div class="sidebar-section">' + item.section + '</div>';
+                        return;
+                    }
+                    var routePath = (item.route || '').split('?')[0].toLowerCase();
+                    var isActive = matched !== null && routePath === matched;
+                    html += '<a href="' + item.route + '" class="nav-item' + (isActive ? ' active' : '') + '">'
+                          + '<i class="ni fa-solid ' + item.icon + '"></i>'
+                          + '<span>' + item.label + '</span>'
+                          + '</a>';
+                });
+
+                nav.innerHTML = html;
+            }
+
+            function setupSidebarToggle() {
+                var toggle = document.getElementById("sidebarToggle");
+                var nav = document.getElementById("sidebarNav");
+                var backdrop = document.getElementById("sidebarBackdrop");
+                if (!toggle || !nav || !backdrop) return;
+
+                function close() {
+                    nav.classList.remove("open");
+                    backdrop.classList.remove("show");
+                    toggle.setAttribute("aria-expanded", "false");
                 }
-            });
-        }
 
-        $(document).ready(function () {
-            buildSidebar();
-        });
+                toggle.addEventListener("click", function () {
+                    var isOpen = nav.classList.toggle("open");
+                    backdrop.classList.toggle("show", isOpen);
+                    toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+                });
+
+                backdrop.addEventListener("click", close);
+                document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+                window.addEventListener("resize", function () { if (window.innerWidth >= 992) close(); });
+            }
+
+            document.addEventListener("DOMContentLoaded", function () {
+                buildSidebar();
+                setupSidebarToggle();
+            });
+
+        })();
     </script>
 
-    @RenderSection("Scripts", required: false)
+    @await RenderSectionAsync("Scripts", required: false)
 
 </body>
 </html>

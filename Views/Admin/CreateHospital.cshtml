@@ -1,183 +1,152 @@
-﻿@model LaudaryMis.ViewModels.HospitalVM
+@model LaudaryMis.ViewModels.HospitalVM
 
-<div class="main-container mt-2">
+@{
+    var isEdit = Model != null && Model.HospitalId > 0;
+    ViewBag.Title = isEdit ? "Edit Hospital" : "Add Hospital";
+}
 
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body">
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-hospital"></i></div>
+    <div class="ph-text">
+        <h1>@(isEdit ? "Edit Hospital" : "Add Hospital")</h1>
+        <p class="ph-sub">@(isEdit ? "Update the facility's registration details" : "Register a new facility on the network")</p>
+    </div>
+    <div class="ph-actions">
+        <a href="/Admin/Hospitals" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
 
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                @(Model == null || Model.HospitalId == 0 ? "➕ Add Hospital" : "✏️ Edit Hospital")
+<div class="card">
+    <div class="card-header">
+        <i class="fa-solid fa-circle-info text-teal"></i>
+        <span class="card-title">Hospital Details</span>
+    </div>
 
-                <a href="/Admin/Hospitals" class="btn btn-outline-secondary rounded-pill px-3">
-                    ← Back to List
-                </a>
-            </div>
+    <div class="card-body">
 
-            <!-- Form -->
-            <form id="hospitalForm" asp-action="CreateHospital" asp-controller="Admin" method="post">
-                <input type="hidden" asp-for="HospitalId" />
+        <form id="hospitalForm" asp-action="CreateHospital" asp-controller="Admin" method="post" novalidate>
+            <input type="hidden" asp-for="HospitalId" />
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Hospital Name<span class="text-danger">*</span></label>
-                        <input asp-for="HospitalName" class="form-control" placeholder="Enter hospital name" />
-                    </div>
+            <div class="row g-3">
 
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">District<span class="text-danger">*</span></label>
-                        <select asp-for="DistrictId" id="DistrictId" class="form-control">
-                            <option value="">--Select District--</option>
-                        </select>
-                    </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="HospitalName">Hospital Name <span class="text-danger">*</span></label>
+                    <input asp-for="HospitalName" class="form-control" placeholder="Enter hospital name" />
+                </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Contact Person<span class="text-danger">*</span></label>
-                        <input asp-for="ContactPerson" class="form-control" placeholder="Enter contact person" />
-                    </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="DistrictId">District <span class="text-danger">*</span></label>
+                    <select asp-for="DistrictId" id="DistrictId" class="form-select">
+                        <option value="">Select District</option>
+                    </select>
+                </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Phone<span class="text-danger">*</span></label>
-                        <input asp-for="Phone" class="form-control" maxlength="10"  placeholder="Enter phone number" />
-                    </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="ContactPerson">Contact Person <span class="text-danger">*</span></label>
+                    <input asp-for="ContactPerson" class="form-control" placeholder="Enter contact person" />
+                </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Email<span class="text-danger">*</span></label>
-                        <input asp-for="Email" class="form-control" placeholder="Enter email" />
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Password<span class="text-danger">*</span></label>
-                        <input asp-for="Password" class="form-control" placeholder="Enter Password" />
-                    </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="Phone">Phone <span class="text-danger">*</span></label>
+                    <input asp-for="Phone" class="form-control" maxlength="10" inputmode="numeric" placeholder="10-digit mobile number" />
+                </div>
 
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label">Address</label>
-                        <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter address"></textarea>
-                    </div>
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label">Status<span class="text-danger">*</span></label>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="Email">Email <span class="text-danger">*</span></label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" />
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="Password">Password <span class="text-danger">*</span></label>
+                    <input asp-for="Password" class="form-control" placeholder="Enter login password" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label" for="Address">Address</label>
+                    <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter full address"></textarea>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Status</label>
+                    <div class="form-check">
                         <input class="form-check-input" type="checkbox" asp-for="IsActive" checked="checked" />
-                        <label class="form-check-label">
-                            @(Model != null && Model.HospitalId > 0
-                                                        ? (Model.IsActive ? "Active" : "Inactive")
-                                                        : "Active")
+                        <label class="form-check-label" asp-for="IsActive">
+                            Active — the hospital can sign in and raise pickups
                         </label>
                     </div>
                 </div>
 
-                <!-- Buttons -->
-                <div class="d-flex justify-content-end gap-2 mt-3">
-                    <a href="/Admin/Hospitals" class="btn btn-light border rounded-pill px-4">
-                        Cancel
-                    </a>
+            </div>
 
+            <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
+                <a href="/Admin/Hospitals" class="btn btn-light">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid @(isEdit ? "fa-pen" : "fa-floppy-disk")"></i>
+                    @(isEdit ? "Update Hospital" : "Save Hospital")
+                </button>
+            </div>
 
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">
-                        @(Model == null || Model.HospitalId == 0 ? "💾 Save" : "✏️ Update")
-                    </button>
-                </div>
+        </form>
 
-            </form>
-
-        </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        $(document).ready(function () {
-                 //  Restrict Phone (only digits + max 10)
-        $('#Phone').on('input', function () {
-            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
-        });
-        });
-    </script>
-    <script>
         $(function () {
-            
-            console.log("JS Loaded");
 
-            // Load districts
-                 $(function () {
+            // Phone: digits only, capped at 10
+            $('#Phone').on('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+            });
 
-            console.log("JS Loaded");
-
+            // Populate districts, preserving the current selection on edit
             var selectedDistrictId = '@Model?.DistrictId';
 
             $.get('/Admin/GetDistricts', { stateId: 34 }, function (data) {
-
-                $('#DistrictId').html('<option value="">--Select District--</option>');
+                var $ddl = $('#DistrictId');
+                $ddl.html('<option value="">Select District</option>');
 
                 $.each(data, function (i, item) {
-
                     var selected = item.districtId == selectedDistrictId ? 'selected' : '';
-
-                    $('#DistrictId').append(
-                        `<option value="${item.districtId}" ${selected}>
-                            ${item.districtName}
-                        </option>`
-                    );
+                    $ddl.append('<option value="' + item.districtId + '" ' + selected + '>' + item.districtName + '</option>');
                 });
             });
 
-        });
+            $('#hospitalForm').on('submit', function (e) {
 
-            // FORM VALIDATION
-            $('#hospitalForm').submit(function (e) {
+                var checks = [
+                    [$('#HospitalName').val(), 'Hospital Name is required'],
+                    [$('#DistrictId').val(), 'Please select a District'],
+                    [$('#ContactPerson').val(), 'Contact Person is required'],
+                    [$('#Phone').val(), 'Phone is required'],
+                    [$('#Email').val(), 'Email is required'],
+                    [$('#Password').val(), 'Password is required']
+                ];
 
-                let hospitalName = $('#HospitalName').val();
-                let district = $('#DistrictId').val();
-                let contact = $('#ContactPerson').val();
-                let phone = $('#Phone').val();
-                let email = $('#Email').val();
-                let password = $('#Password').val();
+                for (var i = 0; i < checks.length; i++) {
+                    if (!checks[i][0]) {
+                        e.preventDefault();
+                        LMIS.alert('Missing information', checks[i][1], 'warning');
+                        return;
+                    }
+                }
 
-                if (!hospitalName) {
+                if (!/^[0-9]{10}$/.test($('#Phone').val())) {
                     e.preventDefault();
-                    Swal.fire("Error", "Hospital Name is required", "error");
+                    LMIS.alert('Invalid phone', 'Enter a valid 10 digit phone number.', 'warning');
                     return;
                 }
 
-                if (!district) {
+                if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test($('#Email').val())) {
                     e.preventDefault();
-                    Swal.fire("Error", "Select District", "error");
+                    LMIS.alert('Invalid email', 'Enter a valid email address.', 'warning');
                     return;
                 }
-
-                if (!contact) {
-                    e.preventDefault();
-                    Swal.fire("Error", "Contact Person is required", "error");
-                    return;
-                }
-
-                if (!phone) {
-                    e.preventDefault();
-                    Swal.fire("Error", "Phone is required", "error");
-                    return;
-                }
-
-                if (!/^[0-9]{10}$/.test(phone)) {
-                    e.preventDefault();
-                    Swal.fire("Error", "Enter valid 10 digit phone", "error");
-                    return;
-                }
-
-                if (!email) {
-                    e.preventDefault();
-                    Swal.fire("Error", "Email is required", "error");
-                    return;
-                }
-
-                if (!password) {
-                    e.preventDefault();
-                    Swal.fire("Error", "Password is required", "error");
-                    return;
-                }
-                       
-                // ✅ If all valid → DO NOTHING → form will submit automatically
             });
 
         });
     </script>
 }
-

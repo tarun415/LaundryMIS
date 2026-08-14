@@ -1,97 +1,110 @@
-﻿@model LaudaryMis.ViewModels.DailyEntryEditVM
+@model LaudaryMis.ViewModels.DailyEntryEditVM
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+@{
+    ViewBag.Title = "Edit Linen Entry";
+}
 
-<div class="container mt-4">
+@* Note: this view previously pulled a second copy of Bootstrap from a CDN,
+   which double-loaded the framework and fought the application theme. *@
 
-    <div class="card shadow-lg p-4">
-
-        <h4 class="fw-bold mb-3">Edit Linen Entry</h4>
-
-        <form method="post">
-
-            <input type="hidden" name="EntryId" value="@Model.EntryId" />
-
-            <!-- PICKUP SECTION -->
-            <h6 class="text-muted">Pickup Details</h6>
-
-            <div class="row">
-
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Dirty Qty</label>
-                    <input type="number" class="form-control qty" name="DirtyQty" value="@Model.DirtyQty" />
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Soiled Qty</label>
-                    <input type="number" class="form-control qty" name="SoiledQty" value="@Model.SoiledQty" />
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Infected Qty</label>
-                    <input type="number" class="form-control qty" name="InfectedQty" value="@Model.InfectedQty" />
-                </div>
-
-            </div>
-
-            <!-- TOTAL AUTO -->
-            <div class="mb-3">
-                <label class="form-label">Total Pickup Qty</label>
-                <input id="totalPickup" class="form-control bg-light"
-                       value="@Model.TotalPickupQty" readonly />
-            </div>
-
-            <hr />
-
-            <!-- DELIVERY SECTION -->
-            <h6 class="text-muted">Delivery Details</h6>
-
-            <div class="row">
-
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Delivered Qty</label>
-                    <input type="number" class="form-control"
-                           name="CleanDeliveredQty"
-                           value="@Model.CleanDeliveredQty" />
-                </div>
-
-            </div>
-
-            <!-- REMARKS -->
-            <div class="mb-3">
-                <label class="form-label">Remarks</label>
-                <textarea class="form-control" name="Remarks" rows="3">@Model.Remarks</textarea>
-            </div>
-
-            <!-- BUTTONS -->
-            <div class="d-flex justify-content-between">
-
-                <a href="/Provider/DailyEntryList" class="btn btn-secondary">
-                    ← Back
-                </a>
-
-                <button type="submit" class="btn btn-success">
-                    Update Entry
-                </button>
-
-            </div>
-
-        </form>
-
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-pen-to-square"></i></div>
+    <div class="ph-text">
+        <h1>Edit Linen Entry</h1>
+        <p class="ph-sub">Adjust pickup and delivery quantities</p>
     </div>
-
+    <div class="ph-actions">
+        <a href="/Provider/DailyEntryList" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
+    </div>
 </div>
 
-<!-- AUTO CALCULATION SCRIPT -->
-<script>
-    document.querySelectorAll('.qty').forEach(el => {
-        el.addEventListener('input', () => {
+<form method="post">
 
-            let d = parseInt(document.querySelector('[name=DirtyQty]').value) || 0;
-            let s = parseInt(document.querySelector('[name=SoiledQty]').value) || 0;
-            let i = parseInt(document.querySelector('[name=InfectedQty]').value) || 0;
+    <input type="hidden" name="EntryId" value="@Model.EntryId" />
 
-            document.getElementById('totalPickup').value = d + s + i;
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="fa-solid fa-basket-shopping text-teal"></i>
+            <span class="card-title">Pickup Details</span>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="DirtyQty">Dirty Qty</label>
+                    <input type="number" min="0" inputmode="numeric" id="DirtyQty"
+                           class="form-control qty" name="DirtyQty" value="@Model.DirtyQty" />
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="SoiledQty">Soiled Qty</label>
+                    <input type="number" min="0" inputmode="numeric" id="SoiledQty"
+                           class="form-control qty" name="SoiledQty" value="@Model.SoiledQty" />
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="InfectedQty">Infected Qty</label>
+                    <input type="number" min="0" inputmode="numeric" id="InfectedQty"
+                           class="form-control qty" name="InfectedQty" value="@Model.InfectedQty" />
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="totalPickup">Total Pickup Qty</label>
+                    <input id="totalPickup" class="form-control input-static"
+                           value="@Model.TotalPickupQty" readonly />
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fa-solid fa-truck text-teal"></i>
+            <span class="card-title">Delivery Details</span>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="CleanDeliveredQty">Delivered Qty</label>
+                    <input type="number" min="0" inputmode="numeric" id="CleanDeliveredQty"
+                           class="form-control" name="CleanDeliveredQty" value="@Model.CleanDeliveredQty" />
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label" for="Remarks">Remarks</label>
+                    <textarea class="form-control" id="Remarks" name="Remarks" rows="3"
+                              placeholder="Optional remarks">@Model.Remarks</textarea>
+                </div>
+
+            </div>
+
+            <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
+                <a href="/Provider/DailyEntryList" class="btn btn-light">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-pen"></i> Update Entry
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</form>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.qty').forEach(function (el) {
+            el.addEventListener('input', function () {
+                var d = parseInt(document.querySelector('[name=DirtyQty]').value, 10) || 0;
+                var s = parseInt(document.querySelector('[name=SoiledQty]').value, 10) || 0;
+                var i = parseInt(document.querySelector('[name=InfectedQty]').value, 10) || 0;
+                document.getElementById('totalPickup').value = d + s + i;
+            });
         });
-    });
-</script>
+    </script>
+}

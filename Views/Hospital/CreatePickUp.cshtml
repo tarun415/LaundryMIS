@@ -1,478 +1,310 @@
-﻿@using LaudaryMis.ViewModels
+@using LaudaryMis.ViewModels
 @model PickupVM
 
-<style>
-    .linen-scroll {
-        max-height: 300px;
-        overflow-y: auto;
-        border: 1px solid #dee2e6;
-        border-radius: 10px;
-    }
+@{
+    var isEdit = Model.PickupId > 0;
+    ViewBag.Title = isEdit ? "Edit Pickup Entry" : "Add Pickup Entry";
+}
 
-        .linen-scroll thead th {
-            position: sticky;
-            top: 0;
-            background: #dbeafe;
-            color: #1e3a8a;
-            z-index: 2;
+@section Styles {
+    <style>
+        /* Linen grid stays a fixed height with a pinned header so long lists
+           don't push the save buttons off screen */
+        .linen-scroll {
+            max-height: 340px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: var(--r-sm);
         }
-</style>
+        .linen-scroll table { margin: 0; }
+        .linen-scroll thead th { position: sticky; top: 0; z-index: 2; }
+        .linen-scroll input.qty { max-width: 140px; margin-left: auto; text-align: right; }
+    </style>
+}
 
-<div class="container mt-4">
-
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-
-        <h4 class="mb-0">
-            @(Model.PickupId == 0
-                        ? "➕ Add Pickup Entry"
-                        : "✏️ Edit Pickup Entry")
-        </h4>
-
-        <a href="@Url.Action("PickupList", "Hospital")"
-           class="btn btn-outline-secondary rounded-pill px-3">
-
-            ← Back to List
-
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-boxes-packing"></i></div>
+    <div class="ph-text">
+        <h1>@(isEdit ? "Edit Pickup Entry" : "Add Pickup Entry")</h1>
+        <p class="ph-sub">Record linen collected from a ward</p>
+    </div>
+    <div class="ph-actions">
+        <a href="@Url.Action("PickupList", "Hospital")" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
         </a>
-        
+    </div>
+</div>
+
+<input type="hidden" id="pickupId" value="@Model.PickupId" />
+<input type="hidden" id="AgreementId" value="@Model.AgreementId" />
+
+<!-- PICKUP DETAILS -->
+<div class="card mb-3">
+    <div class="card-header">
+        <i class="fa-solid fa-circle-info text-teal"></i>
+        <span class="card-title">Pickup Details</span>
     </div>
 
-    <input type="hidden"
-           id="pickupId"
-           value="@Model.PickupId" />
-    <input type="hidden"
-           id="AgreementId"
-           value="@Model.AgreementId" />
+    <div class="card-body">
+        <div class="row g-3">
 
-   
+            <div class="col-12 col-md-6 col-xl-3">
+                <label class="form-label" for="ln-provider">Provider</label>
+                <select id="ln-provider" class="form-select">
+                    <option value="">Select Provider</option>
+                    @foreach (var w in Model.Providers)
+                    {
+                        <option value="@w.Id" selected="@(w.Id == Model.ProviderId)">@w.Name</option>
+                    }
+                </select>
+            </div>
 
-    <!-- FORM -->
-    <div class="row g-3">
+            <div class="col-12 col-md-6 col-xl-3">
+                <label class="form-label" for="ln-ward">Ward</label>
+                <select id="ln-ward" class="form-select">
+                    <option value="">Select Ward</option>
+                    @foreach (var w in Model.Wards)
+                    {
+                        <option value="@w.Id" selected="@(w.Id == Model.WardId)">@w.Name</option>
+                    }
+                </select>
+            </div>
 
-        <!-- WARD -->
-        <div class="col-md-4">
+            <div class="col-12 col-md-6 col-xl-3">
+                <label class="form-label" for="ln-date">Pickup Date</label>
+                <input type="date" id="ln-date" class="form-control"
+                       value="@(Model.PickupDateTime == DateTime.MinValue
+                                  ? DateTime.Now.ToString("yyyy-MM-dd")
+                                  : Model.PickupDateTime.ToString("yyyy-MM-dd"))" />
+            </div>
 
-            <label class="form-label">Provider</label>
-
-            <select id="ln-provider"
-                    class="form-select">
-
-                <option value="">Select Provider</option>
-
-                @foreach (var w in Model.Providers)
-                {
-                    <option value="@w.Id"
-                            selected="@(w.Id == Model.ProviderId)">
-
-                        @w.Name
-
-                    </option>
-                }
-
-            </select>
-
-        </div>
-
-        <!-- WARD -->
-        <div class="col-md-4">
-
-            <label class="form-label">Ward</label>
-
-            <select id="ln-ward"
-                    class="form-select">
-
-                <option value="">Select Ward</option>
-
-                @foreach (var w in Model.Wards)
-                {
-                    <option value="@w.Id"
-                            selected="@(w.Id == Model.WardId)">
-
-                        @w.Name
-
-                    </option>
-                }
-
-            </select>
+            <div class="col-12 col-md-6 col-xl-3">
+                <label class="form-label" for="ln-shift">Shift</label>
+                <select id="ln-shift" class="form-select">
+                    <option value="Morning" selected="@(Model.ShiftName == "Morning")">Morning</option>
+                    <option value="Evening" selected="@(Model.ShiftName == "Evening")">Evening</option>
+                </select>
+            </div>
 
         </div>
+    </div>
+</div>
 
-        <!-- DATE -->
-        <div class="col-md-4">
-
-            <label class="form-label">Pickup Date</label>
-
-            <input type="date"
-                   id="ln-date"
-                   class="form-control"
-                   value="@(Model.PickupDateTime == DateTime.MinValue
-                                               ? DateTime.Now.ToString("yyyy-MM-dd")
-                                               : Model.PickupDateTime.ToString("yyyy-MM-dd"))" />
-
-        </div>
-
-        <!-- SHIFT -->
-        <div class="col-md-4">
-
-            <label class="form-label">Shift</label>
-
-            <select id="ln-shift"
-                    class="form-select">
-
-                <option value="Morning"
-                        selected="@(Model.ShiftName == "Morning")">
-
-                    Morning
-
-                </option>
-
-                <option value="Evening"
-                        selected="@(Model.ShiftName == "Evening")">
-
-                    Evening
-
-                </option>
-
-            </select>
-
-        </div>
-
+<!-- LINEN QUANTITIES -->
+<div class="card mb-3">
+    <div class="card-header">
+        <i class="fa-solid fa-shirt text-teal"></i>
+        <span class="card-title">Linen Collected</span>
+        <span class="info-pill ms-auto">
+            <i class="fa-solid fa-calculator"></i>
+            Total: <strong id="linenTotal">0</strong>
+        </span>
     </div>
 
-    <hr />
+    <div class="card-body">
+        <div class="linen-scroll">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Linen Type</th>
+                        <th class="text-end" style="width: 200px;">Collected Qty</th>
+                    </tr>
+                </thead>
+                <tbody id="linenTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-    <!-- LINEN TABLE -->
-    <div class="table-responsive linen-scroll">
-
-        <table class="table table-bordered table-sm align-middle">
-
-            <thead>
-                <tr>
-                    <th>Linen Type</th>
-                    <th width="180">Collected Qty</th>
-                </tr>
-            </thead>
-
-            <tbody id="linenTable"></tbody>
-
-        </table>
-
+<!-- STAFF & REMARKS -->
+<div class="card">
+    <div class="card-header">
+        <i class="fa-solid fa-user-check text-teal"></i>
+        <span class="card-title">Handover Details</span>
     </div>
 
-    <hr />
+    <div class="card-body">
+        <div class="row g-3">
 
-    <!-- STAFF -->
-    <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="ln-collected">Collected By</label>
+                <input type="text" id="ln-collected" class="form-control"
+                       placeholder="Name" value="@Model.PickupBy" />
+            </div>
 
-        <div class="col-md-4">
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="ln-received">Received By</label>
+                <input type="text" id="ln-received" class="form-control"
+                       placeholder="Name" value="@Model.ReceivedBy" />
+            </div>
 
-            <label class="form-label">Collected By</label>
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="ln-supervisor">Supervisor</label>
+                <input type="text" id="ln-supervisor" class="form-control" placeholder="Name" />
+            </div>
 
-            <input type="text"
-                   id="ln-collected"
-                   class="form-control"
-                   value="@Model.PickupBy" />
+            <div class="col-12 col-md-8">
+                <label class="form-label" for="ln-remarks">Remarks</label>
+                <input type="text" id="ln-remarks" class="form-control"
+                       placeholder="Optional notes" value="@Model.Remarks" />
+            </div>
 
-        </div>
-
-        <div class="col-md-4">
-
-            <label class="form-label">Received By</label>
-
-            <input type="text"
-                   id="ln-received"
-                   class="form-control"
-                   value="@Model.ReceivedBy" />
-
-        </div>
-
-        <div class="col-md-4">
-
-            <label class="form-label">Supervisor</label>
-
-            <input type="text"
-                   id="ln-supervisor"
-                   class="form-control" />
-
-        </div>
-
-    </div>
-
-    <!-- REMARKS -->
-    <div class="row mt-3">
-
-        <div class="col-md-8">
-
-            <label class="form-label">Remarks</label>
-
-            <input type="text"
-                   id="ln-remarks"
-                   class="form-control"
-                   value="@Model.Remarks" />
-
-        </div>
-
-        <div class="col-md-4 d-flex align-items-center mt-4">
-
-            <div class="form-check">
-
-                <input type="checkbox"
-                       class="form-check-input"
-                       id="ln-infected"
-                       @(Model.IsInfected ? "checked" : "") />
-
-                <label class="form-check-label ms-2">
-                    Is Infected
-                </label>
-
+            <div class="col-12 col-md-4 d-flex align-items-end">
+                <div class="form-check pb-2">
+                    <input type="checkbox" class="form-check-input" id="ln-infected"
+                           @(Model.IsInfected ? "checked" : "") />
+                    <label class="form-check-label" for="ln-infected">
+                        <i class="fa-solid fa-biohazard text-danger"></i> Infected linen
+                    </label>
+                </div>
             </div>
 
         </div>
 
-    </div>
-
-    <!-- BUTTONS -->
-    <div class="d-flex justify-content-end gap-2 mt-4">
-
-        <a href="/Hospital/PickupList"
-           class="btn btn-light border rounded-pill px-4">
-            Cancel
-        </a>
-
-        <button type="button"
-                class="btn btn-primary rounded-pill px-4"
-                onclick="savePickup()">
-
-            @(Model.PickupId == 0
-                        ? "💾 Save"
-                        : "✏️ Update")
-
-        </button>
+        <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
+            <a href="/Hospital/PickupList" class="btn btn-light">Cancel</a>
+            <button type="button" class="btn btn-primary" id="btnSavePickup" onclick="savePickup()">
+                <i class="fa-solid @(isEdit ? "fa-pen" : "fa-floppy-disk")"></i>
+                @(isEdit ? "Update Pickup" : "Save Pickup")
+            </button>
+        </div>
 
     </div>
-
 </div>
 
-<script>
+@section Scripts {
+    <script>
 
-    // =========================
-    // LINEN TYPES
-    // =========================
-
-    const linenTypes = @Html.Raw(
-                System.Text.Json.JsonSerializer.Serialize(
-                        Model.LinenTypes.Select(x => new
-                        {
-                                linenTypeId = x.LinenTypeId,
-                                linenName = x.LinenName
-                        })
-                )
+        const linenTypes = @Html.Raw(
+            System.Text.Json.JsonSerializer.Serialize(
+                Model.LinenTypes.Select(x => new
+                {
+                    linenTypeId = x.LinenTypeId,
+                    linenName = x.LinenName
+                })
+            )
         );
 
-    // =========================
-    // EXISTING ITEMS
-    // =========================
-
-    const existingItems = @Html.Raw(
-                System.Text.Json.JsonSerializer.Serialize(
-                        Model.Items ?? new List<PickupItemVM>()
-                )
+        const existingItems = @Html.Raw(
+            System.Text.Json.JsonSerializer.Serialize(
+                Model.Items ?? new List<PickupItemVM>()
+            )
         );
 
-    console.log("linenTypes", linenTypes);
+        function generateTable() {
 
-    console.log("existingItems", existingItems);
+            var html = "";
 
-    // =========================
-    // GENERATE TABLE
-    // =========================
+            linenTypes.forEach(function (item) {
 
-    function generateTable() {
-
-        let html = "";
-
-          linenTypes.forEach(item => {
-
-        let existing = existingItems.find(x =>
-            x.LinenTypeId == item.linenTypeId
-        );
-
-        let qty = existing
-            ? existing.CollectedQty
-            : 0;
-
-        html += `
-            <tr>
-
-                <td>
-                    ${item.linenName}
-                </td>
-
-                <td>
-
-                    <input type="number"
-                           min="0"
-                           class="form-control qty"
-                           data-id="${item.linenTypeId}"
-                           value="${qty}" />
-
-                </td>
-
-            </tr>
-        `;
-    });
-
-        $("#linenTable").html(html);
-    }
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        generateTable
-    );
-
-    // =========================
-    // SAVE PICKUP
-    // =========================
-
-    function savePickup() {
-
-        const wardId =
-            parseInt($("#ln-ward").val());
-
-        if (!wardId) {
-
-            alert("Please select ward");
-
-            return;
-        }
-         const providerId =
-            parseInt($("#ln-provider").val());
-
-        if (!providerId) {
-
-            alert("Please select provider");
-
-            return;
-        }
-
-        let items = [];
-
-        $("#linenTable tr").each(function () {
-
-            const input =
-                $(this).find(".qty");
-
-            const qty =
-                parseInt(input.val()) || 0;
-
-            const linenTypeId =
-                parseInt(input.data("id"));
-
-            if (qty > 0) {
-
-                items.push({
-
-                    LinenTypeId: linenTypeId,
-
-                    CollectedQty: qty
-
+                var existing = existingItems.find(function (x) {
+                    return x.LinenTypeId == item.linenTypeId;
                 });
-            }
-        });
 
-        if (items.length === 0) {
+                var qty = existing ? existing.CollectedQty : 0;
 
-            alert("Enter at least one quantity");
+                html +=
+                    '<tr>' +
+                        '<td class="fw-semibold">' + item.linenName + '</td>' +
+                        '<td class="text-end">' +
+                            '<input type="number" min="0" inputmode="numeric" ' +
+                                   'class="form-control form-control-sm qty" ' +
+                                   'data-id="' + item.linenTypeId + '" ' +
+                                   'value="' + qty + '" />' +
+                        '</td>' +
+                    '</tr>';
+            });
 
-            return;
+            $("#linenTable").html(html);
+            updateTotal();
         }
 
-        const data = {
+        function updateTotal() {
+            var total = 0;
+            $("#linenTable .qty").each(function () {
+                total += parseInt($(this).val(), 10) || 0;
+            });
+            $("#linenTotal").text(LMIS.num(total));
+        }
 
-            PickupId:
-                parseInt($("#pickupId").val()) || 0,
-
-           AgreementId:
-               parseInt($("#AgreementId").val()) || 0,
-
-            HospitalId:
-                @Model.HospitalId,
-
-            ProviderId:
-                @Model.ProviderId,
-
-            WardId:
-                wardId,
-
-            PickupDateTime:
-                $("#ln-date").val(),
-
-            ShiftName:
-                $("#ln-shift").val(),
-
-            PickupBy:
-                $("#ln-collected").val(),
-
-            ReceivedBy:
-                $("#ln-received").val(),
-
-            Remarks:
-                $("#ln-remarks").val(),
-
-            IsInfected:
-                $("#ln-infected").is(":checked"),
-
-            Items:
-                items
-        };
-
-        console.log(data);
-
-        $.ajax({
-
-            url: '/Hospital/SavePickup',
-
-            type: 'POST',
-
-            contentType: 'application/json',
-
-            data: JSON.stringify(data),
-
-            success: function (result) {
-
-                if (result.success) {
-
-                    alert(
-                        result.message ||
-                        "Saved Successfully"
-                    );
-
-                    setTimeout(() => {
-
-                        window.location.href =
-                            '/Hospital/PickupList';
-
-                    }, 500);
-                }
-                else {
-
-                    alert(
-                        result.message ||
-                        "Save failed"
-                    );
-                }
-            },
-
-            error: function (xhr) {
-
-                console.log(xhr.responseText);
-
-                alert(
-                    "Error occurred while saving"
-                );
-            }
+        $(function () {
+            generateTable();
+            $("#linenTable").on("input", ".qty", updateTotal);
         });
-    }
 
-</script>
+        function savePickup() {
+
+            var providerId = parseInt($("#ln-provider").val(), 10);
+            if (!providerId) {
+                LMIS.alert("Missing information", "Please select a provider.", "warning");
+                return;
+            }
+
+            var wardId = parseInt($("#ln-ward").val(), 10);
+            if (!wardId) {
+                LMIS.alert("Missing information", "Please select a ward.", "warning");
+                return;
+            }
+
+            var items = [];
+
+            $("#linenTable tr").each(function () {
+                var input = $(this).find(".qty");
+                var qty = parseInt(input.val(), 10) || 0;
+                var linenTypeId = parseInt(input.data("id"), 10);
+
+                if (qty > 0) {
+                    items.push({ LinenTypeId: linenTypeId, CollectedQty: qty });
+                }
+            });
+
+            if (items.length === 0) {
+                LMIS.alert("Nothing to save", "Enter a quantity for at least one linen type.", "warning");
+                return;
+            }
+
+            var data = {
+                PickupId: parseInt($("#pickupId").val(), 10) || 0,
+                AgreementId: parseInt($("#AgreementId").val(), 10) || 0,
+                HospitalId: @Model.HospitalId,
+                ProviderId: @Model.ProviderId,
+                WardId: wardId,
+                PickupDateTime: $("#ln-date").val(),
+                ShiftName: $("#ln-shift").val(),
+                PickupBy: $("#ln-collected").val(),
+                ReceivedBy: $("#ln-received").val(),
+                Remarks: $("#ln-remarks").val(),
+                IsInfected: $("#ln-infected").is(":checked"),
+                Items: items
+            };
+
+            var $btn = $("#btnSavePickup").prop("disabled", true);
+
+            $.ajax({
+                url: '/Hospital/SavePickup',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+
+                success: function (result) {
+                    if (result.success) {
+                        LMIS.toast(result.message || "Saved successfully");
+                        setTimeout(function () {
+                            window.location.href = '/Hospital/PickupList';
+                        }, 700);
+                    } else {
+                        $btn.prop("disabled", false);
+                        LMIS.alert("Save failed", result.message || "Please try again.", "error");
+                    }
+                },
+
+                error: function (xhr) {
+                    $btn.prop("disabled", false);
+                    console.error(xhr.responseText);
+                    LMIS.alert("Save failed", "An error occurred while saving.", "error");
+                }
+            });
+        }
+
+    </script>
+}

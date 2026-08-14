@@ -1,127 +1,112 @@
-﻿@model LaudaryMis.ViewModels.ProvidersVM
+@model LaudaryMis.ViewModels.ProvidersVM
 
-<div class="main-container mt-2">
+@{
+    var isEdit = Model != null && Model.ProviderId > 0;
+    ViewBag.Title = isEdit ? "Edit Provider" : "Add Provider";
+}
 
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body">
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-truck-fast"></i></div>
+    <div class="ph-text">
+        <h1>@(isEdit ? "Edit Provider" : "Add Provider")</h1>
+        <p class="ph-sub">@(isEdit ? "Update the laundry provider's details" : "Register a new laundry service provider")</p>
+    </div>
+    <div class="ph-actions">
+        <a href="/Admin/Providers" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
 
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">
-                    @(Model == null  || Model.ProviderId == 0 ? "➕ Add Provider" : "✏️ Edit Provider")
-                </h4>
+<div class="card">
+    <div class="card-header">
+        <i class="fa-solid fa-circle-info text-teal"></i>
+        <span class="card-title">Provider Details</span>
+    </div>
 
-                <a href="/Admin/Providers" class="btn btn-outline-secondary rounded-pill px-3">
-                    ← Back to List
-                </a>
-            </div>
+    <div class="card-body">
 
-            <!-- Form -->
-            <form asp-action="CreateProvider" asp-controller="Admin" method="post">
-                <input type="hidden" asp-for="ProviderId" />
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Provider Name<span class="text-danger">*</span></label>
-                        <input asp-for="ProviderName" class="form-control" placeholder="Enter provider name" />
+        <form id="providerForm" asp-action="CreateProvider" asp-controller="Admin" method="post" novalidate>
+            <input type="hidden" asp-for="ProviderId" />
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="ProviderName">Provider Name <span class="text-danger">*</span></label>
+                    <input asp-for="ProviderName" class="form-control" placeholder="Enter provider name" />
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="RatePerBed">Rate Per Bed <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input asp-for="RatePerBed" class="form-control" inputmode="decimal" placeholder="0.00" />
                     </div>
+                </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Rate<span class="text-danger">*</span></label>
-                        <input asp-for="RatePerBed" class="form-control" placeholder="Enter provider rate" />
-                    </div>
-                  @*   <div class="col-md-6 mb-3">
-                        <label class="form-label">Phone<span class="text-danger">*</span></label>
-                        <input asp-for="Phone" maxlength="10" class="form-control" placeholder="Enter phone number" />
-                    </div> *@
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="Email">Email <span class="text-danger">*</span></label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" />
+                </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Email<span class="text-danger">*</span></label>
-                        <input asp-for="Email" class="form-control" placeholder="Enter email" />
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Password<span class="text-danger">*</span></label>
-                        <input asp-for="Password" class="form-control" placeholder="Enter Password" />
-                    </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="Password">Password <span class="text-danger">*</span></label>
+                    <input asp-for="Password" class="form-control" placeholder="Enter login password" />
+                </div>
 
-                 @*    <div class="col-md-12 mb-3">
-                        <label class="form-label">Address</label>
-                        <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter address"></textarea>
-                    </div> *@
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label">Status</label>
+                <div class="col-12">
+                    <label class="form-label">Status</label>
+                    <div class="form-check">
                         <input class="form-check-input" type="checkbox" asp-for="IsActive" checked="checked" />
-                        <label class="form-check-label">
-                            @(Model != null && Model.ProviderId > 0
-                                                        ? (Model.IsActive ? "Active" : "Inactive")
-                                                        : "Active")
+                        <label class="form-check-label" asp-for="IsActive">
+                            Active — the provider can sign in and accept pickups
                         </label>
                     </div>
                 </div>
 
+            </div>
 
-                <!-- Buttons -->
-                <div class="d-flex justify-content-end gap-2 mt-3">
-                    <a href="/Admin/Providers" class="btn btn-light border rounded-pill px-4">
-                        Cancel
-                    </a>
+            <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
+                <a href="/Admin/Providers" class="btn btn-light">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid @(isEdit ? "fa-pen" : "fa-floppy-disk")"></i>
+                    @(isEdit ? "Update Provider" : "Save Provider")
+                </button>
+            </div>
 
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">
-                        @(Model == null  || Model.ProviderId == 0 ? "💾 Save" : "✏️ Update")
-                    </button>
-                </div>
+        </form>
 
-            </form>
-
-        </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        $(document).ready(function () {
-                 //  Restrict Phone (only digits + max 10)
-        $('#Phone').on('input', function () {
-            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
-        });
-        });
-    </script>
-    <script>
-        $("form").submit(function (e) {
+        $(function () {
 
-            let name = $("#ProviderName").val();
-            let rate = $("#RatePerBed").val();
-            let phone = $("#Phone").val();
-            let email = $("#Email").val();
+            $('#providerForm').on('submit', function (e) {
 
-            // ❌ Provider Name validation
-            if (!name || name.trim() === "") {
-                e.preventDefault();
-                Swal.fire("Validation Error", "Provider Name is required", "warning");
-                return false;
-            }
+                var name = $('#ProviderName').val();
+                var rate = $('#RatePerBed').val();
+                var email = $('#Email').val();
 
-            // ❌ Rate validation
-            if (!rate || rate <= 0) {
-                e.preventDefault();
-                Swal.fire("Validation Error", "Enter valid Rate", "warning");
-                return false;
-            }
+                if (!name || name.trim() === '') {
+                    e.preventDefault();
+                    LMIS.alert('Missing information', 'Provider Name is required.', 'warning');
+                    return;
+                }
 
-            // //❌ Phone validation
-            // if (!phone || phone.length < 10) {
-            //     e.preventDefault();
-            //     Swal.fire("Validation Error", "Enter valid Phone number", "warning");
-            //     return false;
-            // }
+                if (!rate || Number(rate) <= 0) {
+                    e.preventDefault();
+                    LMIS.alert('Invalid rate', 'Enter a rate greater than zero.', 'warning');
+                    return;
+                }
 
-            // ❌ Email validation (basic)
-            if (!email || !email.includes("@@")) {
-                e.preventDefault();
-                Swal.fire("Validation Error", "Enter valid Email", "warning");
-                return false;
-            }
-
-         
+                if (!email || !/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+                    e.preventDefault();
+                    LMIS.alert('Invalid email', 'Enter a valid email address.', 'warning');
+                    return;
+                }
+            });
 
         });
     </script>
