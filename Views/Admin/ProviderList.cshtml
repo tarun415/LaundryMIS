@@ -1,179 +1,66 @@
-﻿@model IEnumerable<LaudaryMis.ViewModels.HospitalVM>
+@model IEnumerable<LaudaryMis.ViewModels.HospitalVM>
 
 @{
-    ViewBag.Title = "Provider List";
+    ViewBag.Title = "Hospital List";
+    var total = Model?.Count() ?? 0;
+    var active = Model?.Count(h => h.IsActive) ?? 0;
 }
-<!-- 🔥 Custom Styling -->
-<style>
 
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-hospital"></i></div>
+    <div class="ph-text">
+        <h1>Hospital Management</h1>
+        <p class="ph-sub">@total registered &middot; @active active</p>
+    </div>
+    <div class="ph-actions">
+        <a href="/Admin/CreateHospital" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Add Hospital
+        </a>
+    </div>
+</div>
 
-    /* Add button */
-    .btn-primary {
-        background: linear-gradient(135deg, #3b82f6, #1e40af);
-        border: none;
-        color: #fff;
-        font-weight: 500;
-    }
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="hospitalTable" class="table table-hover align-middle w-100">
+                <thead>
+                    <tr>
+                        <th data-priority="1">Hospital Name</th>
+                        <th data-priority="3">City</th>
+                        <th data-priority="4">Phone</th>
+                        <th data-priority="2">Status</th>
+                    </tr>
+                </thead>
 
-    /* DataTable Buttons */
-    .dt-buttons {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-right: 10px;
-    }
-
-        .dt-buttons .btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 50% !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 !important;
-            border: none !important;
-            color: #fff !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-            transition: 0.2s;
-            font-size: 14px;
-        }
-
-    .buttons-copy {
-        background: #6c757d !important;
-    }
-
-    .buttons-excel {
-        background: #198754 !important;
-    }
-
-    .buttons-pdf {
-        background: #dc3545 !important;
-    }
-
-    .buttons-print {
-        background: #0d6efd !important;
-    }
-
-    .dt-buttons .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 12px rgba(0,0,0,0.2);
-    }
-
-    /* Search box */
-    .dataTables_filter input {
-        width: 180px !important;
-        border-radius: 20px;
-        padding: 6px 12px;
-        border: 1px solid #ddd;
-    }
-
-    /* Table spacing */
-    table.dataTable td, table.dataTable th {
-        padding: 8px 12px !important;
-        font-size: 14px;
-    }
-</style>
-
-<div class="main-container">
-
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body">
-
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">🏥 Hospital Management</h4>
-
-                <a href="/Admin/CreateHospital" class="btn btn-primary rounded-pill px-4">
-                    + Add Hospital
-                </a>
-            </div>
-
-            <div class="table-responsive">
-                <table id="hospitalTable" class="table table-hover align-middle">
-                    <thead class="table-light">
+                <tbody>
+                    @foreach (var h in Model)
+                    {
                         <tr>
-                            <th>Hospital Name</th>
-                            <th>City</th>
-                            <th>Phone</th>
-                            <th>Status</th>
+                            <td class="fw-semibold">@h.HospitalName</td>
+                            <td>@h.City</td>
+                            <td class="nowrap">@h.Phone</td>
+                            <td>
+                                @if (h.IsActive)
+                                {
+                                    <span class="badge badge-ok"><i class="fa-solid fa-circle-check"></i> Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger"><i class="fa-solid fa-circle-xmark"></i> Inactive</span>
+                                }
+                            </td>
                         </tr>
-                    </thead>
-
-                    <tbody>
-                        @foreach (var h in Model)
-                        {
-                            <tr>
-                                <td class="fw-semibold">@h.HospitalName</td>
-                                <td>@h.City</td>
-                                <td>@h.Phone</td>
-                                <td>
-                                    @if (h.IsActive)
-                                    {
-                                        <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">
-                                            Active
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill">
-                                            Inactive
-                                        </span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
 @section Scripts {
-<!-- 🔥 DataTable Script -->
-<script>
-    $(document).ready(function () {
-        $('#hospitalTable').DataTable({
-            pageLength: 10,
-            responsive: true,
-            autoWidth: false,
-
-            dom:
-                "<'row mb-2 align-items-center'<'col-md-4'l><'col-md-8 d-flex justify-content-end align-items-center gap-2'Bf>>" +
-                "<'row'<'col-12'tr>>" +
-                "<'row mt-2'<'col-md-5'i><'col-md-7 text-end'p>>",
-
-            buttons: [
-                {
-                    extend: 'copy',
-                    className: 'btn buttons-copy',
-                    text: '<i class="fa fa-copy"></i>',
-                    titleAttr: 'Copy'
-                },
-                {
-                    extend: 'excel',
-                    className: 'btn buttons-excel',
-                    text: '<i class="fa fa-file-excel"></i>',
-                    titleAttr: 'Excel'
-                },
-                {
-                    extend: 'pdf',
-                    className: 'btn buttons-pdf',
-                    text: '<i class="fa fa-file-pdf"></i>',
-                    titleAttr: 'PDF'
-                },
-                {
-                    extend: 'print',
-                    className: 'btn buttons-print',
-                    text: '<i class="fa fa-print"></i>',
-                    titleAttr: 'Print'
-                }
-            ],
-
-            language: {
-                search: "",
-                searchPlaceholder: "🔍 Search..."
-            }
+    <script>
+        $(function () {
+            LMIS.initTable('#hospitalTable', { exportTitle: 'Hospitals' });
         });
-    });
-</script>
+    </script>
 }

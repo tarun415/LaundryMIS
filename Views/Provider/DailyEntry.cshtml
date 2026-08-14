@@ -1,302 +1,306 @@
-﻿@using LaudaryMis.ViewModels
+@using LaudaryMis.ViewModels
 @model LaudaryMis.ViewModels.DailyEntryVM
-<style>
-    .linen-scroll {
-        max-height: 300px; /* adjust as needed */
-        overflow-y: auto;
-        border: 1.5px solid #dee2e6;
-        border-radius: 9px;
-    }
 
-        /* Sticky header */
-        .linen-scroll thead th {
-            position: sticky;
-            top: 0;
-            background: #dbeafe; /* nice blue */
-            color: #1e3a8a;
-            z-index: 2;
+@{
+    var isEdit = Model != null && Model.EntryId != 0;
+    ViewBag.Title = isEdit ? "Edit Daily Linen Entry" : "Add Daily Linen Entry";
+}
+
+@section Styles {
+    <style>
+        .linen-scroll {
+            max-height: 340px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: var(--r-sm);
         }
-</style>
-<div class="container mt-4">
-    @* <h3>🧺 Daily Linen Entry</h3> *@
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">
-            @(Model == null || Model.EntryId == 0 ? "➕ Add Daily Linen Entry" : "✏️ Edit Daily Linen Entry")
-        </h4>
+        .linen-scroll table { margin: 0; }
+        .linen-scroll thead th { position: sticky; top: 0; z-index: 2; }
+        .linen-scroll input.dirty { max-width: 140px; margin-left: auto; text-align: right; }
+    </style>
+}
 
-        <a href="@Url.Action("DailyEntryList", "Provider")"
-           class="btn btn-outline-secondary rounded-pill px-3">
-            ← Back to List
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-basket-shopping"></i></div>
+    <div class="ph-text">
+        <h1>@(isEdit ? "Edit Daily Linen Entry" : "Add Daily Linen Entry")</h1>
+        <p class="ph-sub">Record dirty linen collected from a ward</p>
+    </div>
+    <div class="ph-actions">
+        <a href="@Url.Action("DailyEntryList", "Provider")" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
         </a>
     </div>
-    <input type="hidden" id="entryId" value="@Model.EntryId" />
+</div>
 
-    <div class="row g-3">
+<input type="hidden" id="entryId" value="@Model.EntryId" />
 
-        <!-- Row 1 -->
-        <div class="col-md-6">
-            <label>Hospital</label>
-            <select id="ln-hospital" class="form-control">
-                <option value="">Select Hospital</option>
-                @foreach (var h in Model.Hospitals)
-                {
-                    <option value="@h.HospitalId"
-                            selected="@(h.HospitalId == Model.HospitalId)">
-                        @h.HospitalName
-                    </option>
-                }
-            </select>
-        </div>
-        <div class="col-md-6">
-            <label>Ward</label>
-            <select id="ln-ward" class="form-control">
-                <option value="">Select Ward</option>
-                @foreach (var w in Model.Wards)
-                {
-                    <option value="@w.WardId"
-                            selected="@(w.WardId == Model.Ward)">
-                        @w.WardName
-                    </option>
-                }
-            </select>
-        </div>
-       
-
-        <!-- Row 2 -->
-        <div class="col-md-6">
-            <label>Date</label>
-            <input type="date" id="ln-date" class="form-control"
-                   value="@Model.EntryDate.ToString("yyyy-MM-dd")" />
-        </div>
-
-        <div class="col-md-6">
-            <label>Shift</label>
-            <select id="ln-shift" class="form-control">
-                <option value="Morning" selected="@(Model.Shift == "Morning")">Morning</option>
-                <option value="Evening" selected="@(Model.Shift == "Evening")">Evening</option>
-            </select>
-        </div>
-
+<!-- ENTRY DETAILS -->
+<div class="card mb-3">
+    <div class="card-header">
+        <i class="fa-solid fa-circle-info text-teal"></i>
+        <span class="card-title">Entry Details</span>
     </div>
 
-    <hr />
+    <div class="card-body">
+        <div class="row g-3">
 
-    <!-- 🔥 LINEN TABLE -->
-    <div class="table-responsive linen-scroll">
-        <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Linen Type</th>
-                <th>Dirty Count</th>
-            </tr>
-        </thead>
-        <tbody id="linenTable"></tbody>
-        </table>
-    </div>
-
-    <hr />
-
-    <!-- Tracking -->
-    <div class="row g-3">
-
-        <div class="col-md-4">
-            <label class="form-label mb-1">Collected By</label>
-            <input type="text" id="ln-collected"
-                   class="form-control"
-                   value="@Model.CollectedBy" />
-        </div>
-
-        <div class="col-md-4">
-            <label class="form-label mb-1">Received By</label>
-            <input type="text" id="ln-received"
-                   class="form-control"
-                   value="@Model.ReceivedBy" />
-        </div>
-
-        <div class="col-md-4">
-            <label class="form-label mb-1">Supervisor</label>
-            <input type="text" id="ln-supervisor"
-                   class="form-control"
-                   value="@Model.Supervisor" />
-        </div>
-
-    </div>
-
-    <!-- Remarks + Infected -->
-    <div class="row g-3 mt-2 align-items-end">
-
-        <!-- Remarks -->
-        <div class="col-md-8">
-            <label class="form-label mb-1 fw-semibold">Remarks</label>
-            <input type="text"
-                   id="ln-remarks"
-                   class="form-control"
-                   placeholder="Enter remarks (optional)"
-                   value="@Model.Remarks" />
-        </div>
-
-        <!-- Infected Checkbox -->
-        <div class="col-md-4 d-flex align-items-center">
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="checkbox"
-                       id="ln-infected"
-                       @(Model.IsInfected ? "checked" : "") />
-
-                <label class="form-check-label ms-2 fw-semibold" for="ln-infected">
-                    Is Infected
-                </label>
+            <div class="col-12 col-md-6 col-xl-3">
+                <label class="form-label" for="ln-hospital">Hospital</label>
+                <select id="ln-hospital" class="form-select">
+                    <option value="">Select Hospital</option>
+                    @foreach (var h in Model.Hospitals)
+                    {
+                        <option value="@h.HospitalId" selected="@(h.HospitalId == Model.HospitalId)">@h.HospitalName</option>
+                    }
+                </select>
             </div>
-        </div>
 
+            <div class="col-12 col-md-6 col-xl-3">
+                <label class="form-label" for="ln-ward">Ward</label>
+                <select id="ln-ward" class="form-select">
+                    <option value="">Select Ward</option>
+                    @foreach (var w in Model.Wards)
+                    {
+                        <option value="@w.WardId" selected="@(w.WardId == Model.Ward)">@w.WardName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <label class="form-label" for="ln-date">Date</label>
+                <input type="date" id="ln-date" class="form-control"
+                       value="@Model.EntryDate.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <label class="form-label" for="ln-shift">Shift</label>
+                <select id="ln-shift" class="form-select">
+                    <option value="Morning" selected="@(Model.Shift == "Morning")">Morning</option>
+                    <option value="Evening" selected="@(Model.Shift == "Evening")">Evening</option>
+                </select>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- LINEN COUNTS -->
+<div class="card mb-3">
+    <div class="card-header">
+        <i class="fa-solid fa-shirt text-teal"></i>
+        <span class="card-title">Dirty Linen Count</span>
+        <span class="info-pill ms-auto">
+            <i class="fa-solid fa-calculator"></i>
+            Total: <strong id="linenTotal">0</strong>
+        </span>
     </div>
 
-    <!-- Buttons -->
-    <div class="d-flex justify-content-end gap-2 mt-3">
+    <div class="card-body">
+        <div class="linen-scroll">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Linen Type</th>
+                        <th class="text-end" style="width: 200px;">Dirty Count</th>
+                    </tr>
+                </thead>
+                <tbody id="linenTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-        <a href="/Provider/DailyEntryList"
-           class="btn btn-light border rounded-pill px-4">
-            Cancel
-        </a>
+<!-- HANDOVER -->
+<div class="card">
+    <div class="card-header">
+        <i class="fa-solid fa-user-check text-teal"></i>
+        <span class="card-title">Handover Details</span>
+    </div>
 
-        <button type="button"
-                onclick="saveEntry()"
-                class="btn btn-primary rounded-pill px-4">
-            @(Model.EntryId == 0 ? "💾 Save" : "✏️ Update")
-        </button>
+    <div class="card-body">
+        <div class="row g-3">
+
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="ln-collected">Collected By</label>
+                <input type="text" id="ln-collected" class="form-control"
+                       placeholder="Name" value="@Model.CollectedBy" />
+            </div>
+
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="ln-received">Received By</label>
+                <input type="text" id="ln-received" class="form-control"
+                       placeholder="Name" value="@Model.ReceivedBy" />
+            </div>
+
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="ln-supervisor">Supervisor</label>
+                <input type="text" id="ln-supervisor" class="form-control"
+                       placeholder="Name" value="@Model.Supervisor" />
+            </div>
+
+            <div class="col-12 col-md-8">
+                <label class="form-label" for="ln-remarks">Remarks</label>
+                <input type="text" id="ln-remarks" class="form-control"
+                       placeholder="Enter remarks (optional)" value="@Model.Remarks" />
+            </div>
+
+            <div class="col-12 col-md-4 d-flex align-items-end">
+                <div class="form-check pb-2">
+                    <input class="form-check-input" type="checkbox" id="ln-infected"
+                           @(Model.IsInfected ? "checked" : "") />
+                    <label class="form-check-label" for="ln-infected">
+                        <i class="fa-solid fa-biohazard text-danger"></i> Infected linen
+                    </label>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
+            <a href="/Provider/DailyEntryList" class="btn btn-light">Cancel</a>
+            <button type="button" id="btnSaveEntry" class="btn btn-primary" onclick="saveEntry()">
+                <i class="fa-solid @(isEdit ? "fa-pen" : "fa-floppy-disk")"></i>
+                @(isEdit ? "Update Entry" : "Save Entry")
+            </button>
+        </div>
 
     </div>
 </div>
 
-<!-- 🔥 Razor → JS Array -->
-<script>
-      const linenTypes = @Html.Raw(
-                System.Text.Json.JsonSerializer.Serialize(
-                        Model.LinenTypes.Select(x => x.LinenName)
-                )
+@section Scripts {
+    <script>
+
+        const linenTypes = @Html.Raw(
+            System.Text.Json.JsonSerializer.Serialize(
+                Model.LinenTypes.Select(x => x.LinenName)
+            )
         );
 
         const existingItems = @Html.Raw(
-                System.Text.Json.JsonSerializer.Serialize(
-                        (Model.Items as List<LinenItemVM>) ?? new List<LinenItemVM>()
-                )
+            System.Text.Json.JsonSerializer.Serialize(
+                (Model.Items as List<LinenItemVM>) ?? new List<LinenItemVM>()
+            )
         );
-            // ✅ PRINT
-    console.log("Linen Types:", linenTypes);
-    console.log("Existing Items:", existingItems);
-          function generateTable() {
 
-        let html = "";
+        function generateTable() {
 
-        // 🔥 fallback if linenTypes empty
-        let source = linenTypes.length > 0
-            ? linenTypes
-            : existingItems.map(x => x.LinenType);
+            var html = "";
 
-        source.forEach(name => {
+            // Fall back to the saved items when no linen master is supplied
+            var source = linenTypes.length > 0
+                ? linenTypes
+                : existingItems.map(function (x) { return x.LinenType; });
 
-            let existing = existingItems.find(x =>
-                x.LinenType?.trim().toLowerCase() === name?.trim().toLowerCase()
-            );
+            source.forEach(function (name) {
 
-            let dirty = existing ? existing.DirtyCount : 0;
-
-            html += `
-                <tr>
-                    <td>${name}</td>
-                    <td>
-                        <input type="number"
-                               class="dirty form-control"
-                               data-type="${name}"
-                               value="${dirty}" />
-                    </td>
-                </tr>
-            `;
-        });
-
-        document.getElementById("linenTable").innerHTML = html;
-    }
-
-    document.addEventListener("DOMContentLoaded", generateTable);
-
-    document.addEventListener("DOMContentLoaded", generateTable);
-
-       function saveEntry() {
-
-        const rows = document.querySelectorAll("#linenTable tr");
-
-        let items = [];
-
-        rows.forEach(r => {
-            const input = r.querySelector(".dirty");
-            const type = input.dataset.type;
-            const dirty = parseInt(input.value) || 0;
-
-            if (dirty > 0) {
-                items.push({
-                    LinenType: type,
-                    DirtyCount: dirty
+                var existing = existingItems.find(function (x) {
+                    return x.LinenType && name &&
+                           x.LinenType.trim().toLowerCase() === name.trim().toLowerCase();
                 });
-            }
+
+                var dirty = existing ? existing.DirtyCount : 0;
+
+                html +=
+                    '<tr>' +
+                        '<td class="fw-semibold">' + name + '</td>' +
+                        '<td class="text-end">' +
+                            '<input type="number" min="0" inputmode="numeric" ' +
+                                   'class="form-control form-control-sm dirty" ' +
+                                   'data-type="' + name + '" value="' + dirty + '" />' +
+                        '</td>' +
+                    '</tr>';
+            });
+
+            document.getElementById("linenTable").innerHTML = html;
+            updateTotal();
+        }
+
+        function updateTotal() {
+            var total = 0;
+            $("#linenTable .dirty").each(function () {
+                total += parseInt($(this).val(), 10) || 0;
+            });
+            $("#linenTotal").text(LMIS.num(total));
+        }
+
+        $(function () {
+            generateTable();
+            $("#linenTable").on("input", ".dirty", updateTotal);
         });
 
-        const hospitalId = parseInt($("#ln-hospital").val());
-        if (!hospitalId) {
-            alert("Select hospital");
-            return;
-        }
+        function saveEntry() {
 
-        const wardId = parseInt($("#ln-ward").val());
-        if (!wardId) {
-            alert("Select ward");
-            return;
-        }
+            var items = [];
 
-        if (items.length === 0) {
-            alert("Enter at least one item");
-            return;
-        }
+            document.querySelectorAll("#linenTable tr").forEach(function (r) {
+                var input = r.querySelector(".dirty");
+                if (!input) return;
 
-        
-            const data = {
-        EntryId: $("#entryId").val(), // important
-        EntryDate: $("#ln-date").val(),
-        Shift: $("#ln-shift").val(),
-        HospitalId: hospitalId,
-        Ward: wardId,
+                var dirty = parseInt(input.value, 10) || 0;
+                if (dirty > 0) {
+                    items.push({ LinenType: input.dataset.type, DirtyCount: dirty });
+                }
+            });
 
-        CollectedBy: $("#ln-collected").val(),
-        ReceivedBy: $("#ln-received").val(),
-        Supervisor: $("#ln-supervisor").val(),
-
-        IsInfected: $("#ln-infected").is(":checked"),
-        Remarks: $("#ln-remarks").val() || "",
-
-        Items: items
-    };
-        $.ajax({
-            url: '/Provider/Save',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-
-               success: function (result) {
-        if (result.success) {
-
-            // optional  message
-             alert("Saved Successfully");
-
-            setTimeout(() => {
-                window.location.href = '/Provider/DailyEntryList';
-            }, 500);
-        }
-    },
-
-            error: function (xhr) {
-                console.log(xhr.responseText);
-                alert(xhr.responseText || "Error occurred");
+            var hospitalId = parseInt($("#ln-hospital").val(), 10);
+            if (!hospitalId) {
+                LMIS.alert("Missing information", "Please select a hospital.", "warning");
+                return;
             }
-        });
-    }
-</script>
+
+            var wardId = parseInt($("#ln-ward").val(), 10);
+            if (!wardId) {
+                LMIS.alert("Missing information", "Please select a ward.", "warning");
+                return;
+            }
+
+            if (items.length === 0) {
+                LMIS.alert("Nothing to save", "Enter a count for at least one linen type.", "warning");
+                return;
+            }
+
+            var data = {
+                EntryId: $("#entryId").val(),
+                EntryDate: $("#ln-date").val(),
+                Shift: $("#ln-shift").val(),
+                HospitalId: hospitalId,
+                Ward: wardId,
+                CollectedBy: $("#ln-collected").val(),
+                ReceivedBy: $("#ln-received").val(),
+                Supervisor: $("#ln-supervisor").val(),
+                IsInfected: $("#ln-infected").is(":checked"),
+                Remarks: $("#ln-remarks").val() || "",
+                Items: items
+            };
+
+            var $btn = $("#btnSaveEntry").prop("disabled", true);
+
+            $.ajax({
+                url: '/Provider/Save',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+
+                success: function (result) {
+                    if (result.success) {
+                        LMIS.toast("Saved successfully");
+                        setTimeout(function () {
+                            window.location.href = '/Provider/DailyEntryList';
+                        }, 700);
+                    } else {
+                        $btn.prop("disabled", false);
+                        LMIS.alert("Save failed", result.message || "Please try again.", "error");
+                    }
+                },
+
+                error: function (xhr) {
+                    $btn.prop("disabled", false);
+                    console.error(xhr.responseText);
+                    LMIS.alert("Save failed", "An error occurred while saving.", "error");
+                }
+            });
+        }
+
+    </script>
+}

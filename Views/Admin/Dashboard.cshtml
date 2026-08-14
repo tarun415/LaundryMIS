@@ -1,11 +1,122 @@
-﻿@{
+@{
+    ViewData["Title"] = "Admin Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Admin Dashboard</h2>
+@*
+    AdminController.Dashboard() returns View() with no model, so this page is a
+    navigation hub rather than a metrics board. Wire a view model into the action
+    and the KPI row below can be filled in with live counts.
+*@
 
-<div class="alert alert-primary">
-    Total Hospitals, Payments, Reports
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-chart-pie"></i></div>
+    <div class="ph-text">
+        <h1>Admin Dashboard</h1>
+        <p class="ph-sub">Directorate General of Medical &amp; Health Services, Uttar Pradesh</p>
+    </div>
 </div>
 
- 
+<div class="row g-3">
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a href="/Admin/Hospitals" class="stat-card is-teal h-100 text-decoration-none">
+            <div class="card-icon"><i class="fa-solid fa-hospital"></i></div>
+            <div class="min-w-0">
+                <div class="stat-lbl">Hospitals</div>
+                <div class="stat-sub">Register and maintain facilities</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a href="/Admin/Providers" class="stat-card is-navy h-100 text-decoration-none">
+            <div class="card-icon"><i class="fa-solid fa-truck-fast"></i></div>
+            <div class="min-w-0">
+                <div class="stat-lbl">Providers</div>
+                <div class="stat-sub">Laundry service vendors</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a href="/Admin/Wards" class="stat-card is-gold h-100 text-decoration-none">
+            <div class="card-icon"><i class="fa-solid fa-bed"></i></div>
+            <div class="min-w-0">
+                <div class="stat-lbl">Wards</div>
+                <div class="stat-sub">Ward master list</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a href="/Admin/Agreements" class="stat-card is-ok h-100 text-decoration-none">
+            <div class="card-icon"><i class="fa-solid fa-file-signature"></i></div>
+            <div class="min-w-0">
+                <div class="stat-lbl">Agreements</div>
+                <div class="stat-sub">Provider &ndash; hospital contracts</div>
+            </div>
+        </a>
+    </div>
+
+</div>
+
+<div class="row g-3 mt-1">
+
+    <div class="col-12 col-lg-7">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fa-solid fa-bolt text-teal"></i>
+                <span class="card-title">Quick Actions</span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="/Admin/CreateHospital" class="btn btn-primary">
+                        <i class="fa-solid fa-plus"></i> Add Hospital
+                    </a>
+                    <a href="/Admin/CreateProvider" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-plus"></i> Add Provider
+                    </a>
+                    <a href="/Admin/CreateWard" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-plus"></i> Add Ward
+                    </a>
+                    <a href="/Admin/CreateAgreement" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-file-circle-plus"></i> New Agreement
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fa-solid fa-circle-info text-teal"></i>
+                <span class="card-title">About This System</span>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-k">Scope</span>
+                    <span class="info-v">Mechanized Laundry Services</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-k">Coverage</span>
+                    <span class="info-v">197 Hospitals</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-k">Signed in as</span>
+                    <span class="info-v">@User.Identity?.Name</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-k">Role</span>
+                    <span class="info-v">
+                        <span class="badge badge-teal">
+                            @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

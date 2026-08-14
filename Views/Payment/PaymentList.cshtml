@@ -1,509 +1,237 @@
-﻿@model List<LaudaryMis.Models.PaymentMaster>
+@model List<LaudaryMis.Models.PaymentMaster>
 
 @{
     ViewData["Title"] = "Payment List";
+    var isHospital = User.IsInRole("Hospital");
+    var total = Model?.Count ?? 0;
+    var netTotal = Model?.Sum(p => p.NetPayable) ?? 0m;
 }
 
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+    <div class="ph-text">
+        <h1>Monthly Payment Management</h1>
+        <p class="ph-sub">@total payment@(total == 1 ? "" : "s") &middot; ₹@netTotal.ToString("N2") net payable</p>
+    </div>
+    @if (isHospital)
+    {
+        <div class="ph-actions">
+            <a asp-action="GeneratePayment" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Generate Payment
+            </a>
+        </div>
+    }
+</div>
 
-<div class="container-fluid mt-3">
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" data-auto-dismiss>
+        <i class="fa-solid fa-circle-check"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
 
-    <div class="card shadow border-0">
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
 
-        <div class="card-header bg-primary text-white">
+<!-- FILTER -->
+<form asp-action="PaymentList" method="get">
+    <div class="filter-bar">
 
-            <div class="d-flex justify-content-between align-items-center">
-
-                <h4 class="mb-0">
-
-                    <i class="fa fa-money-bill-wave"></i>
-
-                    Monthly Payment Management
-
-                </h4>
-
-                @if (User.IsInRole("Hospital"))
+        <div class="filter-field">
+            <label class="form-label" for="monthNo">Month</label>
+            <select class="form-select" name="monthNo" id="monthNo">
+                <option value="">All Months</option>
+                @for (int i = 1; i <= 12; i++)
                 {
-                    <a asp-action="GeneratePayment"
-                       class="btn btn-success">
-                        <i class="fa fa-plus-circle"></i>
-                        Generate Payment
-                    </a>
+                    <option value="@i">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)</option>
                 }
-
-            </div>
-
+            </select>
         </div>
 
-        <div class="card-body">
-
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show">
-
-                    @TempData["Success"]
-
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="alert"></button>
-
-                </div>
-            }
-
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show">
-
-                    @TempData["Error"]
-
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="alert"></button>
-
-                </div>
-            }
-
-            <form asp-action="PaymentList"
-                  method="get">
-
-                <div class="row">
-
-                    <div class="col-md-3">
-
-                        <label class="form-label fw-bold">
-
-                            Month
-
-                        </label>
-
-                        <select class="form-select"
-                                name="monthNo">
-
-                            <option value="">All Months</option>
-
-                            @for (int i = 1; i <= 12; i++)
-                            {
-                                <option value="@i">
-
-                                    @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i)
-
-                                </option>
-                            }
-
-                        </select>
-
-                    </div>
-
-                    <div class="col-md-3">
-
-                        <label class="form-label fw-bold">
-
-                            Year
-
-                        </label>
-
-                        <input type="number"
-                               class="form-control"
-                               name="yearNo"
-                               value="@DateTime.Now.Year" />
-
-                    </div>
-
-                    <div class="col-md-3 d-flex align-items-end">
-
-                        <button type="submit"
-                                class="btn btn-primary me-2">
-
-                            <i class="fa fa-search"></i>
-
-                            Search
-
-                        </button>
-
-                        <a asp-action="PaymentList"
-                           class="btn btn-secondary">
-
-                            <i class="fa fa-refresh"></i>
-
-                            Reset
-
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </form>
-
-            <hr />
-
-            <div class="table-responsive">
-
-                <table id="tblPayments"
-                       class="table table-hover table-bordered table-striped align-middle w-100">
-
-                    <thead class="table-primary">
-
-                        <tr>
-
-                            <th>Payment No</th>
-
-                            <th>Hospital</th>
-
-                            <th>Provider</th>
-
-                            <th>Month</th>
-
-                            <th>Bed Occupancy</th>
-
-                            <th>Average Score</th>
-
-                            <th>Monthly Bill</th>
-
-                            <th>Invoice Amount</th>
-
-                            <th>TDS</th>
-
-                            <th>Net Payable</th>
-
-                            <th>Status</th>
-
-                            <th width="180">Action</th>
-
-                            @if (User.IsInRole("Hospital"))
-                            {
-                                <th>Warning Letter</th>
-                            }
-                           
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-                        @if (Model != null && Model.Any())
-                        {
-                            foreach (var item in Model)
-                            {
-                                <tr>
-
-                                    <td>
-
-                                        <strong class="text-primary">
-
-                                            @item.PaymentNo
-
-                                        </strong>
-
-                                    </td>
-
-                                    <td>
-
-                                        @item.HospitalName
-
-                                    </td>
-
-                                    <td>
-
-                                        @item.ProviderName
-
-                                    </td>
-
-                                    <td>
-
-                                        @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.MonthNo)
-
-                                        @item.YearNo
-
-                                    </td>
-
-                                    <td class="text-center">
-
-                                        <span class="badge bg-info text-dark">
-
-                                            @item.BedOccupancy / @item.SanctionedBeds
-
-                                        </span>
-
-                                    </td>
-
-                                    <td class="text-center">
-
-                                        @if (item.AverageScore >= 81)
-                                        {
-                                            <span class="badge bg-success">
-
-                                                @item.AverageScore %
-
-                                            </span>
-                                        }
-                                        else if (item.AverageScore >= 61)
-                                        {
-                                            <span class="badge bg-warning text-dark">
-
-                                                @item.AverageScore %
-
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-danger">
-
-                                                @item.AverageScore %
-
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                    <td class="text-end">
-
-                                        ₹ @item.MonthlyBill.ToString("N2")
-
-                                    </td>
-
-                                    <td class="text-end fw-bold text-primary">
-
-                                        ₹ @item.InvoiceAmount.ToString("N2")
-
-                                    </td>
-
-                                    <td class="text-end text-danger">
-
-                                        ₹ @item.TDSAmount.ToString("N2")
-
-                                    </td>
-
-                                    <td class="text-end fw-bold text-success">
-
-                                        ₹ @item.NetPayable.ToString("N2")
-
-                                    </td>
-
-                                    <td class="text-center">
-
-                                        @*   @if (item.Status == "Approved")
-                                        {
-                                            <span class="badge bg-success">
-
-                                                Approved
-
-                                            </span>
-                                        }
-                                        else if (item.Status == "Rejected")
-                                        {
-                                            <span class="badge bg-danger">
-
-                                                Rejected
-
-                                            </span>
-                                        } *@
-                                        @if (item.InvoiceId == null)
-                                        {
-                                            <span class="badge bg-success">
-                                                Pending                                             
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-warning text-dark">
-                                                Invoice Generated
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                    <td>
-
-                                        <div class="btn-group">
-
-                                            @if (item.InvoiceId == null)
-                                            {
-                                                @if (User.IsInRole("Provider"))
-                                                {
-                                                    <a asp-controller="Invoice"
-                                                       asp-action="GenerateInvoice"
-                                                       asp-route-paymentId="@item.PaymentId"
-                                                       class="btn btn-primary btn-sm">
-                                                        <i class="fa fa-file-invoice"></i> Generate Invoice
-                                                    </a>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <a asp-controller="Invoice"
-                                                   asp-action="PreviewInvoice"
-                                                   asp-route-invoiceId="@item.InvoiceId"
-                                                   class="btn btn-info btn-sm"
-                                                   target="_blank"
-                                                   title="View Invoice">
-                                                    <i class="fa fa-eye"></i>
-                                                </a>
-                                            }
-
-                                         @*    <a asp-action="PaymentDetails"
-                                               asp-route-paymentId="@item.PaymentId"
-                                               class="btn btn-info btn-sm">
-
-                                                <i class="fa fa-eye"></i>
-
-                                            </a> *@
-                                            @*   @if (item.Status == "Pending")
-                                            {
-                                                <a asp-action="ApprovePayment"
-                                                   asp-route-paymentId="@item.PaymentId"
-                                                   class="btn btn-success btn-sm">
-
-                                                    <i class="fa fa-check"></i>
-
-                                                </a>
-
-                                                <a asp-action="RejectPayment"
-                                                   asp-route-paymentId="@item.PaymentId"
-                                                   class="btn btn-danger btn-sm">
-
-                                                    <i class="fa fa-times"></i>
-
-                                                </a>
-                                            } *@
-
-                                        </div>
-
-                                    </td>
-        @if (User.IsInRole("Hospital"))
-                                    {
-                                        <td>
-                                            @if (item.AverageScore < 80)
-                                            {
-                                                if (item.WarningGenerated == false)
-                                                {
-                                                    <a asp-controller="WarningLetter"
-                                                       asp-action="GenerateWarningLetter"
-                                                       asp-route-paymentId="@item.PaymentId"
-                                                       class="btn btn-warning btn-sm">
-                                                        <i class="fa fa-exclamation-triangle"></i> Generate
-                                                    </a>
-                                                }
-                                                else
-                                                {
-                                                    <a asp-controller="WarningLetter"
-                                                       asp-action="PreviewWarningLetter"
-                                                       asp-route-warningId="@item.WarningId"
-                                                       target="_blank"
-                                                       class="btn btn-success btn-sm">
-                                                        <i class="fa fa-eye"></i> View
-                                                    </a>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-success">Not Required</span>
-                                            }
-                                        </td>
-                                    }
-                                  
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-
-                                <td colspan="12"
-                                    class="text-center text-muted">
-
-                                    <i class="fa fa-info-circle"></i>
-
-                                    No Payment Records Found
-
-                                </td>
-
-                            </tr>
-                        }
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
+        <div class="filter-field">
+            <label class="form-label" for="yearNo">Year</label>
+            <input type="number" class="form-control" name="yearNo" id="yearNo" value="@DateTime.Now.Year" />
+        </div>
+
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+            <a asp-action="PaymentList" class="btn btn-light">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+            </a>
         </div>
 
     </div>
+</form>
 
+<!-- TABLE -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="tblPayments" class="table table-hover align-middle w-100">
+
+                <thead>
+                    <tr>
+                        <th data-priority="1">Payment No</th>
+                        <th data-priority="4">Hospital</th>
+                        <th data-priority="5">Provider</th>
+                        <th data-priority="6">Month</th>
+                        <th data-priority="9" class="text-center">Bed Occupancy</th>
+                        <th data-priority="3" class="text-center">Avg Score</th>
+                        <th data-priority="10" class="text-end">Monthly Bill</th>
+                        <th data-priority="8" class="text-end">Invoice Amount</th>
+                        <th data-priority="11" class="text-end">TDS</th>
+                        <th data-priority="2" class="text-end">Net Payable</th>
+                        <th data-priority="7">Status</th>
+                        <th data-priority="1" class="no-sort text-end">Action</th>
+                        @if (isHospital)
+                        {
+                            <th data-priority="3" class="no-sort text-end">Warning Letter</th>
+                        }
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold text-teal">@item.PaymentNo</td>
+                                <td>@item.HospitalName</td>
+                                <td>@item.ProviderName</td>
+
+                                <td class="nowrap">
+                                    @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.MonthNo) @item.YearNo
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="badge badge-info">@item.BedOccupancy / @item.SanctionedBeds</span>
+                                </td>
+
+                                <td class="text-center">
+                                    @if (item.AverageScore >= 81)
+                                    {
+                                        <span class="badge badge-ok">@item.AverageScore %</span>
+                                    }
+                                    else if (item.AverageScore >= 61)
+                                    {
+                                        <span class="badge badge-warn">@item.AverageScore %</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">@item.AverageScore %</span>
+                                    }
+                                </td>
+
+                                <td class="text-end nowrap">₹ @item.MonthlyBill.ToString("N2")</td>
+                                <td class="text-end nowrap fw-bold text-teal">₹ @item.InvoiceAmount.ToString("N2")</td>
+                                <td class="text-end nowrap text-danger">₹ @item.TDSAmount.ToString("N2")</td>
+                                <td class="text-end nowrap fw-bold text-success">₹ @item.NetPayable.ToString("N2")</td>
+
+                                <td>
+                                    @if (item.InvoiceId == null)
+                                    {
+                                        <span class="badge badge-warn">Pending</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-ok">Invoice Generated</span>
+                                    }
+                                </td>
+
+                                <td class="text-end">
+                                    @if (item.InvoiceId == null)
+                                    {
+                                        @if (User.IsInRole("Provider"))
+                                        {
+                                            <a asp-controller="Invoice"
+                                               asp-action="GenerateInvoice"
+                                               asp-route-paymentId="@item.PaymentId"
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fa-solid fa-file-invoice"></i> Generate
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">&mdash;</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Invoice"
+                                           asp-action="PreviewInvoice"
+                                           asp-route-invoiceId="@item.InvoiceId"
+                                           class="btn btn-sm btn-icon btn-outline-primary"
+                                           target="_blank" rel="noopener"
+                                           data-bs-toggle="tooltip" title="View invoice">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                    }
+                                </td>
+
+                                @if (isHospital)
+                                {
+                                    <td class="text-end">
+                                        @if (item.AverageScore < 80)
+                                        {
+                                            if (item.WarningGenerated == false)
+                                            {
+                                                <a asp-controller="WarningLetter"
+                                                   asp-action="GenerateWarningLetter"
+                                                   asp-route-paymentId="@item.PaymentId"
+                                                   class="btn btn-sm btn-gold">
+                                                    <i class="fa-solid fa-triangle-exclamation"></i> Generate
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a asp-controller="WarningLetter"
+                                                   asp-action="PreviewWarningLetter"
+                                                   asp-route-warningId="@item.WarningId"
+                                                   target="_blank" rel="noopener"
+                                                   class="btn btn-sm btn-outline-success">
+                                                    <i class="fa-solid fa-eye"></i> View
+                                                </a>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-ok">Not Required</span>
+                                        }
+                                    </td>
+                                }
+
+                            </tr>
+                        }
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
 </div>
+
 @section Scripts {
-
-
     <script>
-
-        $(document).ready(function () {
-
-            $("#tblPayments").DataTable({
-
-                responsive: true,
-
-                autoWidth: false,
-
-                pageLength: 10,
-
-                ordering: true,
-
-                searching: true,
-
-                lengthMenu: [
-                    [10, 25, 50, 100],
-                    [10, 25, 50, 100]
+        $(function () {
+            LMIS.initTable('#tblPayments', {
+                exportTitle: 'Payment List',
+                order: [[0, 'desc']],
+                columnDefs: [
+                    { targets: 'no-sort', orderable: false }
                 ],
-
-                order: [[0, "desc"]],
-
-                dom: 'Bfrtip',
-
-                buttons: [
-
-                    {
-                        extend: 'excel',
-                        className: 'btn btn-success btn-sm',
-                        text: '<i class="fa fa-file-excel"></i> Excel'
-                    },
-
-                    {
-                        extend: 'pdf',
-                        className: 'btn btn-danger btn-sm',
-                        text: '<i class="fa fa-file-pdf"></i> PDF'
-                    },
-
-                    {
-                        extend: 'print',
-                        className: 'btn btn-secondary btn-sm',
-                        text: '<i class="fa fa-print"></i> Print'
-                    }
-
-                ],
-
                 language: {
-
-                    emptyTable: "No Payment Records Found",
-
-                    search: "Search :",
-
-                    lengthMenu: "Show _MENU_ records",
-
-                    info: "Showing _START_ to _END_ of _TOTAL_ records",
-
-                    paginate: {
-
-                        previous: "Previous",
-
-                        next: "Next"
-
-                    }
-
+                    emptyTable: 'No payment records found'
                 }
-
             });
-
         });
-
     </script>
-
 }

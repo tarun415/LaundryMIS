@@ -1,293 +1,336 @@
-﻿@model LaudaryMis.ViewModels.MonthlyBillVM
+@model LaudaryMis.ViewModels.MonthlyBillVM
+
 @{
     ViewData["Title"] = "Bill Detail";
+
     var isProvider = User.IsInRole("Provider");
     var isHospital = User.IsInRole("Hospital");
     var isAdmin = User.IsInRole("Admin");
-    var statusColor = Model.Status switch
+
+    var statusBadge = Model.Status switch
     {
-        "Draft" => "secondary",
-        "HospitalSubmitted" => "warning",
-        "HospitalApproved" => "info",
-        "HospitalRejected" => "danger",
-        "CMSApproved" => "success",
-        "CMSRejected" => "danger",
-        _ => "secondary"
+        "Draft" => "badge-navy",
+        "HospitalSubmitted" => "badge-warn",
+        "HospitalApproved" => "badge-info",
+        "HospitalRejected" => "badge-danger",
+        "CMSApproved" => "badge-ok",
+        "CMSRejected" => "badge-danger",
+        _ => "badge-navy"
     };
 }
 
-<style>
-    .bill-card {
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 12px rgba(0,0,0,.07);
-        padding: 22px 24px;
-        margin-bottom: 20px;
-    }
-
-        .bill-card h6 {
-            font-weight: 700;
-            color: #1a3c5e;
-            border-bottom: 2px solid #e8f0fe;
-            padding-bottom: 8px;
-            margin-bottom: 16px;
+@section Styles {
+    <style>
+        .net-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+            padding: 13px 15px;
+            background: var(--ok-bg);
+            border: 1px solid var(--ok-line);
+            border-radius: var(--r-sm);
         }
+        .net-row .val { font-weight: 800; color: var(--ok); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 
-    .dl-item {
-        margin-bottom: 14px;
-    }
-
-        .dl-item dt {
-            font-size: .75rem;
-            text-transform: uppercase;
-            color: #6b7280;
-            font-weight: 600;
+        @@media (min-width: 992px) {
+            .calc-sticky { position: sticky; top: calc(var(--topbar-h) + 16px); }
         }
-
-        .dl-item dd {
-            font-size: .95rem;
-            font-weight: 600;
-            color: #1a3c5e;
-            margin: 2px 0 0;
-        }
-
-    .calc-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid #f0f4f8;
-        font-size: .9rem;
-    }
-
-        .calc-row:last-child {
-            border-bottom: none;
-        }
-
-    .net-row {
-        background: #eef7f0;
-        border-radius: 8px;
-        padding: 12px;
-        margin-top: 8px;
-        display: flex;
-        justify-content: space-between;
-    }
-
-        .net-row .val {
-            font-weight: 800;
-            color: #16a34a;
-            font-size: 1.15rem;
-        }
-
-    .page-header {
-        background: linear-gradient(135deg,#1a3c5e,#2563a8);
-        color: white;
-        border-radius: 12px;
-        padding: 20px 24px;
-        margin-bottom: 24px;
-    }
-    /* Timeline */
-    .tl {
-        padding-left: 28px;
-        position: relative;
-    }
-
-        .tl::before {
-            content: '';
-            position: absolute;
-            left: 10px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: #e2e8f0;
-        }
-
-    .tl-item {
-        position: relative;
-        margin-bottom: 16px;
-    }
-
-    .tl-dot {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        position: absolute;
-        left: -24px;
-        top: 3px;
-    }
-
-    .tl-box {
-        background: #f8fafc;
-        border-radius: 8px;
-        padding: 10px 14px;
-        font-size: .85rem;
-    }
-</style>
+    </style>
+}
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show">
-        ✅ @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-success" data-auto-dismiss>
+        <i class="fa-solid fa-circle-check"></i>
+        <span>@TempData["Success"]</span>
     </div>
 }
+
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show">
-        ⚠️ @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>@TempData["Error"]</span>
     </div>
 }
 
 <div class="page-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h4 class="mb-1">🧾 @Model.MonthName ka Bill</h4>
-            <p class="mb-0 opacity-75">@Model.HospitalName</p>
-        </div>
-        <span class="badge bg-@statusColor fs-6 px-3 py-2">@Model.StatusDisplay</span>
+    <div class="ph-icon"><i class="fa-solid fa-file-invoice"></i></div>
+    <div class="ph-text">
+        <h1>@Model.MonthName ka Bill</h1>
+        <p class="ph-sub">@Model.HospitalName</p>
+    </div>
+    <div class="ph-actions">
+        <span class="badge @statusBadge" style="font-size: .8rem; padding: 7px 14px;">@Model.StatusDisplay</span>
     </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-md-7">
+<div class="row g-3">
 
-        <div class="bill-card">
-            <h6>📋 Agreement</h6>
-            <div class="row">
-                <div class="col-4"><div class="dl-item"><dt>Hospital</dt><dd>@Model.HospitalName</dd></div></div>
-                <div class="col-4"><div class="dl-item"><dt>Contract No</dt><dd>@Model.ContractNo</dd></div></div>
-                <div class="col-4"><div class="dl-item"><dt>Beds</dt><dd>@Model.SanctionedBeds</dd></div></div>
+    <div class="col-12 col-lg-7">
+
+        <!-- AGREEMENT -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fa-solid fa-file-signature text-teal"></i>
+                <span class="card-title">Agreement</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 col-sm-4">
+                        <div class="dl-item"><dt>Hospital</dt><dd>@Model.HospitalName</dd></div>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <div class="dl-item"><dt>Contract No</dt><dd>@Model.ContractNo</dd></div>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <div class="dl-item"><dt>Beds</dt><dd>@Model.SanctionedBeds</dd></div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="bill-card">
-            <h6>📊 WPR Score</h6>
-            <div class="row">
-                <div class="col-4"><div class="dl-item"><dt>Score</dt><dd>@Model.WPRAvgScore.ToString("N2")</dd></div></div>
-                <div class="col-4"><div class="dl-item"><dt>Weeks</dt><dd>@Model.WPRWeeksFound</dd></div></div>
-                <div class="col-4"><div class="dl-item"><dt>Override</dt><dd>@(Model.IsScoreOverridden ? "✏️ Haan" : "Auto")</dd></div></div>
-                @if (Model.IsScoreOverridden)
-                {
-                    <div class="col-12"><div class="dl-item"><dt>Override Reason</dt><dd class="text-muted">@Model.OverrideReason</dd></div></div>
-                }
+        <!-- WPR -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fa-solid fa-gauge-high text-teal"></i>
+                <span class="card-title">WPR Score</span>
             </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="bill-card">
-            <h6>⚡ Actions</h6>
-            <div class="d-flex gap-2 flex-wrap">
-
-                @* ── PROVIDER actions ── *@
-                @if (isProvider)
-                {
-                    @if (Model.CanEdit)
-                    {
-                        <a asp-action="Create"
-                           asp-route-hospitalId="@Model.HospitalId"
-                           asp-route-month="@Model.BillingMonth"
-                           asp-route-year="@Model.BillingYear"
-                           class="btn btn-outline-primary">✏️ Edit</a>
-                    }
-
-                    @* Draft ya HospitalRejected → Hospital ko submit karo *@
-                    @if (Model.Status == "Draft" || Model.Status == "HospitalRejected")
-                    {
-                        <form asp-action="SubmitToHospital" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="billId" value="@Model.BillId" />
-                            <button type="submit" class="btn btn-success"
-                                    onclick="return confirm('Hospital ko submit karna chahte ho?')">
-                                🏥 Submit to Hospital
-                            </button>
-                        </form>
-                    }
-
-                    @* CMS ne reject kiya → resubmit to hospital *@
-                    @if (Model.Status == "CMSRejected")
-                    {
-                        <form asp-action="SubmitToHospital" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="billId" value="@Model.BillId" />
-                            <button type="submit" class="btn btn-warning">🔄 Re-Submit to Hospital</button>
-                        </form>
-                    }
-
-                    <a asp-action="MyBills" class="btn btn-outline-secondary">← Back</a>
-                }
-
-                @* ── HOSPITAL actions ── *@
-                @if (isHospital && Model.Status == "HospitalSubmitted")
-                {
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalHospApprove">✅ Approve</button>
-                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalHospReject">❌ Reject</button>
-                    <a asp-action="HospitalQueue" class="btn btn-outline-secondary">← Queue</a>
-                }
-
-                @* ── ADMIN/CMS actions ── *@
-                @if (isAdmin && Model.Status == "HospitalApproved")
-                {
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalApprove">✅ CMS Approve</button>
-                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalReject">❌ CMS Reject</button>
-                    <a asp-action="Index" class="btn btn-outline-secondary">← All Bills</a>
-                }
-
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-5">
-        <!-- Bill Summary -->
-        <div class="bill-card" style="position:sticky;top:80px;">
-            <h6>💰 Bill Summary</h6>
-            <div class="calc-row"><span class="text-muted">Annual (ex-GST)</span><span class="fw-bold">₹@Model.AnnualValueExGST.ToString("N2")</span></div>
-            <div class="calc-row"><span class="text-muted">Annual (incl GST)</span><span class="fw-bold">₹@Model.AnnualValueInGST.ToString("N2")</span></div>
-            <div class="calc-row"><span class="text-muted">Monthly Gross</span><span class="fw-bold">₹@Model.MonthlyGrossAmount.ToString("N2")</span></div>
-            <div class="calc-row"><span class="text-muted">WPR Band</span><span class="fw-bold"><span class="badge bg-primary">@Model.PaymentBandPercent%</span></span></div>
-            <div class="calc-row"><span class="text-muted">Base Payable</span><span class="fw-bold">₹@Model.BasePayableAmount.ToString("N2")</span></div>
-            <div class="calc-row"><span class="text-muted">TDS (2%)</span><span class="fw-bold text-danger">-₹@Model.TDSAmount.ToString("N2")</span></div>
-            <div class="calc-row"><span class="text-muted">Extra Deductions</span><span class="fw-bold text-danger">-₹@Model.AdditionalDeductions.ToString("N2")</span></div>
-            <div class="net-row mt-2">
-                <span class="fw-bold">Net Payable</span>
-                <span class="val">₹@Model.NetPayableAmount.ToString("N2")</span>
-            </div>
-        </div>
-
-        <!-- Workflow Log -->
-        @if (Model.WorkflowLog?.Any() == true)
-        {
-            <div class="bill-card mt-3">
-                <h6>📜 History</h6>
-                <div class="tl">
-                    @foreach (var log in Model.WorkflowLog)
-                    {
-                        var dc = log.ToStatus switch { "CMSApproved" => "success", "CMSRejected" => "danger", "Submitted" => "warning", _ => "secondary" };
-                        <div class="tl-item">
-                            <div class="tl-dot bg-@dc"></div>
-                            <div class="tl-box">
-                                <span class="badge bg-@dc">@log.ToStatus</span>
-                                <strong class="ms-2">@log.ActionByName</strong>
-                                <div class="text-muted small">@log.ActionAt.ToString("dd MMM yyyy, hh:mm tt")</div>
-                                @if (!string.IsNullOrEmpty(log.Remarks))
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-4">
+                        <div class="dl-item"><dt>Score</dt><dd>@Model.WPRAvgScore.ToString("N2")</dd></div>
+                    </div>
+                    <div class="col-4">
+                        <div class="dl-item"><dt>Weeks</dt><dd>@Model.WPRWeeksFound</dd></div>
+                    </div>
+                    <div class="col-4">
+                        <div class="dl-item">
+                            <dt>Override</dt>
+                            <dd>
+                                @if (Model.IsScoreOverridden)
                                 {
-                                    <div class="text-secondary">💬 @log.Remarks</div>
+                                    <span class="badge badge-warn"><i class="fa-solid fa-pen-to-square"></i> Haan</span>
                                 }
+                                else
+                                {
+                                    <span class="badge badge-ok">Auto</span>
+                                }
+                            </dd>
+                        </div>
+                    </div>
+
+                    @if (Model.IsScoreOverridden)
+                    {
+                        <div class="col-12">
+                            <div class="dl-item">
+                                <dt>Override Reason</dt>
+                                <dd class="fw-normal text-muted">@Model.OverrideReason</dd>
                             </div>
                         </div>
                     }
                 </div>
             </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-bolt text-teal"></i>
+                <span class="card-title">Actions</span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 flex-wrap">
+
+                    @* ── PROVIDER ── *@
+                    @if (isProvider)
+                    {
+                        @if (Model.CanEdit)
+                        {
+                            <a asp-action="Create"
+                               asp-route-hospitalId="@Model.HospitalId"
+                               asp-route-month="@Model.BillingMonth"
+                               asp-route-year="@Model.BillingYear"
+                               class="btn btn-outline-primary">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </a>
+                        }
+
+                        @if (Model.Status == "Draft" || Model.Status == "HospitalRejected")
+                        {
+                            <form asp-action="SubmitToHospital" method="post" class="d-inline js-confirm-submit">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="billId" value="@Model.BillId" />
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa-solid fa-hospital"></i> Submit to Hospital
+                                </button>
+                            </form>
+                        }
+
+                        @if (Model.Status == "CMSRejected")
+                        {
+                            <form asp-action="SubmitToHospital" method="post" class="d-inline js-confirm-submit">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="billId" value="@Model.BillId" />
+                                <button type="submit" class="btn btn-gold">
+                                    <i class="fa-solid fa-rotate"></i> Re-Submit to Hospital
+                                </button>
+                            </form>
+                        }
+
+                        <a asp-action="MyBills" class="btn btn-light">
+                            <i class="fa-solid fa-arrow-left"></i> Back
+                        </a>
+                    }
+
+                    @* ── HOSPITAL ── *@
+                    @if (isHospital && Model.Status == "HospitalSubmitted")
+                    {
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalHospApprove">
+                            <i class="fa-solid fa-check"></i> Approve
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalHospReject">
+                            <i class="fa-solid fa-xmark"></i> Reject
+                        </button>
+                        <a asp-action="HospitalQueue" class="btn btn-light">
+                            <i class="fa-solid fa-arrow-left"></i> Queue
+                        </a>
+                    }
+
+                    @* ── ADMIN / CMS ── *@
+                    @if (isAdmin && Model.Status == "HospitalApproved")
+                    {
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalApprove">
+                            <i class="fa-solid fa-check"></i> CMS Approve
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalReject">
+                            <i class="fa-solid fa-xmark"></i> CMS Reject
+                        </button>
+                        <a asp-action="Index" class="btn btn-light">
+                            <i class="fa-solid fa-arrow-left"></i> All Bills
+                        </a>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-12 col-lg-5">
+
+        <!-- SUMMARY -->
+        <div class="card calc-sticky">
+            <div class="card-header">
+                <i class="fa-solid fa-calculator text-teal"></i>
+                <span class="card-title">Bill Summary</span>
+            </div>
+            <div class="card-body">
+
+                <div class="calc-row">
+                    <span>Annual (ex-GST)</span>
+                    <span>₹@Model.AnnualValueExGST.ToString("N2")</span>
+                </div>
+                <div class="calc-row">
+                    <span>Annual (incl GST)</span>
+                    <span>₹@Model.AnnualValueInGST.ToString("N2")</span>
+                </div>
+                <div class="calc-row">
+                    <span>Monthly Gross</span>
+                    <span>₹@Model.MonthlyGrossAmount.ToString("N2")</span>
+                </div>
+                <div class="calc-row">
+                    <span>WPR Band</span>
+                    <span><span class="badge badge-teal">@Model.PaymentBandPercent%</span></span>
+                </div>
+                <div class="calc-row">
+                    <span>Base Payable</span>
+                    <span>₹@Model.BasePayableAmount.ToString("N2")</span>
+                </div>
+                <div class="calc-row">
+                    <span>TDS (2%)</span>
+                    <span class="text-danger">-₹@Model.TDSAmount.ToString("N2")</span>
+                </div>
+                <div class="calc-row">
+                    <span>Extra Deductions</span>
+                    <span class="text-danger">-₹@Model.AdditionalDeductions.ToString("N2")</span>
+                </div>
+
+                <div class="net-row">
+                    <span class="fw-bold">Net Payable</span>
+                    <span class="val">₹@Model.NetPayableAmount.ToString("N2")</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- HISTORY -->
+        @if (Model.WorkflowLog?.Any() == true)
+        {
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="fa-solid fa-clock-rotate-left text-teal"></i>
+                    <span class="card-title">History</span>
+                </div>
+                <div class="card-body">
+                    <div class="tl">
+                        @foreach (var log in Model.WorkflowLog)
+                        {
+                            var dotClass = log.ToStatus switch
+                            {
+                                "CMSApproved" => "is-ok",
+                                "HospitalApproved" => "is-ok",
+                                "CMSRejected" => "is-danger",
+                                "HospitalRejected" => "is-danger",
+                                "Submitted" => "is-warn",
+                                "HospitalSubmitted" => "is-warn",
+                                _ => "is-navy"
+                            };
+
+                            var badgeClass = dotClass switch
+                            {
+                                "is-ok" => "badge-ok",
+                                "is-danger" => "badge-danger",
+                                "is-warn" => "badge-warn",
+                                _ => "badge-navy"
+                            };
+
+                            <div class="tl-item">
+                                <div class="tl-dot @dotClass"></div>
+                                <div class="tl-box">
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <span class="badge @badgeClass">@log.ToStatus</span>
+                                        <strong>@log.ActionByName</strong>
+                                    </div>
+                                    <div class="text-muted small mt-1">
+                                        @log.ActionAt.ToString("dd MMM yyyy, hh:mm tt")
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(log.Remarks))
+                                    {
+                                        <div class="text-muted mt-1">
+                                            <i class="fa-solid fa-comment-dots"></i> @log.Remarks
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
         }
+
     </div>
 </div>
 
-<!-- Hospital Approve Modal -->
-<div class="modal fade" id="modalHospApprove" tabindex="-1">
-    <div class="modal-dialog">
+<!-- HOSPITAL APPROVE -->
+<div class="modal fade" id="modalHospApprove" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">✅ Hospital Approval</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-circle-check text-success me-1"></i> Hospital Approval</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-action="HospitalAction" method="post">
                 @Html.AntiForgeryToken()
@@ -295,90 +338,116 @@
                 <input type="hidden" name="approve" value="true" />
                 <div class="modal-body">
                     <p class="text-muted">Is bill ko hospital ki taraf se approve karna chahte ho?</p>
-                    <label class="form-label">Remarks (Optional)</label>
-                    <textarea name="remarks" class="form-control" rows="3"></textarea>
+                    <label class="form-label" for="hospApproveRemarks">Remarks (Optional)</label>
+                    <textarea name="remarks" id="hospApproveRemarks" class="form-control" rows="3"></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">✅ Approve Karo</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-check"></i> Approve Karo</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Hospital Reject Modal -->
-<div class="modal fade" id="modalHospReject" tabindex="-1">
-    <div class="modal-dialog">
+<!-- HOSPITAL REJECT -->
+<div class="modal fade" id="modalHospReject" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">❌ Hospital Rejection</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-circle-xmark text-danger me-1"></i> Hospital Rejection</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-action="HospitalAction" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="billId" value="@Model.BillId" />
                 <input type="hidden" name="approve" value="false" />
                 <div class="modal-body">
-                    <label class="form-label fw-bold">Rejection Reason <span class="text-danger">*</span></label>
-                    <textarea name="remarks" class="form-control" rows="3"
-                              placeholder="Rejection ki wajah likhein..." required></textarea>
+                    <label class="form-label" for="hospRejectRemarks">Rejection Reason <span class="text-danger">*</span></label>
+                    <textarea name="remarks" id="hospRejectRemarks" class="form-control" rows="3"
+                              placeholder="Rejection ki wajah likhein…" required></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">❌ Reject Karo</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-xmark"></i> Reject Karo</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Approve Modal -->
-<div class="modal fade" id="modalApprove" tabindex="-1">
-    <div class="modal-dialog">
+<!-- CMS APPROVE -->
+<div class="modal fade" id="modalApprove" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">✅ Approve Bill</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-circle-check text-success me-1"></i> Approve Bill</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-action="CMSAction" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="billId" value="@Model.BillId" />
                 <input type="hidden" name="approve" value="true" />
                 <div class="modal-body">
-                    <label class="form-label">Remarks (Optional)</label>
-                    <textarea name="remarks" class="form-control" rows="3"></textarea>
+                    <label class="form-label" for="cmsApproveRemarks">Remarks (Optional)</label>
+                    <textarea name="remarks" id="cmsApproveRemarks" class="form-control" rows="3"></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">Approve Karo</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-check"></i> Approve Karo</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Reject Modal -->
-<div class="modal fade" id="modalReject" tabindex="-1">
-    <div class="modal-dialog">
+<!-- CMS REJECT -->
+<div class="modal fade" id="modalReject" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">❌ Reject Bill</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-circle-xmark text-danger me-1"></i> Reject Bill</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-action="CMSAction" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="billId" value="@Model.BillId" />
                 <input type="hidden" name="approve" value="false" />
                 <div class="modal-body">
-                    <label class="form-label fw-bold">Reason <span class="text-danger">*</span></label>
-                    <textarea name="remarks" class="form-control" rows="3" required></textarea>
+                    <label class="form-label" for="cmsRejectRemarks">Reason <span class="text-danger">*</span></label>
+                    <textarea name="remarks" id="cmsRejectRemarks" class="form-control" rows="3" required></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Reject Karo</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-xmark"></i> Reject Karo</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('.js-confirm-submit').on('submit', function (e) {
+                var form = this;
+                if (form.dataset.confirmed === 'yes') return;
+
+                e.preventDefault();
+
+                LMIS.confirm({
+                    title: 'Hospital ko submit karein?',
+                    text: 'Bill hospital ke verification queue mein chala jayega.',
+                    icon: 'question',
+                    confirmText: 'Haan, submit karo',
+                    danger: false
+                }).then(function (ok) {
+                    if (ok) {
+                        form.dataset.confirmed = 'yes';
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

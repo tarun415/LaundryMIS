@@ -1,308 +1,208 @@
-﻿@model LaudaryMis.ViewModels.DeliveryChallanVM
+@model LaudaryMis.ViewModels.DeliveryChallanVM
 
-<style>
-    .card {
-        border-radius: 14px;
-    }
+@{
+    ViewBag.Title = "Delivery Challan";
+}
 
-    .table thead th {
-        background: #dbeafe;
-        color: #1e3a8a;
-        font-weight: 600;
-        position: sticky;
-        top: 0;
-        z-index: 2;
-    }
+@section Styles {
+    <style>
+        .table-scroll {
+            max-height: 420px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: var(--r-sm);
+        }
+        .table-scroll table { margin: 0; }
+        .table-scroll thead th { position: sticky; top: 0; z-index: 2; }
+        .table-scroll input.deliveryQty { max-width: 130px; margin-left: auto; text-align: right; }
+    </style>
+}
 
-    .btn-primary {
-        background: linear-gradient(135deg,#3b82f6,#1e40af);
-        border: none;
-    }
-
-    .table-scroll {
-        max-height: 400px;
-        overflow-y: auto;
-    }
-
-    .section-title {
-        font-weight: 600;
-        margin-bottom: 5px;
-    }
-
-    .form-control {
-        border-radius: 10px;
-    }
-</style>
-
-<div class="container mt-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-
-        <div>
-            <h4 class="fw-bold mb-0">
-                🚚 Delivery Challan
-            </h4>
-
-            <small class="text-muted">
-                Pickup No :
-                <strong>@Model.PickupNo</strong>
-            </small>
-        </div>
-
-        <a href="/Provider/PickupAcceptanceList"
-           class="btn btn-outline-secondary rounded-pill px-3">
-
-            ← Back
-
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-truck-ramp-box"></i></div>
+    <div class="ph-text">
+        <h1>Delivery Challan</h1>
+        <p class="ph-sub">Pickup No: <strong>@Model.PickupNo</strong></p>
+    </div>
+    <div class="ph-actions">
+        <a href="/Provider/AcceptPickup" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back
         </a>
+    </div>
+</div>
 
+<input type="hidden" id="PickupId" value="@Model.PickupId" />
+
+<div class="card mb-3">
+    <div class="card-header">
+        <i class="fa-solid fa-shirt text-teal"></i>
+        <span class="card-title">Linen Items</span>
+        <span class="info-pill ms-auto">
+            <i class="fa-solid fa-calculator"></i>
+            Delivering: <strong id="deliveryTotal">0</strong>
+        </span>
     </div>
 
-    <input type="hidden"
-           id="PickupId"
-           value="@Model.PickupId" />
+    <div class="card-body">
+        <div class="table-scroll">
+            <table class="table table-hover align-middle mb-0">
 
-    <div class="card shadow-sm border-0">
+                <thead>
+                    <tr>
+                        <th>Linen</th>
+                        <th class="text-end">Collected</th>
+                        <th class="text-end">Delivered</th>
+                        <th class="text-end">Pending</th>
+                        <th class="text-end" style="width: 170px;">Delivery Qty</th>
+                    </tr>
+                </thead>
 
-        <div class="card-body">
-
-            <div class="table-responsive table-scroll">
-
-                <table class="table table-hover align-middle">
-
-                    <thead>
-
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
                         <tr>
+                            <td class="fw-semibold">
+                                @item.LinenName
+                                <input type="hidden" class="linenTypeId" value="@item.LinenTypeId" />
+                            </td>
 
-                            <th>Linen</th>
-                            <th>Collected</th>
-                            <th>Delivered</th>
-                            <th>Pending</th>
-                            <th width="150">Delivery Qty</th>
+                            <td class="text-end">@item.CollectedQty</td>
+
+                            <td class="text-end fw-bold text-success">@item.DeliveredQty</td>
+
+                            <td class="text-end fw-bold @(item.PendingQty == 0 ? "text-success" : "text-danger")">
+                                @item.PendingQty
+                            </td>
+
+                            <td class="text-end">
+                                <input type="number" min="0" max="@item.PendingQty" inputmode="numeric"
+                                       class="form-control form-control-sm deliveryQty"
+                                       value="0"
+                                       data-pending="@item.PendingQty"
+                                       @(item.PendingQty == 0 ? "disabled" : "") />
+                            </td>
 
                         </tr>
+                    }
+                </tbody>
 
-                    </thead>
+            </table>
+        </div>
+    </div>
+</div>
 
-                    <tbody>
+<div class="card">
+    <div class="card-header">
+        <i class="fa-solid fa-user-check text-teal"></i>
+        <span class="card-title">Handover Details</span>
+    </div>
 
-                        @foreach (var item in Model.Items)
-                        {
-                            <tr>
+    <div class="card-body">
+        <div class="row g-3">
 
-                                <td>
-                                    @item.LinenName
-
-                                    <input type="hidden"
-                                           class="linenTypeId"
-                                           value="@item.LinenTypeId" />
-                                </td>
-
-                                <td>
-                                    @item.CollectedQty
-                                </td>
-
-                                <td class="text-success fw-bold">
-                                    @item.DeliveredQty
-                                </td>
-
-                                <td class="fw-bold text-danger">
-                                    @item.PendingQty
-                                </td>
-
-                                <td>
-
-                                    <input type="number"
-                                           class="form-control deliveryQty text-center"
-                                           min="0"
-                                           max="@item.PendingQty"
-                                           value="0"
-                                           data-pending="@item.PendingQty"
-                                           @(item.PendingQty == 0 ? "disabled" : "") />
-
-                                </td>
-
-                            </tr>
-                        }
-
-                    </tbody>
-
-                </table>
-
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="DeliveredBy">Delivered By</label>
+                <input type="text" id="DeliveredBy" class="form-control" placeholder="Enter name" />
             </div>
 
-            <hr />
-
-            <div class="row">
-
-                <div class="col-md-4">
-
-                    <label class="section-title">
-                        Delivered By
-                    </label>
-
-                    <input type="text"
-                           id="DeliveredBy"
-                           class="form-control"
-                           placeholder="Delivered By" />
-
-                </div>
-
-                <div class="col-md-4">
-
-                    <label class="section-title">
-                        Received By
-                    </label>
-
-                    <input type="text"
-                           id="ReceivedBy"
-                           class="form-control"
-                           placeholder="Received By" />
-
-                </div>
-
-                <div class="col-md-4">
-
-                    <label class="section-title">
-                        Remarks
-                    </label>
-
-                    <input type="text"
-                           id="Remarks"
-                           class="form-control"
-                           placeholder="Remarks" />
-
-                </div>
-
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="ReceivedBy">Received By</label>
+                <input type="text" id="ReceivedBy" class="form-control" placeholder="Enter name" />
             </div>
 
-            <div class="d-flex justify-content-end gap-2 mt-4">
-
-                <a href="/Provider/PickupAcceptanceList"
-                   class="btn btn-light border rounded-pill px-4">
-
-                    Cancel
-
-                </a>
-
-                <button type="button"
-                        class="btn btn-primary rounded-pill px-4"
-                        onclick="saveDelivery()">
-
-                    💾 Save Delivery
-
-                </button>
-
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="Remarks">Remarks</label>
+                <input type="text" id="Remarks" class="form-control" placeholder="Optional remarks" />
             </div>
 
         </div>
 
-    </div>
+        <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
+            <a href="/Provider/AcceptPickup" class="btn btn-light">Cancel</a>
+            <button type="button" id="btnSaveDelivery" class="btn btn-primary" onclick="saveDelivery()">
+                <i class="fa-solid fa-floppy-disk"></i> Save Delivery
+            </button>
+        </div>
 
+    </div>
 </div>
 
 @section Scripts {
-
     <script>
+
+        $(function () {
+            $(document).on('input', '.deliveryQty', function () {
+                var total = 0;
+                $('.deliveryQty').each(function () { total += parseInt($(this).val(), 10) || 0; });
+                $('#deliveryTotal').text(LMIS.num(total));
+            });
+        });
 
         async function saveDelivery() {
 
-            let items = [];
+            var items = [];
+            var rows = document.querySelectorAll("tbody tr");
 
-            let rows = document.querySelectorAll("tbody tr");
+            for (var row of rows) {
 
-            for (let row of rows) {
+                var linenTypeIdEl = row.querySelector(".linenTypeId");
+                var qtyBox = row.querySelector(".deliveryQty");
+                if (!linenTypeIdEl || !qtyBox) continue;
 
-                let linenTypeId =
-                    parseInt(
-                        row.querySelector(".linenTypeId").value
-                    );
-
-                let qtyBox =
-                    row.querySelector(".deliveryQty");
-
-                let deliveryQty =
-                    parseInt(qtyBox.value) || 0;
-
-                let pendingQty =
-                    parseInt(qtyBox.dataset.pending);
+                var linenTypeId = parseInt(linenTypeIdEl.value, 10);
+                var deliveryQty = parseInt(qtyBox.value, 10) || 0;
+                var pendingQty = parseInt(qtyBox.dataset.pending, 10);
 
                 if (deliveryQty > pendingQty) {
-
-                    alert(
-                        "Delivery Qty cannot exceed Pending Qty"
-                    );
-
+                    LMIS.alert("Too many items",
+                               "Delivery quantity cannot exceed the pending quantity of " + pendingQty + ".",
+                               "warning");
                     return;
                 }
 
                 if (deliveryQty > 0) {
-
-                    items.push({
-
-                        linenTypeId: linenTypeId,
-                        deliveryQty: deliveryQty
-
-                    });
+                    items.push({ linenTypeId: linenTypeId, deliveryQty: deliveryQty });
                 }
             }
 
             if (items.length === 0) {
-
-                alert(
-                    "Please enter at least one delivery quantity."
-                );
-
+                LMIS.alert("Nothing to save", "Please enter at least one delivery quantity.", "warning");
                 return;
             }
 
-            const model = {
-
-                pickupId:
-                    parseInt(
-                        document.getElementById("PickupId").value
-                    ),
-
-                deliveredBy:
-                    document.getElementById("DeliveredBy").value,
-
-                receivedBy:
-                    document.getElementById("ReceivedBy").value,
-
-                remarks:
-                    document.getElementById("Remarks").value,
-
+            var model = {
+                pickupId: parseInt(document.getElementById("PickupId").value, 10),
+                deliveredBy: document.getElementById("DeliveredBy").value,
+                receivedBy: document.getElementById("ReceivedBy").value,
+                remarks: document.getElementById("Remarks").value,
                 items: items
             };
 
-            const response =
-                await fetch('/Provider/DeliveryChallan', {
+            var btn = document.getElementById("btnSaveDelivery");
+            btn.disabled = true;
 
+            try {
+                const response = await fetch('/Provider/DeliveryChallan', {
                     method: 'POST',
-
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(model)
-
                 });
 
-            const result = await response.json();
+                const result = await response.json();
 
-            if (result.success) {
-
-                alert("Delivery saved successfully.");
-
-                window.location.href =
-                    '/Provider/AcceptPickup';
-            }
-            else {
-
-                alert(result.message);
+                if (result.success) {
+                    LMIS.toast("Delivery saved successfully");
+                    setTimeout(function () { window.location.href = '/Provider/AcceptPickup'; }, 700);
+                } else {
+                    btn.disabled = false;
+                    LMIS.alert("Save failed", result.message || "Please try again.", "error");
+                }
+            } catch (ex) {
+                btn.disabled = false;
+                console.error(ex);
+                LMIS.alert("Save failed", "An error occurred while saving the delivery.", "error");
             }
         }
 
     </script>
-
 }

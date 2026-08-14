@@ -1,23 +1,104 @@
-﻿@{
+@{
+    ViewData["Title"] = "Hospital Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Hospital Dashboard</h2>
+@*
+    HospitalController.Dashboard() returns View() with no model, so this page is a
+    navigation hub. Supply a view model to the action to fill in live counts here.
+*@
 
-<div class="alert alert-success">
-    Submit WPR, Linen Data, View Notices
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-hospital"></i></div>
+    <div class="ph-text">
+        <h1>Hospital Dashboard</h1>
+        <p class="ph-sub">Linen pickups, weekly performance and billing</p>
+    </div>
 </div>
 
-<!-- YEH ADD KARO: -->
-<div class="card mt-3" style="background:#fff;border-radius:10px;
-     box-shadow:0 2px 12px rgba(0,0,0,.07);padding:20px 24px;">
-    <h6 style="font-weight:700;color:#1a3c5e;">🧾 Provider Bills — Verify Karo</h6>
-    <p class="text-muted small mb-3">
-        Provider ke submitted bills check karein aur verify karein
-    </p>
-    <a asp-controller="MonthlyBill"
-       asp-action="HospitalQueue"
-       class="btn btn-warning">
-        ⏳ Pending Bills Dekho
-    </a>
+<div class="row g-3">
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a asp-controller="Hospital" asp-action="PickupList" class="stat-card is-teal h-100 text-decoration-none">
+            <div class="card-icon"><i class="fa-solid fa-boxes-packing"></i></div>
+            <div class="min-w-0">
+                <div class="stat-lbl">Pickup Linen</div>
+                <div class="stat-sub">Raise and track pickups</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a asp-controller="WPR" asp-action="WPREntry" class="stat-card is-navy h-100 text-decoration-none">
+            <div class="card-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+            <div class="min-w-0">
+                <div class="stat-lbl">WPR Entry</div>
+                <div class="stat-sub">Weekly performance report</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a asp-controller="Report" asp-action="DeliverySummaryReport" class="stat-card is-gold h-100 text-decoration-none">
+            <div class="card-icon"><i class="fa-solid fa-chart-column"></i></div>
+            <div class="min-w-0">
+                <div class="stat-lbl">Delivery Report</div>
+                <div class="stat-sub">Summary and aging</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <a asp-controller="Payment" asp-action="PaymentList" class="stat-card is-ok h-100 text-decoration-none">
+            <div class="card-icon"><i class="fa-solid fa-credit-card"></i></div>
+            <div class="min-w-0">
+                <div class="stat-lbl">Payments</div>
+                <div class="stat-sub">Generate and review</div>
+            </div>
+        </a>
+    </div>
+
+</div>
+
+<div class="row g-3 mt-1">
+
+    <div class="col-12 col-lg-7">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fa-solid fa-file-invoice text-teal"></i>
+                <span class="card-title">Provider Bills — Verify Karo</span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    Provider ke submitted bills check karein aur verify karein.
+                </p>
+                <a asp-controller="MonthlyBill" asp-action="HospitalQueue" class="btn btn-gold">
+                    <i class="fa-solid fa-hourglass-half"></i> Pending Bills Dekho
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fa-solid fa-bolt text-teal"></i>
+                <span class="card-title">Quick Actions</span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <a asp-controller="Hospital" asp-action="CreatePickUp" class="btn btn-primary">
+                        <i class="fa-solid fa-plus"></i> New Pickup
+                    </a>
+                    <a asp-controller="Payment" asp-action="GeneratePayment" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-money-bill-wave"></i> Generate Payment
+                    </a>
+                    <a asp-controller="WarningLetter" asp-action="WarningLetterList" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Warning Letters
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>

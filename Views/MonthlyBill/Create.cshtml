@@ -1,53 +1,69 @@
-﻿@model LaudaryMis.ViewModels.MonthlyBillVM
+@model LaudaryMis.ViewModels.MonthlyBillVM
+
 @{
     ViewData["Title"] = "Monthly Bill — " + Model.MonthName;
 }
 
-<style>
-    .bill-card {
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 12px rgba(0,0,0,.07);
-        padding: 22px 24px;
-        margin-bottom: 20px;
-    }
-    .bill-card h6 {
-        font-weight: 700; color: #1a3c5e;
-        border-bottom: 2px solid #e8f0fe;
-        padding-bottom: 8px; margin-bottom: 16px;
-    }
-    .info-pill {
-        background: #f0f6ff; border: 1px solid #c7deff;
-        border-radius: 8px; padding: 10px 16px; margin-bottom: 8px;
-    }
-    .info-pill small { display:block; color:#6b7280; font-size:.75rem; font-weight:600; text-transform:uppercase; }
-    .calc-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0f4f8; font-size:.9rem; }
-    .calc-row:last-child { border-bottom:none; }
-    .calc-row .lbl { color:#6b7280; }
-    .calc-row .val { font-weight:700; color:#1a3c5e; }
-    .net-row { background:#eef7f0; border-radius:8px; padding:12px; margin-top:8px; display:flex; justify-content:space-between; }
-    .net-row .lbl { font-weight:700; }
-    .net-row .val { font-weight:800; color:#16a34a; font-size:1.1rem; }
-    .page-header { background:linear-gradient(135deg,#1a3c5e,#2563a8); color:white; border-radius:12px; padding:20px 24px; margin-bottom:24px; }
-</style>
+@section Styles {
+    <style>
+        /* Block-style fact tile used in the agreement summary */
+        .fact-tile {
+            padding: 10px 14px;
+            height: 100%;
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: var(--r-sm);
+        }
+        .fact-tile small {
+            display: block;
+            margin-bottom: 2px;
+            font-size: .68rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--ink-3);
+        }
+        .fact-tile strong { font-size: .98rem; color: var(--navy-900); }
+
+        .net-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+            padding: 13px 15px;
+            background: var(--ok-bg);
+            border: 1px solid var(--ok-line);
+            border-radius: var(--r-sm);
+        }
+        .net-row .lbl { font-weight: 700; color: var(--ink); text-transform: none; letter-spacing: 0; font-size: .9rem; }
+        .net-row .val { font-weight: 800; color: var(--ok); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+
+        @@media (min-width: 992px) {
+            .calc-sticky { position: sticky; top: calc(var(--topbar-h) + 16px); }
+        }
+    </style>
+}
 
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show">
-        ⚠️ @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>@TempData["Error"]</span>
     </div>
 }
 
 <div class="page-header">
-    <h4 class="mb-1">🧾 Monthly Bill — @Model.MonthName</h4>
-    <p class="mb-0 opacity-75">@Model.HospitalName &nbsp;|&nbsp; Contract: @Model.ContractNo</p>
+    <div class="ph-icon"><i class="fa-solid fa-file-invoice"></i></div>
+    <div class="ph-text">
+        <h1>Monthly Bill — @Model.MonthName</h1>
+        <p class="ph-sub">@Model.HospitalName &nbsp;|&nbsp; Contract: @Model.ContractNo</p>
+    </div>
 </div>
 
 <form asp-action="SaveDraft" method="post">
     @Html.AntiForgeryToken()
 
-    <!-- Hidden fields -->
     <input type="hidden" asp-for="BillId" />
     <input type="hidden" asp-for="HospitalId" />
     <input type="hidden" asp-for="AgreementId" />
@@ -57,173 +73,246 @@
     <input type="hidden" asp-for="RatePerBedPerYear" />
     <input type="hidden" asp-for="GSTPercent" />
     <input type="hidden" asp-for="WPRWeeksFound" />
-    <!-- Computed amounts (JS update karega) -->
-    <input type="hidden" asp-for="AnnualValueExGST"   id="hAnnualExGST" />
-    <input type="hidden" asp-for="AnnualValueInGST"   id="hAnnualInGST" />
-    <input type="hidden" asp-for="MonthlyGrossAmount"  id="hMonthlyGross" />
-    <input type="hidden" asp-for="PaymentBandPercent"  id="hBandPct" />
-    <input type="hidden" asp-for="BasePayableAmount"   id="hBasePayable" />
-    <input type="hidden" asp-for="TDSAmount"           id="hTDSAmount" />
-    <input type="hidden" asp-for="NetPayableAmount"    id="hNetPayable" />
 
-    <div class="row g-4">
-        <div class="col-md-7">
+    <!-- Computed amounts, kept in sync by recalc() -->
+    <input type="hidden" asp-for="AnnualValueExGST" id="hAnnualExGST" />
+    <input type="hidden" asp-for="AnnualValueInGST" id="hAnnualInGST" />
+    <input type="hidden" asp-for="MonthlyGrossAmount" id="hMonthlyGross" />
+    <input type="hidden" asp-for="PaymentBandPercent" id="hBandPct" />
+    <input type="hidden" asp-for="BasePayableAmount" id="hBasePayable" />
+    <input type="hidden" asp-for="TDSAmount" id="hTDSAmount" />
+    <input type="hidden" asp-for="NetPayableAmount" id="hNetPayable" />
 
-            <!-- Agreement Info -->
-            <div class="bill-card">
-                <h6>📋 Agreement Details</h6>
-                <div class="row g-2">
-                    <div class="col-4">
-                        <div class="info-pill">
-                            <small>Sanctioned Beds</small>
-                            <strong>@Model.SanctionedBeds</strong>
+    <div class="row g-3">
+
+        <div class="col-12 col-lg-7">
+
+            <!-- AGREEMENT -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="fa-solid fa-file-signature text-teal"></i>
+                    <span class="card-title">Agreement Details</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <div class="fact-tile">
+                                <small>Sanctioned Beds</small>
+                                <strong>@Model.SanctionedBeds</strong>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="info-pill">
-                            <small>Rate/Bed/Year</small>
-                            <strong>₹@Model.RatePerBedPerYear.ToString("N0")</strong>
+                        <div class="col-4">
+                            <div class="fact-tile">
+                                <small>Rate / Bed / Year</small>
+                                <strong>₹@Model.RatePerBedPerYear.ToString("N0")</strong>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="info-pill">
-                            <small>GST</small>
-                            <strong>@Model.GSTPercent%</strong>
+                        <div class="col-4">
+                            <div class="fact-tile">
+                                <small>GST</small>
+                                <strong>@Model.GSTPercent%</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- WPR Score -->
-            <div class="bill-card">
-                <h6>📊 WPR Score</h6>
+            <!-- WPR SCORE -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="fa-solid fa-gauge-high text-teal"></i>
+                    <span class="card-title">WPR Score</span>
+                </div>
+                <div class="card-body">
 
-                @if (Model.WPRWeeksFound > 0)
-                {
-                    <div class="alert alert-info py-2 mb-3">
-                        ✅ <strong>@Model.WPRWeeksFound weeks</strong> ka WPR mila — 
-                        Auto avg: <strong>@Model.AutoCalculatedScore?.ToString("N2")</strong>
-                    </div>
-                }
-                else
-                {
-                    <div class="alert alert-warning py-2 mb-3">
-                        ⚠️ Is month ka WPR data nahi mila. Score manually daalo.
-                    </div>
-                }
-
-                <div class="row g-3">
-                    <div class="col-sm-6">
-                        <label class="form-label fw-semibold">WPR Score <span class="text-danger">*</span></label>
-                        <input type="number" step="0.01" min="0" max="100"
-                               asp-for="WPRAvgScore" id="inpScore"
-                               class="form-control" />
-                        <span asp-validation-for="WPRAvgScore" class="text-danger small"></span>
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="form-label fw-semibold">Score Override?</label>
-                        <div class="form-check form-switch mt-2">
-                            <input class="form-check-input" type="checkbox"
-                                   asp-for="IsScoreOverridden" id="chkOverride" />
-                            <label class="form-check-label">Haan, manually set kar raha hoon</label>
+                    @if (Model.WPRWeeksFound > 0)
+                    {
+                        <div class="alert alert-info">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>
+                                <strong>@Model.WPRWeeksFound weeks</strong> ka WPR mila —
+                                auto average: <strong>@Model.AutoCalculatedScore?.ToString("N2")</strong>
+                            </span>
                         </div>
-                    </div>
-                    <div class="col-12" id="divReason" style="display:none">
-                        <label class="form-label fw-semibold">Override Reason <span class="text-danger">*</span></label>
-                        <textarea asp-for="OverrideReason" class="form-control" rows="2"
-                                  placeholder="Reason batao..."></textarea>
-                        <span asp-validation-for="OverrideReason" class="text-danger small"></span>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Is month ka WPR data nahi mila. Score manually daalo.</span>
+                        </div>
+                    }
+
+                    <div class="row g-3">
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label" asp-for="WPRAvgScore">
+                                WPR Score <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" step="0.01" min="0" max="100"
+                                   asp-for="WPRAvgScore" id="inpScore" class="form-control" />
+                            <span asp-validation-for="WPRAvgScore" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label">Score Override?</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox"
+                                       asp-for="IsScoreOverridden" id="chkOverride" />
+                                <label class="form-check-label" for="chkOverride">
+                                    Haan, manually set kar raha hoon
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-12" id="divReason" style="display:none">
+                            <label class="form-label" asp-for="OverrideReason">
+                                Override Reason <span class="text-danger">*</span>
+                            </label>
+                            <textarea asp-for="OverrideReason" class="form-control" rows="2"
+                                      placeholder="Reason batao…"></textarea>
+                            <span asp-validation-for="OverrideReason" class="text-danger small"></span>
+                        </div>
+
                     </div>
                 </div>
             </div>
 
-            <!-- Deductions -->
-            <div class="bill-card">
-                <h6>➖ Deductions</h6>
-                <div class="row g-3">
-                    <div class="col-sm-6">
-                        <label class="form-label fw-semibold">Extra Deduction (₹)</label>
-                        <input type="number" step="0.01" min="0"
-                               asp-for="AdditionalDeductions" id="inpDeduct"
-                               class="form-control" />
+            <!-- DEDUCTIONS -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-circle-minus text-teal"></i>
+                    <span class="card-title">Deductions</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label" asp-for="AdditionalDeductions">Extra Deduction (₹)</label>
+                            <input type="number" step="0.01" min="0"
+                                   asp-for="AdditionalDeductions" id="inpDeduct" class="form-control" />
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label" asp-for="DeductionRemarks">Deduction Remarks</label>
+                            <input type="text" asp-for="DeductionRemarks" class="form-control" placeholder="Optional" />
+                        </div>
+
                     </div>
-                    <div class="col-sm-6">
-                        <label class="form-label fw-semibold">Deduction Remarks</label>
-                        <input type="text" asp-for="DeductionRemarks" class="form-control" placeholder="Optional" />
+                </div>
+            </div>
+
+        </div>
+
+        <!-- LIVE CALCULATION -->
+        <div class="col-12 col-lg-5">
+            <div class="card calc-sticky">
+                <div class="card-header">
+                    <i class="fa-solid fa-calculator text-teal"></i>
+                    <span class="card-title">Bill Calculation</span>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="calc-row">
+                        <span class="lbl">Annual (ex-GST)</span>
+                        <span class="val" id="dExGST">₹@Model.AnnualValueExGST.ToString("N2")</span>
                     </div>
+
+                    <div class="calc-row">
+                        <span class="lbl">Annual (incl GST)</span>
+                        <span class="val" id="dInGST">₹@Model.AnnualValueInGST.ToString("N2")</span>
+                    </div>
+
+                    <div class="calc-row">
+                        <span class="lbl">Monthly Gross</span>
+                        <span class="val" id="dGross">₹@Model.MonthlyGrossAmount.ToString("N2")</span>
+                    </div>
+
+                    <div class="calc-row">
+                        <span class="lbl">WPR Band</span>
+                        <span class="val"><span class="badge badge-teal" id="dBand">@Model.PaymentBandPercent%</span></span>
+                    </div>
+
+                    <div class="calc-row">
+                        <span class="lbl">Base Payable</span>
+                        <span class="val" id="dBase">₹@Model.BasePayableAmount.ToString("N2")</span>
+                    </div>
+
+                    <div class="calc-row">
+                        <span class="lbl">TDS (2%)</span>
+                        <span class="val text-danger" id="dTDS">-₹@Model.TDSAmount.ToString("N2")</span>
+                    </div>
+
+                    <div class="calc-row">
+                        <span class="lbl">Extra Deductions</span>
+                        <span class="val text-danger" id="dDeduct">-₹@Model.AdditionalDeductions.ToString("N2")</span>
+                    </div>
+
+                    <div class="net-row">
+                        <span class="lbl">Net Payable</span>
+                        <span class="val" id="dNet">₹@Model.NetPayableAmount.ToString("N2")</span>
+                    </div>
+
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Draft
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </div>
 
-        <!-- Right: Live Calc -->
-        <div class="col-md-5">
-            <div class="bill-card" style="position:sticky;top:80px;">
-                <h6>💰 Bill Calculation</h6>
-                <div class="calc-row"><span class="lbl">Annual (ex-GST)</span><span class="val" id="dExGST">₹@Model.AnnualValueExGST.ToString("N2")</span></div>
-                <div class="calc-row"><span class="lbl">Annual (incl GST)</span><span class="val" id="dInGST">₹@Model.AnnualValueInGST.ToString("N2")</span></div>
-                <div class="calc-row"><span class="lbl">Monthly Gross</span><span class="val" id="dGross">₹@Model.MonthlyGrossAmount.ToString("N2")</span></div>
-                <div class="calc-row"><span class="lbl">WPR Band</span><span class="val"><span class="badge bg-primary" id="dBand">@Model.PaymentBandPercent%</span></span></div>
-                <div class="calc-row"><span class="lbl">Base Payable</span><span class="val" id="dBase">₹@Model.BasePayableAmount.ToString("N2")</span></div>
-                <div class="calc-row"><span class="lbl">TDS (2%)</span><span class="val text-danger" id="dTDS">-₹@Model.TDSAmount.ToString("N2")</span></div>
-                <div class="calc-row"><span class="lbl">Extra Deductions</span><span class="val text-danger" id="dDeduct">-₹@Model.AdditionalDeductions.ToString("N2")</span></div>
-                <div class="net-row mt-2">
-                    <span class="lbl">Net Payable</span>
-                    <span class="val" id="dNet">₹@Model.NetPayableAmount.ToString("N2")</span>
-                </div>
-                <div class="mt-3 d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        💾 Save Draft
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
 </form>
 
 @section Scripts {
-<script>
-    $('#chkOverride').on('change', function() {
-        $('#divReason').toggle(this.checked);
-    });
-    if ($('#chkOverride').is(':checked')) $('#divReason').show();
+    <script>
 
-    function recalc() {
-        $.ajax({
-            url: '@Url.Action("Recalculate","MonthlyBill")',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                SanctionedBeds:      @Model.SanctionedBeds,
-                RatePerBedPerYear:   @Model.RatePerBedPerYear,
-                GSTPercent:          @Model.GSTPercent,
-                WPRAvgScore:         parseFloat($('#inpScore').val()) || 0,
-                AdditionalDeductions:parseFloat($('#inpDeduct').val()) || 0,
-                TDSPercent:          2
-            }),
-            success: function(r) {
-                $('#dExGST').text('₹'+r.annualExGST);
-                $('#dInGST').text('₹'+r.annualInGST);
-                $('#dGross').text('₹'+r.monthlyGross);
-                $('#dBand').text(r.paymentBand+'%');
-                $('#dBase').text('₹'+r.basePayable);
-                $('#dTDS').text('-₹'+r.tdsAmount);
-                $('#dDeduct').text('-₹'+(parseFloat($('#inpDeduct').val())||0).toFixed(2));
-                $('#dNet').text('₹'+r.netPayable);
-                // Hidden fields update
-                $('#hAnnualExGST').val(r.annualExGST.replace(/,/g,''));
-                $('#hAnnualInGST').val(r.annualInGST.replace(/,/g,''));
-                $('#hMonthlyGross').val(r.monthlyGross.replace(/,/g,''));
-                $('#hBandPct').val(r.paymentBand);
-                $('#hBasePayable').val(r.basePayable.replace(/,/g,''));
-                $('#hTDSAmount').val(r.tdsAmount.replace(/,/g,''));
-                $('#hNetPayable').val(r.netPayable.replace(/,/g,''));
-            }
+        $('#chkOverride').on('change', function () {
+            $('#divReason').toggle(this.checked);
         });
-    }
 
-    $('#inpScore, #inpDeduct').on('input', function() {
-        clearTimeout(window._t);
-        window._t = setTimeout(recalc, 600);
-    });
-</script>
+        if ($('#chkOverride').is(':checked')) {
+            $('#divReason').show();
+        }
+
+        function recalc() {
+            $.ajax({
+                url: '@Url.Action("Recalculate", "MonthlyBill")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    SanctionedBeds: @Model.SanctionedBeds,
+                    RatePerBedPerYear: @Model.RatePerBedPerYear,
+                    GSTPercent: @Model.GSTPercent,
+                    WPRAvgScore: parseFloat($('#inpScore').val()) || 0,
+                    AdditionalDeductions: parseFloat($('#inpDeduct').val()) || 0,
+                    TDSPercent: 2
+                }),
+                success: function (r) {
+                    $('#dExGST').text('₹' + r.annualExGST);
+                    $('#dInGST').text('₹' + r.annualInGST);
+                    $('#dGross').text('₹' + r.monthlyGross);
+                    $('#dBand').text(r.paymentBand + '%');
+                    $('#dBase').text('₹' + r.basePayable);
+                    $('#dTDS').text('-₹' + r.tdsAmount);
+                    $('#dDeduct').text('-₹' + (parseFloat($('#inpDeduct').val()) || 0).toFixed(2));
+                    $('#dNet').text('₹' + r.netPayable);
+
+                    $('#hAnnualExGST').val(r.annualExGST.replace(/,/g, ''));
+                    $('#hAnnualInGST').val(r.annualInGST.replace(/,/g, ''));
+                    $('#hMonthlyGross').val(r.monthlyGross.replace(/,/g, ''));
+                    $('#hBandPct').val(r.paymentBand);
+                    $('#hBasePayable').val(r.basePayable.replace(/,/g, ''));
+                    $('#hTDSAmount').val(r.tdsAmount.replace(/,/g, ''));
+                    $('#hNetPayable').val(r.netPayable.replace(/,/g, ''));
+                }
+            });
+        }
+
+        $('#inpScore, #inpDeduct').on('input', LMIS.debounce(recalc, 600));
+
+    </script>
 }

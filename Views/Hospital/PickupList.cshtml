@@ -1,1260 +1,576 @@
-﻿@model List<LaudaryMis.ViewModels.PickupListVM>
+@model List<LaudaryMis.ViewModels.PickupListVM>
 
-<style>
+@{
+    ViewBag.Title = "Pickup Entries";
+}
 
-    .btn-primary {
-        background: linear-gradient(135deg, #3b82f6, #1e40af);
-        border: none;
-        color: #fff;
-        font-weight: 500;
-    }
-
-    .dt-buttons {
-        display: flex;
-        gap: 6px;
-    }
-
-        .dt-buttons .btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff !important;
-            border: none;
-        }
-
-    .buttons-copy {
-        background: #6c757d !important;
-    }
-
-    .buttons-excel {
-        background: #198754 !important;
-    }
-
-    .buttons-pdf {
-        background: #dc3545 !important;
-    }
-
-    .buttons-print {
-        background: #0d6efd !important;
-    }
-
-    .dataTables_filter input {
-        border-radius: 20px;
-        padding: 5px 10px;
-    }
-
-    .child-table {
-        width: 100% !important;
-    }
-
-    .dataTables_wrapper .dataTables_filter input {
-        border-radius: 15px;
-        padding: 4px 8px;
-        margin-left: 5px;
-    }
-
-</style>
-
-<div class="container mt-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-
-        <h4 class="fw-bold">
-            🚚 Pickup Entries
-        </h4>
-
-        <a href="/Hospital/CreatePickUp"
-           class="btn btn-primary rounded-pill px-4">
-
-            + New Pickup
-
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-boxes-packing"></i></div>
+    <div class="ph-text">
+        <h1>Pickup Entries</h1>
+        <p class="ph-sub">Linen collected from wards, and its delivery status</p>
+    </div>
+    <div class="ph-actions">
+        <a href="/Hospital/CreatePickUp" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> New Pickup
         </a>
+    </div>
+</div>
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" data-auto-dismiss>
+        <i class="fa-solid fa-circle-check"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+
+<!-- FILTERS -->
+<div class="filter-bar">
+
+    <div class="filter-field">
+        <label class="form-label" for="filterStatus">Status</label>
+        <select id="filterStatus" class="form-select">
+            <option value="">All</option>
+            <option value="Collected">Collected</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Partial Delivered">Partial Delivered</option>
+            <option value="Verified">Verified</option>
+        </select>
     </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">
-            @TempData["Success"]
-        </div>
-    }
-
-    <!-- FILTER -->
-
-    <div class="card shadow-sm border-0 rounded-3 mb-2">
-
-        <div class="card-body">
-
-            <div class="row g-2 align-items-end">
-
-                <div class="col-md-2">
-
-                    <label>Status</label>
-
-                    <select id="filterStatus"
-                            class="form-select">
-
-                        <option value="">All</option>
-                        <option value="Collected">Collected</option>
-                        <option value="Accepted">Accepted</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Partial Delivered">Partial Delivered</option>
-                        <option value="Verified">Verified</option>
-
-                    </select>
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <label>Ward</label>
-
-                    <select id="filterWard"
-                            class="form-select">
-
-                        <option value="">All</option>
-
-                    </select>
-
-                </div>
-
-                <div class="col-md-2">
-
-                    <label>Date</label>
-
-                    <input type="date"
-                           id="filterDate"
-                           class="form-control" />
-
-                </div>
-
-                <div class="col-md-1 d-grid">
-
-                    <button id="btnSearch"
-                            class="btn btn-primary mt-4">
-
-                        🔍
-
-                    </button>
-
-                </div>
-
-                <div class="col-md-1 d-grid">
-
-                    <button id="btnClear"
-                            class="btn btn-outline-secondary mt-4">
-
-                        ✖
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-
+    <div class="filter-field">
+        <label class="form-label" for="filterWard">Ward</label>
+        <select id="filterWard" class="form-select">
+            <option value="">All</option>
+        </select>
     </div>
 
-    <!-- TABLE -->
-    <input type="hidden"
-           id="SelectedDeliveryIds"
-           value="" />
-    <div class="card shadow-sm border-0 rounded-4">
+    <div class="filter-field">
+        <label class="form-label" for="filterDate">Date</label>
+        <input type="date" id="filterDate" class="form-control" />
+    </div>
 
-        <div class="card-body">
+    <div class="filter-actions">
+        <button id="btnSearch" class="btn btn-primary">
+            <i class="fa-solid fa-magnifying-glass"></i> Search
+        </button>
+        <button id="btnClear" class="btn btn-light">
+            <i class="fa-solid fa-xmark"></i> Clear
+        </button>
+    </div>
 
-            <div class="table-responsive">
+</div>
 
-                <table id="pickupTable"
-                       class="table table-hover align-middle">
+<input type="hidden" id="SelectedDeliveryIds" value="" />
 
-                    <thead class="table-light">
+<!-- TABLE -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="pickupTable" class="table table-hover align-middle w-100">
 
+                <thead>
+                    <tr>
+                        <th class="no-sort"></th>
+                        <th>S.No.</th>
+                        <th>Pickup No</th>
+                        <th>Date</th>
+                        <th>Hospital</th>
+                        <th>Ward</th>
+                        <th>Shift</th>
+                        <th class="text-end">Collected</th>
+                        <th class="text-end">Delivered</th>
+                        <th class="text-end">Pending</th>
+                        <th>Status</th>
+                        <th class="no-sort text-end">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model)
+                    {
                         <tr>
+                            <td class="details-control"
+                                data-id="@item.PickupId"
+                                data-status="@item.Status"></td>
 
-                            <th></th>
-                            <th>S.No.</th>
-                            <th>Pickup No</th>
-                            <th>Date</th>
-                            <th>Hospital</th>
-                            <th>Ward</th>
-                            <th>Shift</th>
-                            <th>Collected Qty</th>
-                            <th>Delivered Qty</th>
-                            <th>Pending Qty</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <td>@item.RowNum</td>
 
-                        </tr>
+                            <td class="fw-semibold text-teal">@item.PickupNo</td>
 
-                    </thead>
+                            <td class="nowrap">@item.PickupDateTime.ToString("dd MMM yyyy")</td>
 
-                    <tbody>
+                            <td>@item.HospitalName</td>
+                            <td>@item.WardName</td>
+                            <td>@item.ShiftName</td>
 
-                        @foreach (var item in Model)
-                        {
-                            <tr>
+                            <td class="text-end fw-bold text-teal">@item.TotalCollectedQty</td>
+                            <td class="text-end fw-bold text-success">@item.TotalDeliveredQty</td>
+                            <td class="text-end fw-bold text-danger">@item.TotalPendingQty</td>
 
-                                @* <td class="details-control text-center"
-                                    data-id="@item.PickupId"
-                                    style="cursor:pointer;">
+                            <td>
+                                @if (item.Status == "Collected")
+                                {
+                                    <span class="badge badge-warn">Collected</span>
+                                }
+                                else if (item.Status == "Partial Delivered")
+                                {
+                                    <span class="badge badge-info">Partial Delivered</span>
+                                }
+                                else if (item.Status == "Delivered")
+                                {
+                                    <span class="badge badge-teal">Delivered</span>
+                                }
+                                else if (item.Status == "Verified")
+                                {
+                                    <span class="badge badge-ok">Verified</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-navy">@item.Status</span>
+                                }
+                            </td>
 
-                                    ➕
-
-                                </td> *@
-                                <td class="details-control text-center"
-                                    data-id="@item.PickupId"
-                                    data-status="@item.Status"
-                                    style="cursor:pointer;">
-
-                                    ➕
-
-                                </td>
-
-                                <td>@item.RowNum</td>
-
-                                <td class="fw-semibold text-primary">
-                                    @item.PickupNo
-                                </td>
-
-                                <td>
-                                    @item.PickupDateTime.ToString("dd MMM yyyy")
-                                </td>
-
-                                <td>
-                                    @item.HospitalName
-                                </td>
-
-                                <td>
-                                    @item.WardName
-                                </td>
-
-                                <td>
-                                    @item.ShiftName
-                                </td>
-
-                                <td class="fw-bold text-primary">
-                                    @item.TotalCollectedQty
-                                </td>
-                                <td class="fw-bold text-success">
-                                    @item.TotalDeliveredQty
-                                </td>
-                                <td class="fw-bold text-danger">
-                                    @item.TotalPendingQty
-                                </td>
-
-                                <td>
+                            <td class="text-end">
+                                <div class="action-group justify-content-end">
 
                                     @if (item.Status == "Collected")
                                     {
-                                        <span class="badge bg-warning text-dark">
-                                            Collected
-                                        </span>
-                                    }
-                                    else if (item.Status == "Delivered")
-                                    {
-                                        <span class="badge bg-info text-dark">
-                                            Delivered
-                                        </span>
-                                    }
-                                    else if (item.Status == "Verified")
-                                    {
-                                        <span class="badge bg-success">
-                                            Verified
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">
-                                            @item.Status
-                                        </span>
-                                    }
+                                        <a href="/Hospital/EditPickup/@item.PickupId"
+                                           class="btn btn-sm btn-icon btn-outline-primary"
+                                           data-bs-toggle="tooltip" title="Edit">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
 
-                                </td>
-
-                                <td>
-
-                                    @if (item.Status == "Collected")
-                                    {
-                                        <div class="d-flex gap-2 justify-content-center">
-
-                                            <a href="/Hospital/EditPickup/@item.PickupId"
-                                               class="btn btn-sm btn-warning rounded-circle">
-
-                                                <i class="fa fa-edit"></i>
-
-                                            </a>
-
-                                            <button class="btn btn-sm btn-danger rounded-circle"
-                                                    onclick="deletePickup(@item.PickupId,this)">
-
-                                                <i class="fa fa-trash"></i>
-
-                                            </button>
-
-                                            <a href="/Hospital/PrintPickup/@item.PickupId"
-                                               target="_blank"
-                                               class="btn btn-sm btn-primary rounded-circle">
-
-                                                <i class="fa fa-print"></i>
-
-                                            </a>
-
-                                        </div>
-                                    }
-                                    @*   @if (item.Status == "Delivered")
-                                    {
-                                        <button class="btn btn-success btn-sm"
-                                                onclick="acceptDelivery(@item.PickupId)">
-                                            <i class="fa fa-check"></i> Accept
+                                        <button type="button"
+                                                class="btn btn-sm btn-icon btn-outline-danger"
+                                                data-bs-toggle="tooltip" title="Delete"
+                                                onclick="deletePickup(@item.PickupId, this)">
+                                            <i class="fa-solid fa-trash"></i>
                                         </button>
-                                    } *@
+
+                                        <a href="/Hospital/PrintPickup/@item.PickupId"
+                                           target="_blank" rel="noopener"
+                                           class="btn btn-sm btn-icon btn-outline-secondary"
+                                           data-bs-toggle="tooltip" title="Print">
+                                            <i class="fa-solid fa-print"></i>
+                                        </a>
+                                    }
+
                                     @if (!string.IsNullOrWhiteSpace(item.PrintUrlFilePath))
                                     {
                                         <a href="@item.PrintUrlFilePath"
-                                           target="_blank"
-                                           class="badge bg-primary text-decoration-none p-2">
-
-                                            <i class="fa fa-print"></i>
-                                            Print
-
+                                           target="_blank" rel="noopener"
+                                           class="btn btn-sm btn-icon btn-outline-secondary"
+                                           data-bs-toggle="tooltip" title="Print challan">
+                                            <i class="fa-solid fa-file-pdf"></i>
                                         </a>
                                     }
+
                                     @if ((item.Status == "Delivered" || item.Status == "Partial Delivered") && !item.IsVerified)
                                     {
-                                        <button class="btn btn-success btn-sm"
+                                        <button type="button" class="btn btn-sm btn-success"
                                                 onclick="verifyDeliveries(@item.PickupId)">
-
-                                            <i class="fa fa-check"></i> Accept
-
+                                            <i class="fa-solid fa-check"></i> Accept
                                         </button>
                                     }
 
-                                </td>
+                                </div>
+                            </td>
 
-                            </tr>
-                        }
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-<div class="modal fade"
-     id="deliveryDetailModal" tabindex="-1">
-
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header bg-primary text-white">
-
-                <h5 class="modal-title">
-
-                    Delivery Details
-
-                </h5>
-
-                <button type="button"
-                        class="btn-close btn-close-white"
-                        data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div id="deliveryDetailContainer">
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-@section Scripts {
-
-    <script>
-
-                $(document).ready(function () {
-
-                    var table = $('#pickupTable').DataTable({
-
-                        pageLength: 10,
-
-                        responsive: true,
-                          order: [],
-                        // dom:
-                        //     "<'row mb-2 align-items-center'<'col-md-4'l><'col-md-8 d-flex justify-content-end gap-2'Bf>>" +
-                        //     "<'row'<'col-12'tr>>" +
-                        //     "<'row mt-2'<'col-md-5'i><'col-md-7 text-end'p>>",
-                        dom:
-        "<'row mb-2 align-items-center'<'col-md-4'l><'col-md-8 d-flex justify-content-end gap-2'f>>" +
-        "<'row'<'col-12'tr>>" +
-        "<'row mt-2'<'col-md-5'i><'col-md-7 text-end'p>>",
-        //                       buttons: [
-        //     {
-        //         extend: 'copy',
-        //         className: 'btn buttons-copy',
-        //         text: '📋',
-        //         titleAttr: 'Copy'
-        //     },
-        //     {
-        //         extend: 'excel',
-        //         className: 'btn buttons-excel',
-        //         text: '📊',
-        //         titleAttr: 'Export to Excel'
-        //     },
-        //     {
-        //         extend: 'pdf',
-        //         className: 'btn buttons-pdf',
-        //         text: '📄',
-        //         titleAttr: 'Export to PDF'
-        //     },
-        //     {
-        //         extend: 'print',
-        //         className: 'btn buttons-print',
-        //         text: '🖨️',
-        //         titleAttr: 'Print'
-        //     }
-        // ]
-                    });
-
-                    function format(items,id) {
-
-                        let html =
-                        `<table id="childTable_${id}"
-                                class="table table-bordered table-sm child-table">
-
-                            <thead>
-                                <tr>
-                                    <th>Linen Type</th>
-                                    <th>Collected Qty</th>
-                                    <th>Deliverd Qty</th>
-                                    <th>Pending Qty</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
-
-                        items.forEach(x => {
-
-                           html += `
-        <tr>
-            <td>${x.linenTypeName}</td>
-            <td class="fw-bold text-primary">${x.collectedQty}</td>
-            <td class="fw-bold text-success">${x.deliveredQty}</td>
-            <td class="fw-bold text-danger">${x.pendingQty}</td>
-        </tr>`;
-                        });
-
-                        html += "</tbody></table>";
-
-                        return html;
+                        </tr>
                     }
-
-
-                        $('#pickupTable tbody').on(
-        'click',
-        '.details-control',
-        function () {
-
-            var tr = $(this).closest('tr');
-            var row = table.row(tr);
-
-            var id = $(this).data('id');
-            var status = $(this).data('status');
-
-            if (row.child.isShown()) {
-
-                row.child.hide();
-                tr.removeClass('shown');
-                $(this).html('➕');
-
-                return;
-            }
-
-            if (
-                status === "Collected" ||
-                status === "Accepted"
-            ) {
-
-                loadPickupItems(
-                    id,
-                    row,
-                    tr,
-                    $(this)
-                );
-            }
-            else {
-
-                loadDeliveryHistory(
-                    id,
-                    row,
-                    tr,
-                    $(this)
-                );
-            }
-        });
-
-        //                 $('#pickupTable tbody').on(
-        // 'click',
-        // 'td.details-control',
-        // function () {
-
-        //     var tr = $(this).closest('tr');
-
-        //     var row = table.row(tr);
-
-        //     var pickupId = $(this).data('id');
-
-        //     var status = $(this).data('status');
-
-        //     if (row.child.isShown()) {
-
-        //         row.child.hide();
-
-        //         tr.removeClass('shown');
-
-        //         $(this).html("➕");
-
-        //         return;
-        //     }
-
-        //     if ( status === "Collected" || status === "Accepted") {
-        //         loadPickupItems( pickupId,  row, tr, $(this)  );
-        //     }
-        //     else {
-
-        //         loadDeliveryHistory( pickupId,  row,  tr,  $(this)
-        //         );
-        //     }
-
-        // });
-
-                    // $('#pickupTable tbody').on(
-                    //     'click',
-                    //     'td.details-control',
-                    //     function () {
-
-                    //         var tr = $(this).closest('tr');
-                    //         var row = table.row(tr);
-                    //         var id = $(this).data('id');
-
-                    //         if (row.child.isShown()) {
-
-                    //             row.child.hide();
-                    //             tr.removeClass('shown');
-                    //             $(this).html("➕");
-                    //         }
-                    //         else {
-
-                    //             $.get('/Hospital/PickupItems/' + id,
-                    //                 function (data) {
-
-                    //                     row.child(
-                    //                         format(data,id)
-                    //                     ).show();
-
-                    //                     tr.addClass('shown');
-
-                    //                     tr.find('.details-control')
-                    //                       .html("➖");
-
-                    //                 });
-                    //         }
-                    //     });
-
-                    $.get('/Common/GetWards', function (data) {
-
-                        let html = '<option value="">All</option>';
-
-                        data.forEach(x => {
-
-                            html += `<option value="${x.id}">
-                                        ${x.name}
-                                    </option>`;
-                        });
-
-                        $('#filterWard').html(html);
-
-                    });
-
-                          $('#btnSearch').click(function () {
-
-                    $.get('/Hospital/SearchPickupList',
-                    {
-                        status: $('#filterStatus').val(),
-                        wardId: $('#filterWard').val(),
-                        date: $('#filterDate').val()
-                    },
-                    function (res) {
-
-                        table.clear();
-
-                        res.forEach(function (item) {
-
-                                  var statusBadge = '';
-
-        switch (item.status) {
-
-            case "Collected":
-                statusBadge =
-                    '<span class="badge bg-warning text-dark">Collected</span>';
-                break;
-
-            case "Partial Delivered":
-                statusBadge =
-                    '<span class="badge bg-info text-dark">Partial Delivered</span>';
-                break;
-
-            case "Delivered":
-                statusBadge =
-                    '<span class="badge bg-primary">Delivered</span>';
-                break;
-
-            case "Verified":
-                statusBadge =
-                    '<span class="badge bg-success">Verified</span>';
-                break;
-
-            default:
-                statusBadge =
-                    '<span class="badge bg-secondary">'
-                    + item.status +
-                    '</span>';
-        }
-                                 var actionButtons = '';
-
-        if (item.status === "Collected") {
-
-            actionButtons =
-                `<div class="d-flex gap-2 justify-content-center">
-
-                    <a href="/Hospital/EditPickup/${item.pickupId}"
-                       class="btn btn-sm btn-warning rounded-circle">
-                        <i class="fa fa-edit"></i>
-                    </a>
-
-                    <button class="btn btn-sm btn-danger rounded-circle"
-                            onclick="deletePickup(${item.pickupId},this)">
-                        <i class="fa fa-trash"></i>
-                    </button>
-
-                    <a href="/Hospital/PrintPickup/${item.pickupId}"
-                       target="_blank"
-                       class="btn btn-sm btn-primary rounded-circle">
-                        <i class="fa fa-print"></i>
-                    </a>
-
-                </div>`;
-        }
-
-        else if (
-            (item.status === "Delivered"
-             || item.status === "Partial Delivered")
-            && !item.isVerified
-        ) {
-
-            actionButtons =
-                `<button class="btn btn-success btn-sm"
-                         onclick="verifyDeliveries(${item.pickupId})">
-
-                    <i class="fa fa-check"></i>
-                    Accept
-
-                </button>`;
-        }
-
-        else if (item.isVerified) {
-
-            actionButtons =
-                `<span class="badge bg-success">
-                    Verified
-                </span>`;
-        }
-                            table.row.add([
-                                      `<div class="details-control text-center"
-              data-id="${item.pickupId}"
-              data-status="${item.status}"
-              style="cursor:pointer;">
-           ➕
-                                      </div>`,
-                                item.rowNum,
-                                item.pickupNo,
-                                formatDate(item.pickupDateTime),
-                                item.hospitalName,
-                                item.wardName,
-                                item.shiftName,
-                                item.totalCollectedQty,
-                                  item.totalDeliveredQty,
-                                    item.totalPendingQty,
-                                statusBadge,
-                                actionButtons
-                            ]);
-
-                        });
-
-                        table.draw();
-
-                    }).fail(function () {
-
-                        alert("Error loading data");
-
-                    });
-
-                });
-
-                    $('#btnClear').click(function () {
-
-                        $('#filterStatus').val('');
-                        $('#filterWard').val('');
-                        $('#filterDate').val('');
-
-                        location.reload();
-
-                    });
-
-                });
-
-                function formatDate(data) {
-
-                    let d = new Date(data);
-
-                    return d.toLocaleDateString('en-GB',{
-                        day:'2-digit',
-                        month:'short',
-                        year:'numeric'
-                    });
-                }
-
-                function deletePickup(id,btn){
-
-                    if(confirm('Are you sure?')){
-
-                        $.post('/Hospital/DeletePickup',
-                        {
-                            id:id
-                        },
-                        function(res){
-
-                            if(res.success){
-
-                                $(btn)
-                                .closest('tr')
-                                .fadeOut();
-
-                            }
-                            else{
-
-                                alert(res.message);
-
-                            }
-
-                        });
-                    }
-                }
-          function acceptDelivery(deliveryId)
-        {
-            if (!confirm("Accept this delivery?"))
-                return;
-
-            $.ajax({
-
-                url: '/Hospital/AcceptDelivery',
-
-                type: 'POST',
-
-                data: {
-
-                    DeliveryId: deliveryId,
-                    remarks: 'Accepted by Hospital'
-
-                },
-
-                success: function (res) {
-
-                    if (res.success) {
-
-                        Swal.fire(
-                            'Success',
-                            res.message,
-                            'success'
-                        );
-
-                        location.reload();
-                    }
-                    else {
-
-                        Swal.fire(
-                            'Error',
-                            res.message,
-                            'error'
-                        );
-                    }
-                }
-            });
-        }
-
-                function loadPickupItems(
-            pickupId,
-            row,
-            tr,
-            control)
-        {
-            $.get(
-                '/Hospital/PickupItems/' + pickupId,
-
-                function (data) {
-
-                    row.child(
-                        formatPickupItems(data, pickupId)
-                    ).show();
-
-                    tr.addClass('shown');
-
-                    control.html("➖");
-
-                });
-        }
-
-                function loadDeliveryHistory(
-            pickupId,
-            row,
-            tr,
-            control)
-        {
-            $.get(
-                '/Hospital/GetPickupDeliveryHistory/' + pickupId,
-
-                function (data) {
-
-                    row.child(
-                        formatDeliveryHistory(data, pickupId)
-                    ).show();
-
-                    tr.addClass('shown');
-
-                    control.html("➖");
-
-                });
-        }
-
-
-                function formatPickupItems(items,id)
-        {
-            let html = `
-            <table class="table table-bordered">
-
-                <thead class="table-dark">
-
-                    <tr>
-
-                        <th>Linen Type</th>
-
-                        <th>Collected Qty</th>
-
-                        <th>Delivered Qty</th>
-
-                        <th>Pending Qty</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>`;
-
-            items.forEach(x=>{
-
-                html += `
-
-                <tr>
-
-                    <td>${x.linenTypeName}</td>
-
-                    <td class="fw-bold text-primary">
-                        ${x.collectedQty}
-                    </td>
-
-                    <td class="fw-bold text-success">
-                        ${x.deliveredQty}
-                    </td>
-
-                    <td class="fw-bold text-danger">
-                        ${x.pendingQty}
-                    </td>
-
-                </tr>`;
-            });
-
-            html += `
-                </tbody>
-            </table>`;
-
-            return html;
-        }
-                function formatDeliveryHistory(items,id)
-        {
-            let html = `
-
-            <table class="table table-bordered table-hover">
-
-                <thead style="
-                    background:#000;
-                    color:#fff;">
-
-                    <tr>
-
-                        <th>Delivery No</th>
-
-                        <th>Delivery Date</th>
-
-
-
-                        <th>Delivered Qty</th>
-
-                        <th>Status</th>
-
-                      <th>Accept</th>
-
-                      <th>Reject</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>`;
-
-            items.forEach(x=>{
-
-                html += `
-
-                <tr>
-
-                               <td>
-
-            <a href="javascript:void(0)"
-               class="delivery-detail-link"
-               data-deliveryid="${x.deliveryId}"
-               data-deliveryno="${x.deliveryNo}">
-                ${x.deliveryNo}
-            </a>
-        </td>
-
-
-                           <td>
-            ${new Date(x.deliveryDateTime)
-                .toLocaleDateString('en-GB', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric'
-                })}
-        </td>
-
-
-                     <td class="fw-bold text-success">
-
-                        ${x.deliveredQty}
-
-                    </td>
-
-
-                    <td>
-
-                        ${x.status}
-
-                    </td>
-
-                                         <td>
-
-        ${
-            !x.isVerified
-
-            ?
-
-            `<input type="checkbox"
-                    class="acceptCheck"
-                    value="${x.deliveryId}" />`
-
-            :
-
-            `<span class="badge bg-success">
-                -
-             </span>`
-        }
-
-        </td>
-
-        <td class="text-center">
-
-            ${
-                x.status !== "Verified" ?
-                `<input type="checkbox"
-                        class="rejectCheck"
-                        value="${x.deliveryId}" />` : '-'
-            }
-        </td>
-
-
-
-                </tr>`;
-            });
-
-            html += `
-
                 </tbody>
 
             </table>
+        </div>
+    </div>
+</div>
 
-            <div class="text-end">
+<!-- DELIVERY DETAIL MODAL -->
+<div class="modal fade" id="deliveryDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
 
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-truck-ramp-box text-teal me-1"></i> Delivery Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
 
+            <div class="modal-body">
+                <div id="deliveryDetailContainer"></div>
+            </div>
 
-            </div>`;
+        </div>
+    </div>
+</div>
 
-            return html;
-        }
-               $(document).on(
-        'change',
-        '.acceptCheck',
-        function () {
+@section Scripts {
+    <script>
 
-            if ($(this).is(':checked')) {
+        var table;
 
-                $(this)
-                    .closest('tr')
-                    .find('.rejectCheck')
-                    .prop('checked', false);
-            }
+        $(function () {
 
-            updateSelectedDeliveries();
-        });
-                $(document).on(
-        'change',
-        '.rejectCheck',
-        function () {
+            // expandable: this table drives its own row.child() detail rows,
+            // so the Responsive extension is turned off and the table scrolls sideways.
+            table = LMIS.initTable('#pickupTable', {
+                expandable: true,
+                exports: false,
+                order: [],
+                columnDefs: [
+                    { targets: 'no-sort', orderable: false }
+                ]
+            });
 
-            if ($(this).is(':checked')) {
+            // Ward filter options
+            $.get('/Common/GetWards', function (data) {
+                var html = '<option value="">All</option>';
+                data.forEach(function (x) {
+                    html += '<option value="' + x.id + '">' + x.name + '</option>';
+                });
+                $('#filterWard').html(html);
+            });
 
-                $(this)
-                    .closest('tr')
-                    .find('.acceptCheck')
-                    .prop('checked', false);
-            }
+            // Expand / collapse detail row
+            $('#pickupTable tbody').on('click', '.details-control', function () {
 
-            updateSelectedDeliveries();
-        });
-                       function updateSelectedDeliveries()
-        {
-            var ids = [];
+                var $control = $(this);
+                var tr = $control.closest('tr');
+                var row = table.row(tr);
 
-            $('.acceptCheck:checked').each(function () {
+                var id = $control.data('id');
+                var status = $control.data('status');
 
-                var id = $(this).val();
-
-                if ($.inArray(id, ids) === -1)
-                {
-                    ids.push(id);
+                if (row.child.isShown()) {
+                    row.child.hide();
+                    tr.removeClass('shown');
+                    return;
                 }
+
+                if (status === "Collected" || status === "Accepted") {
+                    loadPickupItems(id, row, tr);
+                } else {
+                    loadDeliveryHistory(id, row, tr);
+                }
+            });
+
+            // Search
+            $('#btnSearch').on('click', function () {
+
+                $.get('/Hospital/SearchPickupList', {
+                    status: $('#filterStatus').val(),
+                    wardId: $('#filterWard').val(),
+                    date: $('#filterDate').val()
+                }, function (res) {
+
+                    table.clear();
+
+                    res.forEach(function (item) {
+
+                        var statusBadge;
+                        switch (item.status) {
+                            case "Collected":
+                                statusBadge = '<span class="badge badge-warn">Collected</span>'; break;
+                            case "Partial Delivered":
+                                statusBadge = '<span class="badge badge-info">Partial Delivered</span>'; break;
+                            case "Delivered":
+                                statusBadge = '<span class="badge badge-teal">Delivered</span>'; break;
+                            case "Verified":
+                                statusBadge = '<span class="badge badge-ok">Verified</span>'; break;
+                            default:
+                                statusBadge = '<span class="badge badge-navy">' + item.status + '</span>';
+                        }
+
+                        var actionButtons = '';
+
+                        if (item.status === "Collected") {
+                            actionButtons =
+                                '<div class="action-group justify-content-end">' +
+                                    '<a href="/Hospital/EditPickup/' + item.pickupId + '" class="btn btn-sm btn-icon btn-outline-primary" title="Edit">' +
+                                        '<i class="fa-solid fa-pen"></i></a>' +
+                                    '<button type="button" class="btn btn-sm btn-icon btn-outline-danger" title="Delete" onclick="deletePickup(' + item.pickupId + ',this)">' +
+                                        '<i class="fa-solid fa-trash"></i></button>' +
+                                    '<a href="/Hospital/PrintPickup/' + item.pickupId + '" target="_blank" rel="noopener" class="btn btn-sm btn-icon btn-outline-secondary" title="Print">' +
+                                        '<i class="fa-solid fa-print"></i></a>' +
+                                '</div>';
+                        }
+                        else if ((item.status === "Delivered" || item.status === "Partial Delivered") && !item.isVerified) {
+                            actionButtons =
+                                '<button type="button" class="btn btn-sm btn-success" onclick="verifyDeliveries(' + item.pickupId + ')">' +
+                                    '<i class="fa-solid fa-check"></i> Accept</button>';
+                        }
+                        else if (item.isVerified) {
+                            actionButtons = '<span class="badge badge-ok">Verified</span>';
+                        }
+
+                        table.row.add([
+                            '<div class="details-control" data-id="' + item.pickupId + '" data-status="' + item.status + '"></div>',
+                            item.rowNum,
+                            '<span class="fw-semibold text-teal">' + item.pickupNo + '</span>',
+                            formatDate(item.pickupDateTime),
+                            item.hospitalName,
+                            item.wardName,
+                            item.shiftName,
+                            '<span class="fw-bold text-teal">' + item.totalCollectedQty + '</span>',
+                            '<span class="fw-bold text-success">' + item.totalDeliveredQty + '</span>',
+                            '<span class="fw-bold text-danger">' + item.totalPendingQty + '</span>',
+                            statusBadge,
+                            actionButtons
+                        ]);
+
+                    });
+
+                    table.draw();
+
+                }).fail(function () {
+                    LMIS.alert('Search failed', 'Could not load pickup entries.', 'error');
+                });
 
             });
 
-            $('#SelectedDeliveryIds')
-                .val(ids.join(','));
+            // Clear
+            $('#btnClear').on('click', function () {
+                $('#filterStatus').val('');
+                $('#filterWard').val('');
+                $('#filterDate').val('');
+                location.reload();
+            });
 
-            console.log("IDs Array:", ids);
+        });
 
-            console.log(
-                "Hidden Value:",
-                $('#SelectedDeliveryIds').val()
-            );
+        function formatDate(data) {
+            return new Date(data).toLocaleDateString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric'
+            });
         }
-                function verifyDeliveries(pickupId)
-        {
-            var deliveryIds =
-                $('#SelectedDeliveryIds').val();
 
-            if(
-                deliveryIds == null ||
-                deliveryIds == ''
-            )
-            {
-                Swal.fire(
-                    'Validation',
-                    'Please select at least one delivery.',
-                    'warning'
-                );
+        function deletePickup(id, btn) {
+            LMIS.confirm({
+                title: 'Delete this pickup?',
+                text: 'This action cannot be undone.',
+                confirmText: 'Yes, delete'
+            }).then(function (ok) {
+                if (!ok) return;
 
+                $.post('/Hospital/DeletePickup', { id: id }, function (res) {
+                    if (res.success) {
+                        LMIS.removeRowOf('#pickupTable', btn);
+                        LMIS.toast('Pickup deleted');
+                    } else {
+                        LMIS.alert('Delete failed', res.message || 'Please try again.', 'error');
+                    }
+                });
+            });
+        }
+
+        function acceptDelivery(deliveryId) {
+            LMIS.confirm({
+                title: 'Accept this delivery?',
+                icon: 'question',
+                confirmText: 'Yes, accept',
+                danger: false
+            }).then(function (ok) {
+                if (!ok) return;
+
+                $.post('/Hospital/AcceptDelivery', {
+                    DeliveryId: deliveryId,
+                    remarks: 'Accepted by Hospital'
+                }, function (res) {
+                    if (res.success) {
+                        LMIS.alert('Success', res.message, 'success').then(function () { location.reload(); });
+                    } else {
+                        LMIS.alert('Error', res.message, 'error');
+                    }
+                });
+            });
+        }
+
+        function loadPickupItems(pickupId, row, tr) {
+            $.get('/Hospital/PickupItems/' + pickupId, function (data) {
+                row.child(formatPickupItems(data)).show();
+                tr.addClass('shown');
+            });
+        }
+
+        function loadDeliveryHistory(pickupId, row, tr) {
+            $.get('/Hospital/GetPickupDeliveryHistory/' + pickupId, function (data) {
+                row.child(formatDeliveryHistory(data)).show();
+                tr.addClass('shown');
+            });
+        }
+
+        function formatPickupItems(items) {
+
+            var html =
+                '<div class="table-responsive">' +
+                '<table class="child-table">' +
+                    '<thead><tr>' +
+                        '<th>Linen Type</th>' +
+                        '<th class="text-end">Collected Qty</th>' +
+                        '<th class="text-end">Delivered Qty</th>' +
+                        '<th class="text-end">Pending Qty</th>' +
+                    '</tr></thead><tbody>';
+
+            items.forEach(function (x) {
+                html +=
+                    '<tr>' +
+                        '<td>' + x.linenTypeName + '</td>' +
+                        '<td class="text-end fw-bold text-teal">' + x.collectedQty + '</td>' +
+                        '<td class="text-end fw-bold text-success">' + x.deliveredQty + '</td>' +
+                        '<td class="text-end fw-bold text-danger">' + x.pendingQty + '</td>' +
+                    '</tr>';
+            });
+
+            return html + '</tbody></table></div>';
+        }
+
+        function formatDeliveryHistory(items) {
+
+            var html =
+                '<div class="table-responsive">' +
+                '<table class="child-table">' +
+                    '<thead><tr>' +
+                        '<th>Delivery No</th>' +
+                        '<th>Delivery Date</th>' +
+                        '<th class="text-end">Delivered Qty</th>' +
+                        '<th>Status</th>' +
+                        '<th class="text-center">Accept</th>' +
+                        '<th class="text-center">Reject</th>' +
+                    '</tr></thead><tbody>';
+
+            items.forEach(function (x) {
+
+                var deliveryDate = new Date(x.deliveryDateTime).toLocaleDateString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric'
+                });
+
+                var acceptCell = !x.isVerified
+                    ? '<input type="checkbox" class="form-check-input acceptCheck" value="' + x.deliveryId + '" />'
+                    : '<span class="text-muted">&mdash;</span>';
+
+                var rejectCell = x.status !== "Verified"
+                    ? '<input type="checkbox" class="form-check-input rejectCheck" value="' + x.deliveryId + '" />'
+                    : '<span class="text-muted">&mdash;</span>';
+
+                html +=
+                    '<tr>' +
+                        '<td><a href="javascript:void(0)" class="delivery-detail-link fw-semibold"' +
+                            ' data-deliveryid="' + x.deliveryId + '"' +
+                            ' data-deliveryno="' + x.deliveryNo + '">' + x.deliveryNo + '</a></td>' +
+                        '<td class="nowrap">' + deliveryDate + '</td>' +
+                        '<td class="text-end fw-bold text-success">' + x.deliveredQty + '</td>' +
+                        '<td>' + x.status + '</td>' +
+                        '<td class="text-center">' + acceptCell + '</td>' +
+                        '<td class="text-center">' + rejectCell + '</td>' +
+                    '</tr>';
+            });
+
+            return html + '</tbody></table></div>';
+        }
+
+        // Accept and Reject are mutually exclusive per row
+        $(document).on('change', '.acceptCheck', function () {
+            if ($(this).is(':checked')) {
+                $(this).closest('tr').find('.rejectCheck').prop('checked', false);
+            }
+            updateSelectedDeliveries();
+        });
+
+        $(document).on('change', '.rejectCheck', function () {
+            if ($(this).is(':checked')) {
+                $(this).closest('tr').find('.acceptCheck').prop('checked', false);
+            }
+            updateSelectedDeliveries();
+        });
+
+        function updateSelectedDeliveries() {
+            var ids = [];
+            $('.acceptCheck:checked').each(function () {
+                var id = $(this).val();
+                if ($.inArray(id, ids) === -1) ids.push(id);
+            });
+            $('#SelectedDeliveryIds').val(ids.join(','));
+        }
+
+        function verifyDeliveries(pickupId) {
+
+            var deliveryIds = $('#SelectedDeliveryIds').val();
+
+            if (!deliveryIds) {
+                LMIS.alert('Nothing selected',
+                           'Expand the pickup row and tick at least one delivery to accept.',
+                           'warning');
                 return;
             }
 
-            Swal.fire({
-
-                title:'Verify Deliveries?',
-
-                icon:'question',
-
-                showCancelButton:true
-
-            }).then((result)=>{
-
-                if(result.isConfirmed)
-                {
-                    saveVerification(
-                        pickupId,
-                        deliveryIds
-                    );
-                }
-
+            LMIS.confirm({
+                title: 'Verify deliveries?',
+                text: 'The selected deliveries will be marked as verified.',
+                icon: 'question',
+                confirmText: 'Yes, verify',
+                danger: false
+            }).then(function (ok) {
+                if (ok) saveVerification(pickupId, deliveryIds);
             });
         }
-                function saveVerification(
-            pickupId,
-            deliveryIds)
-        {
-            $.ajax({
 
-                url:
-                '/Hospital/VerifyDeliveries',
-
-                type:'POST',
-
-                data:
-                {
-                    PickupId: pickupId,
-                    DeliveryIds: deliveryIds,
-                    Remarks:''
-                },
-
-                success:function(res)
-                {
-                    if(res.success)
-                    {
-                        Swal.fire(
-                            'Success',
-                            res.message,
-                            'success'
-                        );
-
-                        location.reload();
-                    }
-                    else
-                    {
-                        Swal.fire(
-                            'Error',
-                            res.message,
-                            'error'
-                        );
-                    }
+        function saveVerification(pickupId, deliveryIds) {
+            $.post('/Hospital/VerifyDeliveries', {
+                PickupId: pickupId,
+                DeliveryIds: deliveryIds,
+                Remarks: ''
+            }, function (res) {
+                if (res.success) {
+                    LMIS.alert('Success', res.message, 'success').then(function () { location.reload(); });
+                } else {
+                    LMIS.alert('Error', res.message, 'error');
                 }
             });
         }
-            $(document).on(
-        'click',
-        '.delivery-detail-link',
-        function () {
 
-            let deliveryId =
-                $(this).data('deliveryid');
+        // Delivery line-item detail
+        $(document).on('click', '.delivery-detail-link', function () {
 
-            let deliveryNo =
-                $(this).data('deliveryno');
+            var deliveryId = $(this).data('deliveryid');
+            var deliveryNo = $(this).data('deliveryno');
 
-            $.get(
-                '/Hospital/GetDeliveryItems',
-                {
-                    deliveryId: deliveryId
-                },
-                function (data) {
+            $.get('/Hospital/GetDeliveryItems', { deliveryId: deliveryId }, function (data) {
 
-                    let html = `
+                var html =
+                    '<div class="alert alert-info"><i class="fa-solid fa-receipt"></i>' +
+                    '<span><strong>Delivery No:</strong> ' + deliveryNo + '</span></div>' +
+                    '<div class="table-responsive"><table class="table table-hover align-middle">' +
+                        '<thead><tr>' +
+                            '<th>Linen Type</th>' +
+                            '<th class="text-end">Collected</th>' +
+                            '<th class="text-end">Delivered</th>' +
+                            '<th class="text-end">Balance</th>' +
+                        '</tr></thead><tbody>';
 
-                    <div class="alert alert-info">
-
-                        <strong>Delivery No :</strong>
-                        ${deliveryNo}
-
-                    </div>
-
-                    <table class="table table-bordered table-sm">
-
-                        <thead class="table-dark">
-
-                            <tr>
-
-                                <th>Linen Type</th>
-
-                                <th>Collected Qty</th>
-
-                                <th>Delivered Qty</th>
-
-                                <th>Balance Qty</th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody>`;
-
-                    data.forEach(x => {
-
-                        html += `
-
-                        <tr>
-
-                            <td>
-                                ${x.linenName}
-                            </td>
-
-                            <td class="text-primary fw-bold">
-                                ${x.collectedQty}
-                            </td>
-
-                            <td class="text-success fw-bold">
-                                ${x.deliveredQty}
-                            </td>
-
-                            <td class="text-danger fw-bold">
-                                ${x.pendingQty}
-                            </td>
-
-                        </tr>`;
-                    });
-
-                    html += `
-
-                        </tbody>
-
-                    </table>
-
-                    <div class="alert alert-warning">
-
-                        <strong>Note:</strong>
-
-                        Balance Qty represents linen still pending
-                        for this pickup.
-
-                    </div>`;
-
-                    $('#deliveryDetailContainer')
-                        .html(html);
-
-                    $('#deliveryDetailModal')
-                        .modal('show');
+                data.forEach(function (x) {
+                    html +=
+                        '<tr>' +
+                            '<td>' + x.linenName + '</td>' +
+                            '<td class="text-end fw-bold text-teal">' + x.collectedQty + '</td>' +
+                            '<td class="text-end fw-bold text-success">' + x.deliveredQty + '</td>' +
+                            '<td class="text-end fw-bold text-danger">' + x.pendingQty + '</td>' +
+                        '</tr>';
                 });
 
-        });
-    </script>
+                html += '</tbody></table></div>' +
+                    '<div class="alert alert-warning mb-0"><i class="fa-solid fa-circle-info"></i>' +
+                    '<span><strong>Note:</strong> Balance Qty represents linen still pending for this pickup.</span></div>';
 
+                $('#deliveryDetailContainer').html(html);
+                $('#deliveryDetailModal').modal('show');
+            });
+
+        });
+
+    </script>
 }

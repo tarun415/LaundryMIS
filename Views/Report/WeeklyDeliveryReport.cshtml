@@ -1,343 +1,141 @@
-﻿@model List<LaudaryMis.ViewModels.WeeklyDeliveryReport>
+@model List<LaudaryMis.ViewModels.WeeklyDeliveryReport>
 
-<style>
+@{
+    ViewBag.Title = "Weekly Laundry Report";
 
-    .card {
-        border-radius: 15px;
-        border: none;
-    }
+    var totalPickups = Model.Sum(x => x.TotalPickups);
+    var totalCollected = Model.Sum(x => x.TotalCollectedQty);
+    var totalDelivered = Model.Sum(x => x.TotalDeliveredQty);
+    var totalPending = Model.Sum(x => x.TotalPendingQty);
+}
 
-    .summary-card {
-        border-radius: 15px;
-        padding: 20px;
-        color: #fff;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,.08);
-    }
+@*
+    Note: this file previously contained stray markdown code fences (```) in both
+    the markup and the <script> block. The ones inside the script were a syntax
+    error, which stopped the DataTable on this page from initialising at all.
+*@
 
-    .bg-blue {
-        background: linear-gradient(135deg,#3b82f6,#1e40af);
-    }
-
-    .bg-green {
-        background: linear-gradient(135deg,#22c55e,#15803d);
-    }
-
-    .bg-orange {
-        background: linear-gradient(135deg,#f59e0b,#d97706);
-    }
-
-    .bg-red {
-        background: linear-gradient(135deg,#ef4444,#b91c1c);
-    }
-
-    .summary-card h3 {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 700;
-    }
-
-    .summary-card span {
-        font-size: 14px;
-    }
-
-    .table thead th {
-        background: #dbeafe;
-        color: #1e3a8a;
-        font-weight: 600;
-    }
-
-    .dt-buttons {
-        display: flex;
-        gap: 6px;
-    }
-
-        .dt-buttons .btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white !important;
-            border: none;
-        }
-
-    .buttons-copy {
-        background: #6c757d !important;
-    }
-
-    .buttons-excel {
-        background: #198754 !important;
-    }
-
-    .buttons-pdf {
-        background: #dc3545 !important;
-    }
-
-    .buttons-print {
-        background: #0d6efd !important;
-    }
-
-</style>
-
-<div class="container-fluid mt-4">
-
-    ```
-    <div class="d-flex justify-content-between align-items-center mb-3">
-
-        <h3 class="fw-bold">
-            📊 Weekly Laundry Report
-        </h3>
-
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-calendar-week"></i></div>
+    <div class="ph-text">
+        <h1>Weekly Laundry Report</h1>
+        <p class="ph-sub">Daily pickup and delivery totals for the selected range</p>
     </div>
+</div>
 
-    <form method="get">
+<!-- FILTER -->
+<form method="get">
+    <div class="filter-bar">
 
-        <div class="card shadow-sm mb-4">
-
-            <div class="card-body">
-
-                <div class="row">
-
-                    <div class="col-md-3">
-
-                        <label>From Date</label>
-
-                        <input type="date"
-                               name="fromDate"
-                               value="@ViewBag.FromDate"
-                               class="form-control" />
-
-                    </div>
-
-                    <div class="col-md-3">
-
-                        <label>To Date</label>
-
-                        <input type="date"
-                               name="toDate"
-                               value="@ViewBag.ToDate"
-                               class="form-control" />
-
-                    </div>
-
-                    <div class="col-md-2 d-grid">
-
-                        <button type="submit"
-                                class="btn btn-primary mt-4">
-
-                            Search
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
+        <div class="filter-field">
+            <label class="form-label" for="fromDate">From Date</label>
+            <input type="date" name="fromDate" id="fromDate" value="@ViewBag.FromDate" class="form-control" />
         </div>
 
-    </form>
-
-    @{
-        var totalPickups = Model.Sum(x => x.TotalPickups);
-        var totalCollected = Model.Sum(x => x.TotalCollectedQty);
-        var totalDelivered = Model.Sum(x => x.TotalDeliveredQty);
-        var totalPending = Model.Sum(x => x.TotalPendingQty);
-    }
-
-    <div class="row mb-4">
-
-        <div class="col-md-3">
-
-            <div class="summary-card bg-blue">
-
-                <h3>@totalPickups</h3>
-
-                <span>Total Pickups</span>
-
-            </div>
-
+        <div class="filter-field">
+            <label class="form-label" for="toDate">To Date</label>
+            <input type="date" name="toDate" id="toDate" value="@ViewBag.ToDate" class="form-control" />
         </div>
 
-        <div class="col-md-3">
-
-            <div class="summary-card bg-green">
-
-                <h3>@totalCollected</h3>
-
-                <span>Collected Qty</span>
-
-            </div>
-
-        </div>
-
-        <div class="col-md-3">
-
-            <div class="summary-card bg-orange">
-
-                <h3>@totalDelivered</h3>
-
-                <span>Delivered Qty</span>
-
-            </div>
-
-        </div>
-
-        <div class="col-md-3">
-
-            <div class="summary-card bg-red">
-
-                <h3>@totalPending</h3>
-
-                <span>Pending Qty</span>
-
-            </div>
-
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
         </div>
 
     </div>
+</form>
 
-    <div class="card shadow">
+<!-- TOTALS -->
+<div class="row g-3 mb-3">
 
-        <div class="card-body">
-
-            <div class="table-responsive">
-
-                <table id="weeklyTable"
-                       class="table table-hover table-bordered">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>Date</th>
-                            <th>Total Pickups</th>
-                            <th>Collected Qty</th>
-                            <th>Delivered Qty</th>
-                            <th>Pending Qty</th>
-                            <th>Fully Delivered</th>
-                            <th>Partial Delivered</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-
-                                <td>
-                                    @item.ReportDate.ToString("dd MMM yyyy")
-                                </td>
-
-                                <td>
-                                    @item.TotalPickups
-                                </td>
-
-                                <td class="fw-bold text-primary">
-                                    @item.TotalCollectedQty
-                                </td>
-
-                                <td class="fw-bold text-success">
-                                    @item.TotalDeliveredQty
-                                </td>
-
-                                <td class="fw-bold text-danger">
-                                    @item.TotalPendingQty
-                                </td>
-
-                                <td>
-
-                                    <span class="badge bg-success">
-
-                                        @item.FullyDeliveredCount
-
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <span class="badge bg-warning text-dark">
-
-                                        @item.PartialDeliveredCount
-
-                                    </span>
-
-                                </td>
-
-                            </tr>
-                        }
-
-                    </tbody>
-
-                </table>
-
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-navy h-100">
+            <div class="card-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@totalPickups.ToString("N0")</div>
+                <div class="stat-lbl">Total Pickups</div>
             </div>
-
         </div>
-
     </div>
-    ```
+
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-teal h-100">
+            <div class="card-icon"><i class="fa-solid fa-boxes-packing"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@totalCollected.ToString("N0")</div>
+                <div class="stat-lbl">Collected Qty</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-ok h-100">
+            <div class="card-icon"><i class="fa-solid fa-truck"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@totalDelivered.ToString("N0")</div>
+                <div class="stat-lbl">Delivered Qty</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-danger h-100">
+            <div class="card-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@totalPending.ToString("N0")</div>
+                <div class="stat-lbl">Pending Qty</div>
+            </div>
+        </div>
+    </div>
 
 </div>
 
-@section Scripts
-{
+<!-- TABLE -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="weeklyTable" class="table table-hover align-middle w-100">
+
+                <thead>
+                    <tr>
+                        <th data-priority="1">Date</th>
+                        <th data-priority="4" class="text-end">Total Pickups</th>
+                        <th data-priority="2" class="text-end">Collected Qty</th>
+                        <th data-priority="2" class="text-end">Delivered Qty</th>
+                        <th data-priority="3" class="text-end">Pending Qty</th>
+                        <th data-priority="5" class="text-center">Fully Delivered</th>
+                        <th data-priority="5" class="text-center">Partial Delivered</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="nowrap fw-semibold">@item.ReportDate.ToString("dd MMM yyyy")</td>
+                            <td class="text-end">@item.TotalPickups</td>
+                            <td class="text-end fw-bold text-teal">@item.TotalCollectedQty</td>
+                            <td class="text-end fw-bold text-success">@item.TotalDeliveredQty</td>
+                            <td class="text-end fw-bold text-danger">@item.TotalPendingQty</td>
+                            <td class="text-center"><span class="badge badge-ok">@item.FullyDeliveredCount</span></td>
+                            <td class="text-center"><span class="badge badge-warn">@item.PartialDeliveredCount</span></td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
     <script>
-
-          ```
-              $(document).ready(function () {
-
-                  $('#weeklyTable').DataTable({
-
-                      pageLength: 10,
-
-                      responsive: true,
-
-                      dom:
-                          "<'row mb-2 align-items-center'<'col-md-4'l><'col-md-8 d-flex justify-content-end gap-2'Bf>>" +
-                          "<'row'<'col-12'tr>>" +
-                          "<'row mt-2'<'col-md-5'i><'col-md-7 text-end'p>>",
-
-                      buttons: [
-
-                          {
-                              extend: 'copy',
-                              className: 'btn buttons-copy',
-                              text: '📋'
-                          },
-
-                          {
-                              extend: 'excel',
-                              className: 'btn buttons-excel',
-                              text: '📊'
-                          },
-
-                          {
-                              extend: 'pdf',
-                              className: 'btn buttons-pdf',
-                              text: '📄'
-                          },
-
-                          {
-                              extend: 'print',
-                              className: 'btn buttons-print',
-                              text: '🖨️'
-                          }
-
-                      ]
-
-                  });
-
-              });
-
+        $(function () {
+            LMIS.initTable('#weeklyTable', {
+                exportTitle: 'Weekly Laundry Report',
+                order: [[0, 'desc']]
+            });
+        });
     </script>
-    ```
-
 }

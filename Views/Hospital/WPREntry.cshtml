@@ -1,302 +1,276 @@
-﻿@model LaudaryMis.ViewModels.WPRVM
+@model LaudaryMis.ViewModels.WPRVM
 
-<div class="wrap">
+@{
+    ViewBag.Title = "Weekly Performance Report";
+}
 
-    <div class="page-hdr">
-        <h2>Submit Weekly Performance Report</h2>
-        <p>Score parameters and submit for payment processing</p>
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+    <div class="ph-text">
+        <h1>Submit Weekly Performance Report</h1>
+        <p class="ph-sub">Score parameters and submit for payment processing</p>
+    </div>
+</div>
+
+<form id="wprForm" onsubmit="return validateForm()">
+
+    <input type="hidden" id="totalScoreHidden" name="TotalScore" />
+
+    <div class="row g-3">
+
+        <!-- REPORT DETAILS -->
+        <div class="col-12 col-xl-7">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fa-solid fa-file-pen text-teal"></i>
+                    <span class="card-title">Report Details</span>
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label" for="fWeek">Week</label>
+                            <select name="Week" id="fWeek" class="form-select">
+                                <option value="1">Week 1</option>
+                                <option value="2">Week 2</option>
+                                <option value="3">Week 3</option>
+                                <option value="4">Week 4</option>
+                                <option value="5">Week 5</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label" for="fMonth">Month</label>
+                            <input name="Month" id="fMonth" class="form-control" />
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label" for="fYear">Year</label>
+                            <input name="Year" id="fYear" class="form-control" />
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label" for="StaffName">Staff Name</label>
+                            <input name="StaffName" id="StaffName" class="form-control" placeholder="Enter name" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label" for="Remarks">Remarks</label>
+                            <textarea name="Remarks" id="Remarks" class="form-control" rows="3"
+                                      placeholder="Optional remarks…"></textarea>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LIVE SCORE -->
+        <div class="col-12 col-xl-5">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fa-solid fa-gauge-high text-teal"></i>
+                    <span class="card-title">Live Score</span>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="text-center mb-2">
+                        <div class="score-big" id="scoreDisplay">0</div>
+                        <div class="score-sub">out of 100</div>
+                    </div>
+
+                    <div class="score-meter">
+                        <div class="score-fill" id="bar" style="width:0%"></div>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <span class="badge badge-none" id="paymentBadge">0% Payment — No Payment</span>
+                    </div>
+
+                    <div class="mt-3" style="border:1px solid var(--line); border-radius: var(--r-sm); overflow:hidden;">
+                        <table class="slab-table">
+                            <thead>
+                                <tr><th>Score</th><th>Payment %</th></tr>
+                            </thead>
+                            <tbody id="slabTable">
+                                <tr id="slab0"><td>0 – 20</td><td>No Payment</td></tr>
+                                <tr id="slab21"><td>21 – 40</td><td>40%</td></tr>
+                                <tr id="slab41"><td>41 – 60</td><td>60%</td></tr>
+                                <tr id="slab61"><td>61 – 70</td><td>80%</td></tr>
+                                <tr id="slab71"><td>71 – 80</td><td>90%</td></tr>
+                                <tr id="slab81"><td>81 – 100</td><td>100%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>WPR must be uploaded by the 5th day of the next week.</span>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="button" class="btn btn-light flex-fill" onclick="resetForm()">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="fa-solid fa-paper-plane"></i> Submit WPR
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <form id="wprForm" onsubmit="return validateForm()">
-
-        <input type="hidden" id="totalScoreHidden" name="TotalScore" />
-
-        <!-- TOP GRID: Details + Live Score -->
-        <div class="g2">
-
-            <!-- Report Details -->
-            <div class="card">
-                <div class="card-hdr">
-                    <div class="card-title"><span class="card-icon">📝</span> Report Details</div>
-                </div>
-
-                <div class="g2">
-                    <div class="form-group">
-                        <label class="form-label">Week</label>
-                        <select name="Week" class="form-control">
-                            <option value="1">Week 1</option>
-                            <option value="2">Week 2</option>
-                            <option value="3">Week 3</option>
-                            <option value="4">Week 4</option>
-                            <option value="5">Week 5</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Month</label>
-                        <input name="Month" id="fMonth" class="form-control" />
-                    </div>
-                </div>
-
-                <div class="g2">
-                    <div class="form-group">
-                        <label class="form-label">Year</label>
-                        <input name="Year" id="fYear" class="form-control" />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Staff Name</label>
-                        <input name="StaffName" class="form-control" placeholder="Enter name" />
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Remarks</label>
-                    <textarea name="Remarks" class="form-control" placeholder="Optional remarks..."></textarea>
-                </div>
-            </div>
-
-            <!-- Live Score -->
-            <div class="card">
-                <div class="card-hdr">
-                    <div class="card-title"><span class="card-icon">📊</span> Live Score</div>
-                </div>
-
-                <div style="text-align:center;margin-bottom:6px;">
-                    <div class="score-big" id="scoreDisplay">0</div>
-                    <div class="score-sub">out of 100</div>
-                </div>
-
-                <div class="score-meter">
-                    <div class="score-fill" id="bar" style="width:0%"></div>
-                </div>
-
-                <div style="text-align:center;margin-top:6px;">
-                    <span class="badge badge-none" id="paymentBadge">0% Payment — No Payment</span>
-                </div>
-
-                <!-- Slab table -->
-                <div style="margin-top:14px;border:1px solid #f0ede8;border-radius:8px;overflow:hidden;">
-                    <table style="width:100%;font-size:11px;border-collapse:collapse;">
-                        <thead>
-                            <tr style="background:#f8f6f2;">
-                                <th style="padding:6px 10px;text-align:left;color:#888;font-weight:600;">Score</th>
-                                <th style="padding:6px 10px;text-align:right;color:#888;font-weight:600;">Payment %</th>
-                            </tr>
-                        </thead>
-                        <tbody id="slabTable">
-                            <tr id="slab0"><td style="padding:5px 10px;color:#c0392b;">0 – 20</td><td style="text-align:right;padding:5px 10px;color:#c0392b;">No Payment</td></tr>
-                            <tr id="slab21"><td style="padding:5px 10px;">21 – 40</td><td style="text-align:right;padding:5px 10px;">40%</td></tr>
-                            <tr id="slab41"><td style="padding:5px 10px;">41 – 60</td><td style="text-align:right;padding:5px 10px;">60%</td></tr>
-                            <tr id="slab61"><td style="padding:5px 10px;">61 – 70</td><td style="text-align:right;padding:5px 10px;">80%</td></tr>
-                            <tr id="slab71"><td style="padding:5px 10px;">71 – 80</td><td style="text-align:right;padding:5px 10px;">90%</td></tr>
-                            <tr id="slab81"><td style="padding:5px 10px;">81 – 100</td><td style="text-align:right;padding:5px 10px;">100%</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="notice-warn">⚠ WPR must be uploaded by 5th day of next week</div>
-
-                <div style="display:flex;gap:10px;margin-top:14px;">
-                    <button type="button" class="btn btn-ghost" onclick="resetForm()">Reset</button>
-                    <button type="submit" class="btn btn-gold">Submit WPR</button>
-                </div>
-            </div>
-
+    <!-- PARAMETERS -->
+    <div class="card kpi-section mt-3">
+        <div class="card-header">
+            <i class="fa-solid fa-list-check text-teal"></i>
+            <span class="card-title">Performance Parameters</span>
+            <div id="countText" class="ms-auto">0 / 10 scored</div>
         </div>
 
-        <!-- PARAMETERS -->
-        <div class="card kpi-section">
-            <div class="card-hdr">
-                <div class="card-title"><span class="card-icon">📋</span> Performance Parameters</div>
-                <div id="countText">0 / 10 scored</div>
-            </div>
+        <div id="kpiRows"></div>
+    </div>
 
-            <div id="kpiRows"></div>
-        </div>
+</form>
 
-    </form>
-</div>
-<script>
-    const PARAMS = [
-      "Collection Timeliness",
-      "Delivery Timeliness",
-      "Linen Quality",
-      "Infection Control",
-      "Stain / Odour Removal",
-      "Damage / Loss",
-      "SOP Compliance",
-      "Staff Behavior",
-      "Overall Satisfaction",
-      "Warning Letters"
-    ];
+@section Scripts {
+    <script>
 
-    // Auto-fill month & year
-    const now = new Date();
-    document.getElementById("fMonth").value = now.toLocaleString("default",{month:"long"});
-    document.getElementById("fYear").value = now.getFullYear();
+        const PARAMS = [
+            "Collection Timeliness",
+            "Delivery Timeliness",
+            "Linen Quality",
+            "Infection Control",
+            "Stain / Odour Removal",
+            "Damage / Loss",
+            "SOP Compliance",
+            "Staff Behavior",
+            "Overall Satisfaction",
+            "Warning Letters"
+        ];
 
-    // Build KPI rows
-    const kpiContainer = document.getElementById("kpiRows");
-    PARAMS.forEach((name, idx) => {
-      const i = idx + 1;
-      const row = document.createElement("div");
-      row.className = "kpi-row";
-      row.id = "row_" + i;
+        // Auto-fill month & year
+        const now = new Date();
+        document.getElementById("fMonth").value = now.toLocaleString("default", { month: "long" });
+        document.getElementById("fYear").value = now.getFullYear();
 
-      // Number
-      const num = document.createElement("div");
-      num.className = "kpi-n";
-      num.textContent = i;
+        // Build KPI rows
+        (function buildKpis() {
+            const container = document.getElementById("kpiRows");
 
-      // Label
-      const lbl = document.createElement("div");
-      lbl.className = "kpi-lbl";
-      lbl.textContent = name;
+            PARAMS.forEach((name, idx) => {
+                const i = idx + 1;
+                const row = document.createElement("div");
+                row.className = "kpi-row";
+                row.id = "row_" + i;
 
-      // Hidden param id
-      const hidP = document.createElement("input");
-      hidP.type = "hidden";
-      hidP.name = `Details[${idx}].ParameterId`;
-      hidP.value = i;
-      lbl.appendChild(hidP);
+                row.innerHTML = `
+                    <div class="kpi-n">${i}</div>
+                    <div class="kpi-lbl">${name}
+                        <input type="hidden" name="Details[${idx}].ParameterId" value="${i}" />
+                    </div>
+                    <div class="kpi-btns">${[...Array(10)].map((_, s) => `<button type="button" class="kb" id="btn_${i}_${s + 1}" onclick="setScore(${i},${s + 1})">${s + 1}</button>`).join('')}</div>
+                    <div class="kpi-sc" id="s${i}"><span>—</span></div>
+                    <input type="hidden" id="score_${i}" name="Details[${idx}].Score" />`;
 
-      // Buttons
-      const btns = document.createElement("div");
-      btns.className = "kpi-btns";
-      for (let s = 1; s <= 10; s++) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "kb";
-        btn.id = `btn_${i}_${s}`;
-        btn.textContent = s;
-        btn.onclick = () => setScore(i, s);
-        btns.appendChild(btn);
-      }
+                container.appendChild(row);
+            });
+        })();
 
-      // Score badge
-      const sc = document.createElement("div");
-      sc.className = "kpi-sc";
-      sc.id = "s" + i;
-      sc.innerHTML = "<span>—</span>";
+        let scores = {};
 
-      // Hidden score value
-      const hidS = document.createElement("input");
-      hidS.type = "hidden";
-      hidS.name = `Details[${idx}].Score`;
-      hidS.id = "score_" + i;
+        function setScore(i, val) {
+            scores[i] = val;
+            document.getElementById("score_" + i).value = val;
 
-      row.appendChild(num);
-      row.appendChild(lbl);
-      row.appendChild(btns);
-      row.appendChild(sc);
-      row.appendChild(hidS);
-      kpiContainer.appendChild(row);
-    });
+            const cls = val >= 7 ? "sc-good" : val >= 3 ? "sc-avg" : "sc-poor";
+            const label = val >= 7 ? "Good" : val >= 3 ? "Average" : "Poor";
 
-    let scores = {};
+            document.getElementById("s" + i).innerHTML =
+                `<span class="sc-badge ${cls}">${label} (${val}/10)</span>`;
 
-    function setScore(i, val) {
-      scores[i] = val;
-      document.getElementById("score_" + i).value = val;
+            for (let s = 1; s <= 10; s++) {
+                const btn = document.getElementById(`btn_${i}_${s}`);
+                if (btn) btn.classList.remove("sg", "sa", "sp");
+            }
 
-      // Label
-      let label, cls;
-      if (val >= 7)      { label = "Good";    cls = "sc-good"; }
-      else if (val >= 3) { label = "Average"; cls = "sc-avg"; }
-      else               { label = "Poor";    cls = "sc-poor"; }
+            const sel = document.getElementById(`btn_${i}_${val}`);
+            if (sel) sel.classList.add(val >= 7 ? "sg" : val >= 3 ? "sa" : "sp");
 
-      document.getElementById("s" + i).innerHTML =
-        `<span class="sc-badge ${cls}">${label} (${val}/10)</span>`;
-
-      // Highlight buttons
-      for (let s = 1; s <= 10; s++) {
-        const btn = document.getElementById(`btn_${i}_${s}`);
-        if (!btn) continue;
-        btn.classList.remove("sg", "sa", "sp");
-      }
-      const sel = document.getElementById(`btn_${i}_${val}`);
-      if (val >= 7)      sel.classList.add("sg");
-      else if (val >= 3) sel.classList.add("sa");
-      else               sel.classList.add("sp");
-
-      calc();
-    }
-
-    function calc() {
-      let total = 0, count = 0;
-      for (let k in scores) { total += scores[k]; count++; }
-
-      document.getElementById("scoreDisplay").textContent = total;
-      document.getElementById("bar").style.width = total + "%";
-      document.getElementById("totalScoreHidden").value = total;
-      document.getElementById("countText").textContent = count + " / 10 scored";
-
-      // Payment slab
-      let pay, label, badgeCls;
-      if      (total === 0)  { pay = 0;   label = "0% — No Payment";   badgeCls = "badge-none"; }
-      else if (total <= 20)  { pay = 0;   label = "0% — No Payment";   badgeCls = "badge-none"; }
-      else if (total <= 40)  { pay = 40;  label = "40% Payment";        badgeCls = "badge-low"; }
-      else if (total <= 60)  { pay = 60;  label = "60% Payment";        badgeCls = "badge-mid"; }
-      else if (total <= 70)  { pay = 80;  label = "80% Payment";        badgeCls = "badge-good"; }
-      else if (total <= 80)  { pay = 90;  label = "90% Payment";        badgeCls = "badge-good"; }
-      else                   { pay = 100; label = "100% Payment";       badgeCls = "badge-full"; }
-
-      const el = document.getElementById("paymentBadge");
-      el.textContent = label;
-      el.className = "badge " + badgeCls;
-
-      // Highlight slab table row
-      const slabs = ["slab0","slab21","slab41","slab61","slab71","slab81"];
-      slabs.forEach(id => {
-        const r = document.getElementById(id);
-        r.style.background = "";
-        r.style.fontWeight = "";
-      });
-
-      let activeId = null;
-      if      (total <= 20) activeId = "slab0";
-      else if (total <= 40) activeId = "slab21";
-      else if (total <= 60) activeId = "slab41";
-      else if (total <= 70) activeId = "slab61";
-      else if (total <= 80) activeId = "slab71";
-      else                  activeId = "slab81";
-
-      const active = document.getElementById(activeId);
-      active.style.background = "#fffbf0";
-      active.style.fontWeight = "600";
-    }
-
-    function resetForm() {
-      scores = {};
-
-      for (let i = 1; i <= 10; i++) {
-        document.getElementById("score_" + i).value = "";
-        document.getElementById("s" + i).innerHTML = "<span>—</span>";
-        for (let s = 1; s <= 10; s++) {
-          const btn = document.getElementById(`btn_${i}_${s}`);
-          if (btn) btn.classList.remove("sg","sa","sp");
+            calc();
         }
-      }
 
-      document.getElementById("scoreDisplay").textContent = "0";
-      document.getElementById("bar").style.width = "0%";
-      document.getElementById("paymentBadge").textContent = "0% Payment — No Payment";
-      document.getElementById("paymentBadge").className = "badge badge-none";
-      document.getElementById("countText").textContent = "0 / 10 scored";
+        function calc() {
+            let total = 0, count = 0;
+            for (let k in scores) { total += scores[k]; count++; }
 
-      const slabs = ["slab0","slab21","slab41","slab61","slab71","slab81"];
-      slabs.forEach(id => {
-        document.getElementById(id).style.background = "";
-        document.getElementById(id).style.fontWeight = "";
-      });
-    }
+            document.getElementById("scoreDisplay").textContent = total;
+            document.getElementById("totalScoreHidden").value = total;
+            document.getElementById("countText").textContent = count + " / 10 scored";
 
-    function validateForm() {
-      for (let i = 1; i <= 10; i++) {
-        if (!document.getElementById("score_" + i).value) {
-          alert("Please score all 10 parameters before submitting.");
-          return false;
+            const bar = document.getElementById("bar");
+            bar.style.width = total + "%";
+            bar.classList.remove("sc-good", "sc-avg", "sc-poor");
+            bar.classList.add(total > 60 ? "sc-good" : total > 20 ? "sc-avg" : "sc-poor");
+
+            let label, badgeCls;
+            if (total <= 20)      { label = "0% — No Payment"; badgeCls = "badge-none"; }
+            else if (total <= 40) { label = "40% Payment";      badgeCls = "badge-low"; }
+            else if (total <= 60) { label = "60% Payment";      badgeCls = "badge-mid"; }
+            else if (total <= 70) { label = "80% Payment";      badgeCls = "badge-good"; }
+            else if (total <= 80) { label = "90% Payment";      badgeCls = "badge-good"; }
+            else                  { label = "100% Payment";     badgeCls = "badge-full"; }
+
+            const el = document.getElementById("paymentBadge");
+            el.textContent = label;
+            el.className = "badge " + badgeCls;
+
+            const slabs = ["slab0", "slab21", "slab41", "slab61", "slab71", "slab81"];
+            slabs.forEach(id => document.getElementById(id).classList.remove("active"));
+
+            const activeId = total <= 20 ? "slab0" : total <= 40 ? "slab21" : total <= 60 ? "slab41"
+                           : total <= 70 ? "slab61" : total <= 80 ? "slab71" : "slab81";
+
+            document.getElementById(activeId).classList.add("active");
         }
-      }
-      return true;
-    }
-</script>
+
+        function resetForm() {
+            scores = {};
+
+            for (let i = 1; i <= 10; i++) {
+                document.getElementById("score_" + i).value = "";
+                document.getElementById("s" + i).innerHTML = "<span>—</span>";
+                for (let s = 1; s <= 10; s++) {
+                    const btn = document.getElementById(`btn_${i}_${s}`);
+                    if (btn) btn.classList.remove("sg", "sa", "sp");
+                }
+            }
+
+            document.getElementById("scoreDisplay").textContent = "0";
+            document.getElementById("bar").style.width = "0%";
+            document.getElementById("totalScoreHidden").value = "0";
+            document.getElementById("paymentBadge").textContent = "0% Payment — No Payment";
+            document.getElementById("paymentBadge").className = "badge badge-none";
+            document.getElementById("countText").textContent = "0 / 10 scored";
+
+            ["slab0", "slab21", "slab41", "slab61", "slab71", "slab81"]
+                .forEach(id => document.getElementById(id).classList.remove("active"));
+        }
+
+        function validateForm() {
+            for (let i = 1; i <= 10; i++) {
+                if (!document.getElementById("score_" + i).value) {
+                    LMIS.alert("Incomplete scoring", "Please score all 10 parameters before submitting.", "warning");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+    </script>
+}

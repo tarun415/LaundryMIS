@@ -1,77 +1,8 @@
-﻿@model IEnumerable<LaudaryMis.ViewModels.BillListItemVM>
+@model IEnumerable<LaudaryMis.ViewModels.BillListItemVM>
+
 @{
     ViewData["Title"] = "Bill Verification Queue";
-}
 
-<style>
-    .page-header {
-        background: linear-gradient(135deg, #1a3c5e, #2563a8);
-        color: white;
-        border-radius: 12px;
-        padding: 20px 24px;
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .stat-card {
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,.07);
-        padding: 14px 18px;
-        text-align: center;
-    }
-
-        .stat-card .num {
-            font-size: 2rem;
-            font-weight: 800;
-        }
-
-        .stat-card .lbl {
-            font-size: .75rem;
-            text-transform: uppercase;
-            color: #6b7280;
-        }
-
-    .table-card {
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,.07);
-        padding: 18px 20px;
-    }
-
-    .action-btns form {
-        display: inline;
-    }
-</style>
-
-<div class="page-header">
-    <div>
-        <h4 class="mb-1">📋 Bill Verification Queue</h4>
-        <p class="mb-0 opacity-75">Provider ke submitted bills — approve ya reject karein</p>
-    </div>
-    <a asp-controller="Hospital" asp-action="Dashboard" class="btn btn-light btn-sm">
-        ← Dashboard
-    </a>
-</div>
-
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        ✅ @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        ❌ @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-@{
     var list = Model.ToList();
     var pending = list.Count(x => x.Status == "HospitalSubmitted");
     var approved = list.Count(x => x.Status == "HospitalApproved" || x.Status == "CMSApproved");
@@ -79,192 +10,287 @@
     var total = list.Count;
 }
 
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+    <div class="ph-text">
+        <h1>Bill Verification Queue</h1>
+        <p class="ph-sub">Provider ke submitted bills — approve ya reject karein</p>
+    </div>
+    <div class="ph-actions">
+        <a asp-controller="Hospital" asp-action="Dashboard" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" data-auto-dismiss>
+        <i class="fa-solid fa-circle-check"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+
+<!-- SUMMARY -->
 <div class="row g-3 mb-3">
-    <div class="col-6 col-md-3">
-        <div class="stat-card">
-            <div class="num text-warning">@pending</div>
-            <div class="lbl">Pending Review</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="stat-card">
-            <div class="num text-success">@approved</div>
-            <div class="lbl">Approved</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="stat-card">
-            <div class="num text-danger">@rejected</div>
-            <div class="lbl">Rejected</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="stat-card">
-            <div class="num text-primary">@total</div>
-            <div class="lbl">Total</div>
-        </div>
-    </div>
-</div>
 
-<div class="table-card">
-    @if (!list.Any())
-    {
-        <div class="text-center text-muted py-5">
-            <p class="fs-5">🎉 Koi pending bill nahi hai!</p>
-            <p class="small">Jab provider bill submit karega, yahan dikhega.</p>
-        </div>
-    }
-    else
-    {
-        <table id="tblQueue" class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Bill #</th>
-                    <th>Provider</th>
-                    <th>Period</th>
-                    <th>WPR Score</th>
-                    <th>Band %</th>
-                    <th class="text-end">Net Payable</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var b in list)
-                {
-                    var sc = b.Status switch
-                    {
-                        "HospitalApproved" => "success",
-                        "CMSApproved" => "success",
-                        "HospitalRejected" => "danger",
-                        "CMSRejected" => "danger",
-                        "HospitalSubmitted" => "warning",
-                        _ => "secondary"
-                    };
-                    var isPending = b.Status == "HospitalSubmitted";
-
-                    <tr>
-                        <td class="text-muted">#@b.BillId</td>
-                        <td class="fw-semibold">@b.ProviderName</td>
-                        <td>@b.MonthLabel</td>
-                        <td>
-                            @b.WPRAvgScore.ToString("N1")
-                            @if (b.IsScoreOverridden)
-                            {
-                                <span class="badge bg-warning ms-1" title="Score Override">✏️</span>
-                            }
-                        </td>
-                        <td><span class="badge bg-primary">@b.PaymentBandPercent%</span></td>
-                        <td class="text-end fw-bold">₹@b.NetPayableAmount.ToString("N0")</td>
-                        <td><span class="badge bg-@sc">@b.Status</span></td>
-                        <td class="action-btns">
-                            <a asp-action="Detail" asp-route-id="@b.BillId"
-                               class="btn btn-sm btn-outline-primary">🔍 View</a>
-
-                            @if (isPending)
-                            {
-                                <button class="btn btn-sm btn-success ms-1"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalApprove"
-                                        data-bill-id="@b.BillId"
-                                        data-provider="@b.ProviderName">
-                                    ✅ Approve
-                                </button>
-                                <button class="btn btn-sm btn-danger ms-1"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalReject"
-                                        data-bill-id="@b.BillId"
-                                        data-provider="@b.ProviderName">
-                                    ❌ Reject
-                                </button>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-</div>
-
-<!-- Approve Modal -->
-<div class="modal fade" id="modalApprove" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">✅ Bill Approve Karein</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-warn h-100">
+            <div class="card-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@pending</div>
+                <div class="stat-lbl">Pending Review</div>
             </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-ok h-100">
+            <div class="card-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@approved</div>
+                <div class="stat-lbl">Approved</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-danger h-100">
+            <div class="card-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@rejected</div>
+                <div class="stat-lbl">Rejected</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="stat-card is-navy h-100">
+            <div class="card-icon"><i class="fa-solid fa-layer-group"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@total</div>
+                <div class="stat-lbl">Total</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- TABLE -->
+<div class="card">
+    <div class="card-body">
+
+        @if (!list.Any())
+        {
+            <div class="table-empty">
+                <i class="fa-solid fa-inbox"></i>
+                <p class="fw-semibold mb-1">Koi pending bill nahi hai!</p>
+                <p class="small mb-0">Jab provider bill submit karega, yahan dikhega.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table id="tblQueue" class="table table-hover align-middle w-100">
+
+                    <thead>
+                        <tr>
+                            <th data-priority="5">Bill #</th>
+                            <th data-priority="1">Provider</th>
+                            <th data-priority="4">Period</th>
+                            <th data-priority="6" class="text-end">WPR Score</th>
+                            <th data-priority="7" class="text-center">Band %</th>
+                            <th data-priority="2" class="text-end">Net Payable</th>
+                            <th data-priority="3">Status</th>
+                            <th data-priority="1" class="no-sort text-end">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var b in list)
+                        {
+                            var badgeClass = b.Status switch
+                            {
+                                "HospitalApproved" => "badge-ok",
+                                "CMSApproved" => "badge-ok",
+                                "HospitalRejected" => "badge-danger",
+                                "CMSRejected" => "badge-danger",
+                                "HospitalSubmitted" => "badge-warn",
+                                _ => "badge-navy"
+                            };
+                            var isPending = b.Status == "HospitalSubmitted";
+
+                            <tr>
+                                <td class="text-muted">#@b.BillId</td>
+                                <td class="fw-semibold">@b.ProviderName</td>
+                                <td class="nowrap">@b.MonthLabel</td>
+
+                                <td class="text-end">
+                                    @b.WPRAvgScore.ToString("N1")
+                                    @if (b.IsScoreOverridden)
+                                    {
+                                        <i class="fa-solid fa-pen-to-square text-warning ms-1"
+                                           data-bs-toggle="tooltip" title="Score overridden"></i>
+                                    }
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="badge badge-teal">@b.PaymentBandPercent%</span>
+                                </td>
+
+                                <td class="text-end fw-bold nowrap">₹@b.NetPayableAmount.ToString("N0")</td>
+
+                                <td><span class="badge @badgeClass">@b.Status</span></td>
+
+                                <td class="text-end">
+                                    <div class="action-group justify-content-end">
+
+                                        <a asp-action="Detail" asp-route-id="@b.BillId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fa-solid fa-eye"></i> View
+                                        </a>
+
+                                        @if (isPending)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-success"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalApprove"
+                                                    data-bill-id="@b.BillId"
+                                                    data-provider="@b.ProviderName">
+                                                <i class="fa-solid fa-check"></i> Approve
+                                            </button>
+
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalReject"
+                                                    data-bill-id="@b.BillId"
+                                                    data-provider="@b.ProviderName">
+                                                <i class="fa-solid fa-xmark"></i> Reject
+                                            </button>
+                                        }
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+        }
+
+    </div>
+</div>
+
+<!-- APPROVE MODAL -->
+<div class="modal fade" id="modalApprove" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-circle-check text-success me-1"></i> Bill Approve Karein
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
             <form asp-action="HospitalAction" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="billId" id="approveId" />
                 <input type="hidden" name="approve" value="true" />
+
                 <div class="modal-body">
                     <p class="text-muted mb-3">
                         Provider: <strong id="approveProvider"></strong> ka bill approve ho jayega.
                     </p>
-                    <label class="form-label">Remarks (Optional)</label>
-                    <textarea name="remarks" class="form-control" rows="3"
-                              placeholder="Koi note likhein..."></textarea>
+                    <label class="form-label" for="approveRemarks">Remarks (Optional)</label>
+                    <textarea name="remarks" id="approveRemarks" class="form-control" rows="3"
+                              placeholder="Koi note likhein…"></textarea>
                 </div>
+
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">✅ Approve Karo</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-check"></i> Approve Karo
+                    </button>
                 </div>
             </form>
+
         </div>
     </div>
 </div>
 
-<!-- Reject Modal -->
-<div class="modal fade" id="modalReject" tabindex="-1">
-    <div class="modal-dialog">
+<!-- REJECT MODAL -->
+<div class="modal fade" id="modalReject" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">❌ Bill Reject Karein</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-circle-xmark text-danger me-1"></i> Bill Reject Karein
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <form asp-action="HospitalAction" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="billId" id="rejectId" />
                 <input type="hidden" name="approve" value="false" />
+
                 <div class="modal-body">
                     <p class="text-muted mb-3">
                         Provider: <strong id="rejectProvider"></strong> ka bill reject ho jayega.
                     </p>
-                    <label class="form-label fw-bold">Reason <span class="text-danger">*</span></label>
-                    <textarea name="remarks" class="form-control" rows="3"
-                              placeholder="Rejection ki wajah likhein..." required></textarea>
+                    <label class="form-label" for="rejectRemarks">Reason <span class="text-danger">*</span></label>
+                    <textarea name="remarks" id="rejectRemarks" class="form-control" rows="3"
+                              placeholder="Rejection ki wajah likhein…" required></textarea>
                 </div>
+
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">❌ Reject Karo</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-xmark"></i> Reject Karo
+                    </button>
                 </div>
             </form>
+
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        // Modal mein bill ID aur provider naam inject karo
+
         document.getElementById('modalApprove').addEventListener('show.bs.modal', function (e) {
             var btn = e.relatedTarget;
-            document.getElementById('approveId').value       = btn.dataset.billId;
+            document.getElementById('approveId').value = btn.dataset.billId;
             document.getElementById('approveProvider').textContent = btn.dataset.provider;
         });
 
         document.getElementById('modalReject').addEventListener('show.bs.modal', function (e) {
             var btn = e.relatedTarget;
-            document.getElementById('rejectId').value        = btn.dataset.billId;
+            document.getElementById('rejectId').value = btn.dataset.billId;
             document.getElementById('rejectProvider').textContent = btn.dataset.provider;
         });
 
         $(function () {
-            $('#tblQueue').DataTable({
+            LMIS.initTable('#tblQueue', {
+                exportTitle: 'Bill Verification Queue',
                 order: [[0, 'desc']],
                 pageLength: 25,
-                language: { search: "Search:", info: "_START_–_END_ of _TOTAL_" }
+                columnDefs: [
+                    { targets: 'no-sort', orderable: false }
+                ]
             });
         });
+
     </script>
 }

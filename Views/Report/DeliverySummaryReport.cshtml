@@ -1,374 +1,188 @@
-﻿@using LaudaryMis.ViewModels
+@using LaudaryMis.ViewModels
 @model List<DeliverySummaryVM>
 
-<style>
+@{
+    ViewBag.Title = "Delivery Summary Report";
 
-    .card {
-        border-radius: 16px;
-        border: none;
-    }
+    var totalCollected = Model?.Sum(x => x.TotalCollectedQty) ?? 0;
+    var totalDelivered = Model?.Sum(x => x.TotalDeliveredQty) ?? 0;
+    var totalPending = Model?.Sum(x => x.PendingQty) ?? 0;
+}
 
-    .table thead th {
-        background: #e0f2fe;
-        color: #1e3a8a;
-        font-weight: 600;
-        white-space: nowrap;
-    }
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-chart-column"></i></div>
+    <div class="ph-text">
+        <h1>Delivery Summary Report</h1>
+        <p class="ph-sub">Collected vs delivered linen, by pickup</p>
+    </div>
+</div>
 
-    .details-control {
-        cursor: pointer;
-        font-size: 18px;
-        font-weight: bold;
-    }
+<!-- TOTALS -->
+<div class="row g-3 mb-3">
 
-    .qty-collected {
-        color: #2563eb;
-        font-weight: 700;
-    }
-
-    .qty-delivered {
-        color: #16a34a;
-        font-weight: 700;
-    }
-
-    .qty-pending {
-        color: #dc2626;
-        font-weight: 700;
-    }
-
-    .child-table th {
-        background: #f8fafc !important;
-    }
-
-    .dt-buttons {
-        display: flex;
-        gap: 5px;
-    }
-
-        .dt-buttons .btn {
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-    .buttons-copy {
-        background: #6c757d !important;
-        color: white !important;
-    }
-
-    .buttons-excel {
-        background: #198754 !important;
-        color: white !important;
-    }
-
-    .buttons-pdf {
-        background: #dc3545 !important;
-        color: white !important;
-    }
-
-    .buttons-print {
-        background: #0d6efd !important;
-        color: white !important;
-    }
-
-</style>
-
-<div class="container-fluid mt-4">
-
-    <div class="card shadow">
-
-        <div class="card-header bg-white border-0">
-
-            <div class="d-flex justify-content-between align-items-center">
-
-                <h4 class="fw-bold mb-0">
-                    🚚 Delivery Summary Report
-                </h4>
-
+    <div class="col-12 col-md-4">
+        <div class="stat-card is-teal h-100">
+            <div class="card-icon"><i class="fa-solid fa-boxes-packing"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@totalCollected.ToString("N0")</div>
+                <div class="stat-lbl">Total Collected</div>
             </div>
-
         </div>
+    </div>
 
-        <div class="card-body">
-
-            <div class="table-responsive">
-
-                <table id="deliveryTable"
-                       class="table table-hover align-middle">
-
-                    <thead>
-
-                        <tr>
-
-                            <th></th>
-
-                            <th>Pickup No</th>
-
-                            <th>Hospital</th>
-
-                            <th>Ward</th>
-
-                            <th>Collected Qty</th>
-
-                            <th>Delivered Qty</th>
-
-                            <th>Pending Qty</th>
-
-                            <th>Deliveries</th>
-
-                            <th>First Delivery</th>
-
-                            <th>Last Delivery</th>
-
-                            <th>Status</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-
-                                <td class="details-control"
-                                    data-id="@item.PickupId">
-
-                                    ➕
-
-                                </td>
-
-                                <td class="fw-bold text-primary">
-                                    @item.PickupNo
-                                </td>
-
-                                <td>
-                                    @item.HospitalName
-                                </td>
-
-                                <td>
-                                    @item.WardName
-                                </td>
-
-                                <td class="qty-collected">
-                                    @item.TotalCollectedQty
-                                </td>
-
-                                <td class="qty-delivered">
-                                    @item.TotalDeliveredQty
-                                </td>
-
-                                <td class="qty-pending">
-                                    @item.PendingQty
-                                </td>
-
-                                <td>
-                                    @item.DeliveryCount
-                                </td>
-
-                                <td>
-                                    @(item.FirstDeliveryDate?.ToString("dd-MMM-yyyy"))
-                                </td>
-
-                                <td>
-                                    @(item.LastDeliveryDate?.ToString("dd-MMM-yyyy"))
-                                </td>
-
-                                <td>
-
-                                    @if (item.DeliveryStatus == "Fully Delivered")
-                                    {
-                                        <span class="badge bg-success">
-                                            Fully Delivered
-                                        </span>
-                                    }
-                                    else if (item.DeliveryStatus == "Partial Delivered")
-                                    {
-                                        <span class="badge bg-warning text-dark">
-                                            Partial Delivered
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">
-                                            Pending
-                                        </span>
-                                    }
-
-                                </td>
-
-                            </tr>
-                        }
-
-                    </tbody>
-
-                </table>
-
+    <div class="col-12 col-md-4">
+        <div class="stat-card is-ok h-100">
+            <div class="card-icon"><i class="fa-solid fa-truck"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@totalDelivered.ToString("N0")</div>
+                <div class="stat-lbl">Total Delivered</div>
             </div>
-
         </div>
+    </div>
 
+    <div class="col-12 col-md-4">
+        <div class="stat-card is-danger h-100">
+            <div class="card-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="min-w-0">
+                <div class="stat-val">@totalPending.ToString("N0")</div>
+                <div class="stat-lbl">Total Pending</div>
+            </div>
+        </div>
     </div>
 
 </div>
 
-@section Scripts
-{
+<!-- TABLE -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="deliveryTable" class="table table-hover align-middle w-100">
+
+                <thead>
+                    <tr>
+                        <th class="no-sort"></th>
+                        <th>Pickup No</th>
+                        <th>Hospital</th>
+                        <th>Ward</th>
+                        <th class="text-end">Collected</th>
+                        <th class="text-end">Delivered</th>
+                        <th class="text-end">Pending</th>
+                        <th class="text-end">Deliveries</th>
+                        <th>First Delivery</th>
+                        <th>Last Delivery</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="details-control" data-id="@item.PickupId"></td>
+
+                            <td class="fw-semibold text-teal">@item.PickupNo</td>
+                            <td>@item.HospitalName</td>
+                            <td>@item.WardName</td>
+
+                            <td class="text-end fw-bold text-teal">@item.TotalCollectedQty</td>
+                            <td class="text-end fw-bold text-success">@item.TotalDeliveredQty</td>
+                            <td class="text-end fw-bold text-danger">@item.PendingQty</td>
+                            <td class="text-end">@item.DeliveryCount</td>
+
+                            <td class="nowrap">@(item.FirstDeliveryDate?.ToString("dd MMM yyyy"))</td>
+                            <td class="nowrap">@(item.LastDeliveryDate?.ToString("dd MMM yyyy"))</td>
+
+                            <td>
+                                @if (item.DeliveryStatus == "Fully Delivered")
+                                {
+                                    <span class="badge badge-ok">Fully Delivered</span>
+                                }
+                                else if (item.DeliveryStatus == "Partial Delivered")
+                                {
+                                    <span class="badge badge-warn">Partial Delivered</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-navy">Pending</span>
+                                }
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
     <script>
 
-        $(document).ready(function () {
+        $(function () {
 
-            var table = $('#deliveryTable').DataTable({
-
-                pageLength: 10,
-
-                responsive: true,
-
-                dom:
-                    "<'row mb-2'<'col-md-4'l><'col-md-8 d-flex justify-content-end gap-2'Bf>>" +
-                    "<'row'<'col-12'tr>>" +
-                    "<'row mt-2'<'col-md-5'i><'col-md-7 text-end'p>>",
-
-                buttons: [
-
-                    {
-                        extend: 'copy',
-                        className: 'btn buttons-copy',
-                        text: '📋'
-                    },
-
-                    {
-                        extend: 'excel',
-                        className: 'btn buttons-excel',
-                        text: '📊'
-                    },
-
-                    {
-                        extend: 'pdf',
-                        className: 'btn buttons-pdf',
-                        text: '📄'
-                    },
-
-                    {
-                        extend: 'print',
-                        className: 'btn buttons-print',
-                        text: '🖨️'
-                    }
+            // expandable: this table owns its row.child() delivery history,
+            // so Responsive is off and the table scrolls sideways instead.
+            var table = LMIS.initTable('#deliveryTable', {
+                expandable: true,
+                exportTitle: 'Delivery Summary',
+                columnDefs: [
+                    { targets: 'no-sort', orderable: false }
                 ]
             });
 
-            function format(data) {
+            $('#deliveryTable tbody').on('click', '.details-control', function () {
 
-                let html =
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+                var pickupId = $(this).data('id');
 
-                `<table class="table table-bordered child-table">
+                if (row.child.isShown()) {
+                    row.child.hide();
+                    tr.removeClass('shown');
+                    return;
+                }
 
-                    <thead>
-
-                        <tr>
-
-                            <th>Delivery No</th>
-
-                            <th>Date</th>
-
-                            <th>Linen Name</th>
-
-                            <th>Delivered Qty</th>
-
-                            <th>Status</th>
-
-                            <th>Remarks</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>`;
-
-                data.forEach(function (x) {
-
-                    html +=
-
-                    `<tr>
-
-                        <td>${x.deliveryNo}</td>
-
-                        <td>${formatDate(x.deliveryDateTime)}</td>
-
-                        <td>${x.linenName}</td>
-
-                        <td class="text-success fw-bold">
-                            ${x.deliveredQty}
-                        </td>
-
-                        <td>
-
-                            <span class="badge bg-info">
-                                ${x.status}
-                            </span>
-
-                        </td>
-
-                        <td>${x.remarks ?? ''}</td>
-
-                    </tr>`;
+                $.get('/Report/DeliveryHistory/' + pickupId, function (data) {
+                    row.child(format(data)).show();
+                    tr.addClass('shown');
                 });
+            });
 
-                html += "</tbody></table>";
-
-                return html;
-            }
-
-            $('#deliveryTable tbody').on(
-                'click',
-                'td.details-control',
-                function () {
-
-                    var tr = $(this).closest('tr');
-
-                    var row = table.row(tr);
-
-                    var pickupId = $(this).data('id');
-
-                    if (row.child.isShown()) {
-
-                        row.child.hide();
-
-                        tr.removeClass('shown');
-
-                        $(this).html("➕");
-                    }
-                    else {
-
-                        $.get('/Report/DeliveryHistory/' + pickupId,
-
-                            function (data) {
-
-                                row.child(
-                                    format(data)
-                                ).show();
-
-                                tr.addClass('shown');
-                            });
-
-                        $(this).html("➖");
-                    }
-                });
         });
 
+        function format(data) {
+
+            var html =
+                '<div class="table-responsive">' +
+                '<table class="child-table">' +
+                    '<thead><tr>' +
+                        '<th>Delivery No</th>' +
+                        '<th>Date</th>' +
+                        '<th>Linen Name</th>' +
+                        '<th class="text-end">Delivered Qty</th>' +
+                        '<th>Status</th>' +
+                        '<th>Remarks</th>' +
+                    '</tr></thead><tbody>';
+
+            data.forEach(function (x) {
+                html +=
+                    '<tr>' +
+                        '<td class="fw-semibold">' + x.deliveryNo + '</td>' +
+                        '<td class="nowrap">' + formatDate(x.deliveryDateTime) + '</td>' +
+                        '<td>' + x.linenName + '</td>' +
+                        '<td class="text-end fw-bold text-success">' + x.deliveredQty + '</td>' +
+                        '<td><span class="badge badge-info">' + x.status + '</span></td>' +
+                        '<td>' + (x.remarks || '') + '</td>' +
+                    '</tr>';
+            });
+
+            return html + '</tbody></table></div>';
+        }
+
         function formatDate(dateString) {
-
-            let d = new Date(dateString);
-
-            return d.toLocaleDateString('en-GB', {
-
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
+            return new Date(dateString).toLocaleDateString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric'
             });
         }
 
