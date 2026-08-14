@@ -30,21 +30,30 @@ namespace LaudaryMis.Controllers
                 return View(model);
 
             User? user = null;
-
+            LoginResult result = null;
             if (model.RoleId == 1)
-                user = await _service.Login(model.Username ?? "", model.Password, model.RoleId);
+            {
 
+                result = await _service.Login(model.Username ?? "", model.Password, model.RoleId);
+
+            }
             else if (model.RoleId == 2)
-                user = await _service.LoginHospital(model.HospitalId, model.Password);
+            {
+                result = await _service.LoginHospital(model.HospitalId, model.Password);
+            }
 
             else if (model.RoleId == 3)
-                user = await _service.LoginProvider(model.ProviderId, model.Password);
-
-            if (user == null)
             {
-                ModelState.AddModelError("", "Invalid login");
+                result = await _service.LoginProvider(model.ProviderId, model.Password);
+            }
+                
+            if (!result.Success)
+            {
+                ModelState.AddModelError("", result.Message);
                 return View(model);
             }
+            user = result.User;
+
 
             var claims = new List<Claim>
             {
