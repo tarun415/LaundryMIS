@@ -26,9 +26,9 @@
 
     <div class="card-body">
 
-        <form id="hospitalForm" asp-action="CreateHospital" asp-controller="Admin" method="post" novalidate>
+        <form id="hospitalForm" asp-action="CreateHospital" asp-controller="Admin" method="post">
             <input type="hidden" asp-for="HospitalId" />
-
+          
             <div class="row g-3">
 
                 <div class="col-12 col-md-6">
@@ -60,7 +60,7 @@
 
                 <div class="col-12 col-md-6">
                     <label class="form-label" for="Password">Password <span class="text-danger">*</span></label>
-                    <input asp-for="Password" class="form-control" placeholder="Enter login password" />
+                    <input asp-for="Password" class="form-control" type="password"  placeholder="Enter login password" />
                 </div>
 
                 <div class="col-12">
@@ -96,6 +96,25 @@
 @section Scripts {
     <script>
         $(function () {
+
+                // Show server-side ModelState errors using LMIS alert
+        var serverError = '@Html.Raw(
+                    string.Join(" | ",
+                            ViewData.ModelState.Values
+                                    .SelectMany(v => v.Errors)
+                                    .Select(e => e.ErrorMessage)
+                                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    )
+            )';
+
+    if (serverError) {
+        LMIS.alert(
+            'Unable to save',
+            serverError,
+            'warning'
+        );
+    }
+
 
             // Phone: digits only, capped at 10
             $('#Phone').on('input', function () {
@@ -140,11 +159,58 @@
                     return;
                 }
 
-                if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test($('#Email').val())) {
-                    e.preventDefault();
-                    LMIS.alert('Invalid email', 'Enter a valid email address.', 'warning');
-                    return;
-                }
+                // if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test($('#Email').val())) {
+                //     e.preventDefault();
+                //     LMIS.alert('Invalid email', 'Enter a valid email address.', 'warning');
+                //     return;
+                // }
+
+                               var email = $.trim($('#Email').val());
+
+        if (email === '') {
+            e.preventDefault();
+
+            LMIS.alert(
+                'Missing information',
+                'Email is required.',
+                'warning'
+            );
+
+            $('#Email').focus();
+            return false;
+        }
+
+        // Browser's built-in email validation
+        if (!$('#Email')[0].checkValidity()) {
+            e.preventDefault();
+
+            LMIS.alert(
+                'Invalid email',
+                'Please enter a valid email address.',
+                'warning'
+            );
+
+            $('#Email').focus();
+            return false;
+        }
+                var emailPattern = /^[A-Za-z0-9._%+-]+@@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+        if (!emailPattern.test(email)) {
+            e.preventDefault();
+
+            LMIS.alert(
+                'Invalid email',
+                'Please enter a valid email address.',
+                'warning'
+            );
+
+            $('#Email').focus();
+            return false;
+        }
+
+
+
+
             });
 
         });

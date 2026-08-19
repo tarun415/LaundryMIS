@@ -4,6 +4,6 @@
     {
         public int WardId { get; set; }
         public string? WardName { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

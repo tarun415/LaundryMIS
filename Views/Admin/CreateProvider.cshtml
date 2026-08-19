@@ -26,7 +26,7 @@
 
     <div class="card-body">
 
-        <form id="providerForm" asp-action="CreateProvider" asp-controller="Admin" method="post" novalidate>
+        <form id="providerForm" asp-action="CreateProvider" asp-controller="Admin" method="post">
             <input type="hidden" asp-for="ProviderId" />
 
             <div class="row g-3">
@@ -46,12 +46,15 @@
 
                 <div class="col-12 col-md-6">
                     <label class="form-label" for="Email">Email <span class="text-danger">*</span></label>
-                    <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" />
+                    <input asp-for="Email"
+                           type="email"
+                           class="form-control"
+                           placeholder="Enter email address" />
                 </div>
 
                 <div class="col-12 col-md-6">
                     <label class="form-label" for="Password">Password <span class="text-danger">*</span></label>
-                    <input asp-for="Password" class="form-control" placeholder="Enter login password" />
+                    <input asp-for="Password" type ="password"class="form-control" placeholder="Enter login password" />
                 </div>
 
                 <div class="col-12">
@@ -81,33 +84,89 @@
 
 @section Scripts {
     <script>
+
         $(function () {
+
+            // Server-side error popup
+            @if (TempData["ErrorMessage"] != null)
+            {
+                    <text>
+                        LMIS.alert(
+                            'Unable to save',
+                            '@Html.Raw(TempData["ErrorMessage"])',
+                            'warning'
+                        );
+                    </text>
+            }
 
             $('#providerForm').on('submit', function (e) {
 
-                var name = $('#ProviderName').val();
+                var name = $.trim($('#ProviderName').val());
                 var rate = $('#RatePerBed').val();
-                var email = $('#Email').val();
+                var email = $.trim($('#Email').val());
 
-                if (!name || name.trim() === '') {
+                // Provider Name
+                if (name === '') {
                     e.preventDefault();
-                    LMIS.alert('Missing information', 'Provider Name is required.', 'warning');
+
+                    LMIS.alert(
+                        'Missing information',
+                        'Provider Name is required.',
+                        'warning'
+                    );
+
+                    $('#ProviderName').focus();
                     return;
                 }
 
+                // Rate
                 if (!rate || Number(rate) <= 0) {
                     e.preventDefault();
-                    LMIS.alert('Invalid rate', 'Enter a rate greater than zero.', 'warning');
+
+                    LMIS.alert(
+                        'Invalid rate',
+                        'Enter a rate greater than zero.',
+                        'warning'
+                    );
+
+                    $('#RatePerBed').focus();
                     return;
                 }
 
-                if (!email || !/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+                // Email required
+                if (email === '') {
                     e.preventDefault();
-                    LMIS.alert('Invalid email', 'Enter a valid email address.', 'warning');
+
+                    LMIS.alert(
+                        'Missing information',
+                        'Email is required.',
+                        'warning'
+                    );
+
+                    $('#Email').focus();
                     return;
                 }
+
+                // Email format
+                var emailPattern =
+                    /^[A-Za-z0-9._%+-]+@@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+                if (!emailPattern.test(email)) {
+                    e.preventDefault();
+
+                    LMIS.alert(
+                        'Invalid email',
+                        'Please enter a valid email address.',
+                        'warning'
+                    );
+
+                    $('#Email').focus();
+                    return;
+                }
+
             });
 
         });
+
     </script>
 }
