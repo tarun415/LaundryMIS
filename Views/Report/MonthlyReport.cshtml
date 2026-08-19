@@ -223,7 +223,7 @@
                 html +=
                     '<tr>' +
                         '<td class="fw-semibold">' + x.deliveryNo + '</td>' +
-                        '<td class="nowrap">' + x.deliveryDate + '</td>' +
+                        '<td class="nowrap">' + formatDateTime(x.deliveryDateTime) + '</td>' +
                         '<td class="text-end fw-bold text-success">' + x.deliveredQty + '</td>' +
                         '<td>' + x.status + '</td>' +
                     '</tr>';
@@ -231,6 +231,25 @@
 
             return html + '</tbody></table></div>';
         }
+        function formatDateTime(dt) {
+            if (!dt) return '';
+            var d = new Date(dt);
+            if (isNaN(d.getTime())) return dt; // fallback if parsing fails
 
+            var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+            var day = ('0' + d.getDate()).slice(-2);
+            var month = months[d.getMonth()];
+            var year = d.getFullYear();
+
+            var hours = d.getHours();
+            var minutes = ('0' + d.getMinutes()).slice(-2);
+            var ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // 0 -> 12
+            hours = ('0' + hours).slice(-2);
+
+            return day + '-' + month + '-' + year + ' ' + hours + ':' + minutes + ' ' + ampm;
+        }
     </script>
 }

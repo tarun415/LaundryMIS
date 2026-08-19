@@ -48,8 +48,9 @@ namespace LaudaryMis.Controllers
         {
             return View();
         }
-        // SAVE Hospital
+      
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateHospital(HospitalVM model)
         {
             if (!ModelState.IsValid)
@@ -58,13 +59,48 @@ namespace LaudaryMis.Controllers
            .SelectMany(v => v.Errors)
            .Select(e => e.ErrorMessage)
            .ToList();
-                return View(model); // validation fail
+                return View(model);
             }
 
-            await _service.CreateHospitalWithLogin(model);
-            return RedirectToAction("Hospitals");
+            try
+            {
+                await _service.CreateHospitalWithLogin(model);
+
+                TempData["SuccessMessage"] = "Hospital saved successfully.";
+
+                return RedirectToAction("Hospitals");
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+                when (ex.Number == 2601 || ex.Number == 2627)
+            {
+                // Handle SQL UNIQUE constraint / duplicate key
+                var message = GetDuplicateKeyMessage(ex);
+
+                ModelState.AddModelError("", message);
+
+                return View(model);
+            }
+            catch (Microsoft.Data.SqlClient.SqlException)
+            {
+                // Any other SQL exception
+                ModelState.AddModelError(
+                    "",
+                    "Unable to save the hospital due to a database error. Please try again."
+                );
+
+                return View(model);
+            }
+            catch (Exception)
+            {
+                // Any unexpected exception
+                ModelState.AddModelError(
+                    "",
+                    "Something went wrong while saving the hospital. Please try again."
+                );
+
+                return View(model);
+            }
         }
-        
         //Edit
         public async Task<IActionResult> EditHospital(int id)
         {
@@ -101,13 +137,69 @@ namespace LaudaryMis.Controllers
         {
             return View();
         }
+        //// SAVE Provider
+        //[HttpPost]
+        //public async Task<IActionResult> CreateProvider(ProvidersVM model)
+        //{
+        //   // await _providerService.SaveAsync(model);
+        //    await _providerService.CreateProviderWithLogin(model);
+        //    return RedirectToAction("Providers");
+        //}
         // SAVE Provider
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateProvider(ProvidersVM model)
         {
-           // await _providerService.SaveAsync(model);
-            await _providerService.CreateProviderWithLogin(model);
-            return RedirectToAction("Providers");
+            bool isEdit = model.ProviderId > 0;
+
+            if (!isEdit && string.IsNullOrWhiteSpace(model.Password))
+            {
+                ModelState.AddModelError(
+                    nameof(model.Password),
+                    "Password is required."
+                );
+
+                return View(model);
+            }
+
+            //if (!ModelState.IsValid)
+            //{
+            //    return View(model);
+            //}
+
+            try
+            {
+                await _providerService.CreateProviderWithLogin(model);
+
+                TempData["SuccessMessage"] = isEdit
+                    ? "Provider updated successfully."
+                    : "Provider saved successfully.";
+
+                return RedirectToAction("Providers");
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+                when (ex.Number == 2601 || ex.Number == 2627)
+            {
+                var message = GetDuplicateKeyMessage(ex);
+
+                TempData["ErrorMessage"] = message;
+
+                return View(model);
+            }
+            catch (Microsoft.Data.SqlClient.SqlException)
+            {
+                TempData["ErrorMessage"] =
+                    "Unable to save the provider due to a database error. Please try again.";
+
+                return View(model);
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] =
+                    "Something went wrong while saving the provider. Please try again.";
+
+                return View(model);
+            }
         }
         //Edit
         public async Task<IActionResult> EditProvider(int id)
@@ -232,7 +324,11 @@ namespace LaudaryMis.Controllers
         // CREATE PAGE
         public IActionResult CreateWard()
         {
-            return View();
+            var model = new WardVM
+            {
+                IsActive = true
+            };
+            return View(model);
         }
 
         // SAVE
@@ -284,10 +380,27 @@ namespace LaudaryMis.Controllers
             var data = await _locationService.GetDistrictsByState(stateId);
             return Json(data);
         }
-     
+
         #endregion
 
+        private string GetDuplicateKeyMessage(
+    Microsoft.Data.SqlClient.SqlException ex)
+        {
+            var message = ex.Message.ToLowerInvariant();
 
+            if (message.Contains("email"))
+            {
+                return "This email address is already registered. Please use a different email address.";
+            }
+
+            if (message.Contains("phone") ||
+                message.Contains("mobile"))
+            {
+                return "This mobile number is already registered. Please use a different mobile number.";
+            }
+
+            return "The information you entered already exists. Please use different details.";
+        }
 
     }
 }
