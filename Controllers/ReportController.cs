@@ -32,15 +32,12 @@ DeliveryHistory(int id)
         {
             fromDate ??= DateTime.Today.AddDays(-7);
             toDate ??= DateTime.Today;
-
             var model = await _rptservice.WeeklyDeliveryReport(fromDate.Value, toDate.Value);
-
             ViewBag.FromDate = fromDate.Value.ToString("yyyy-MM-dd");
-
             ViewBag.ToDate = toDate.Value.ToString("yyyy-MM-dd");
-
             return View(model);
         }
+
         public async Task<IActionResult> MonthlyReport(int? year, int? month)
         {
             year ??= DateTime.Now.Year;

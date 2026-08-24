@@ -80,6 +80,7 @@
                         <th>Hospital</th>
                         <th>Ward</th>
                         <th>Shift</th>
+                        <th>Infected</th>
                         <th class="text-end">Collected</th>
                         <th class="text-end">Delivered</th>
                         <th class="text-end">Pending</th>
@@ -105,7 +106,20 @@
                             <td>@item.HospitalName</td>
                             <td>@item.WardName</td>
                             <td>@item.ShiftName</td>
-
+                            <td>
+                                @if (item.IsInfected)
+                                {
+                                    <span class="badge bg-danger">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Infected
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fa-solid fa-check"></i> Normal
+                                    </span>
+                                }
+                            </td>
                             <td class="text-end fw-bold text-teal">@item.TotalCollectedQty</td>
                             <td class="text-end fw-bold text-success">@item.TotalDeliveredQty</td>
                             <td class="text-end fw-bold text-danger">@item.TotalPendingQty</td>
@@ -316,6 +330,11 @@
                             item.hospitalName,
                             item.wardName,
                             item.shiftName,
+                                    '<td>' +
+            (item.isInfected
+                ? '<span class="badge bg-danger"><i class="fa-solid fa-triangle-exclamation"></i> Infected</span>'
+                : '<span class="badge bg-success"><i class="fa-solid fa-check"></i> Normal</span>') +
+        '</td>',
                             '<span class="fw-bold text-teal">' + item.totalCollectedQty + '</span>',
                             '<span class="fw-bold text-success">' + item.totalDeliveredQty + '</span>',
                             '<span class="fw-bold text-danger">' + item.totalPendingQty + '</span>',
