@@ -126,6 +126,8 @@
                         <th class="text-end">Collected Qty</th>
                         <th class="text-end">Delivered Qty</th>
                         <th class="text-end">Pending Qty</th>
+                        <th class="text-end">Received By</th>
+                        <th class="text-end">Pickup By</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -174,6 +176,9 @@
                     { data: 'collectedQty', className: 'text-end fw-bold text-teal' },
                     { data: 'deliveredQty', className: 'text-end fw-bold text-success' },
                     { data: 'pendingQty', className: 'text-end fw-bold text-danger' },
+                    
+                    { data: 'receivedBy' },
+                    { data: 'pickupBy' },
                     {
                         data: 'status',
                         render: function (data) {

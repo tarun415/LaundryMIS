@@ -49,7 +49,7 @@
 
             public DateTime InvoiceDate { get; set; } = DateTime.Today;
 
-            public string Remarks { get; set; }
+            public string? Remarks { get; set; }
 
             public int CreatedBy { get; set; }
         }

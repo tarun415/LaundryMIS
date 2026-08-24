@@ -41,20 +41,16 @@ namespace LaudaryMis.Controllers
             {
                 result = await _service.LoginHospital(model.HospitalId, model.Password);
             }
-
             else if (model.RoleId == 3)
             {
                 result = await _service.LoginProvider(model.ProviderId, model.Password);
-            }
-                
+            }                
             if (!result.Success)
             {
                 ModelState.AddModelError("", result.Message);
                 return View(model);
             }
             user = result.User;
-
-
             var claims = new List<Claim>
             {
                  new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),  // ← YEH ADD KARO

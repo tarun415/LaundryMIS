@@ -34,5 +34,7 @@
         public int PendingQty { get; set; }
 
         public string Status { get; set; }
+        public string ReceivedBy { get; set; }
+        public string PickupBy { get; set; }
     }
 }
