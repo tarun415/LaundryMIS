@@ -335,6 +335,15 @@ namespace LaudaryMis.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateWard(WardVM model)
         {
+            // A newly created ward must be active so it appears in the
+            // Hospital/Provider ward dropdowns (which filter on IsActive = 1).
+            // This prevents a new ward from silently disappearing if the
+            // Active toggle was left unchecked on the create form.
+            if (model.WardId == 0)
+            {
+                model.IsActive = true;
+            }
+
             await _wardService.SaveAsync(model);
             return RedirectToAction("Wards");
         }

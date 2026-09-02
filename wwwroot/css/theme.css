@@ -1012,6 +1012,22 @@ table.dataTable > tbody > tr.child { background: var(--surface-2); }
 .info-k, .calc-row > span:first-child { color: var(--ink-3); font-weight: 500; }
 .info-v, .calc-row > span:last-child { color: var(--navy-900); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 
+/* Report Guide: term + description pairs should read as two aligned columns,
+   with the description left-aligned rather than pushed to the right edge. */
+.info-guide .info-row { justify-content: flex-start; align-items: flex-start; }
+.info-guide .info-k {
+    flex: 0 0 150px;
+    max-width: 150px;
+    font-weight: 600;
+    color: var(--navy-900);
+}
+.info-guide .info-v {
+    flex: 1 1 auto;
+    text-align: left;
+    font-weight: 500;
+    color: var(--ink-3);
+}
+
 .calc-row.total, .total-box {
     margin-top: 8px;
     padding: 12px 15px;
