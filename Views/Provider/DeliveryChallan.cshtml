@@ -100,17 +100,29 @@
     <div class="card-body">
         <div class="row g-3">
 
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
                 <label class="form-label" for="DeliveredBy">Delivered By</label>
                 <input type="text" id="DeliveredBy" class="form-control" placeholder="Enter name" />
             </div>
 
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="DeliveredByPhone">Delivered By Phone</label>
+                <input type="tel" id="DeliveredByPhone" class="form-control" inputmode="numeric"
+                       maxlength="10" placeholder="10 digit mobile" />
+            </div>
+
+            <div class="col-12 col-md-3">
                 <label class="form-label" for="ReceivedBy">Received By</label>
                 <input type="text" id="ReceivedBy" class="form-control" placeholder="Enter name" />
             </div>
 
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="ReceivedByPhone">Received By Phone</label>
+                <input type="tel" id="ReceivedByPhone" class="form-control" inputmode="numeric"
+                       maxlength="10" placeholder="10 digit mobile" />
+            </div>
+
+            <div class="col-12">
                 <label class="form-label" for="Remarks">Remarks</label>
                 <input type="text" id="Remarks" class="form-control" placeholder="Optional remarks" />
             </div>
@@ -173,7 +185,9 @@
             var model = {
                 pickupId: parseInt(document.getElementById("PickupId").value, 10),
                 deliveredBy: document.getElementById("DeliveredBy").value,
+                deliveredByPhone: document.getElementById("DeliveredByPhone").value,
                 receivedBy: document.getElementById("ReceivedBy").value,
+                receivedByPhone: document.getElementById("ReceivedByPhone").value,
                 remarks: document.getElementById("Remarks").value,
                 items: items
             };

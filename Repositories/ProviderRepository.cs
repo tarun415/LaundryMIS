@@ -34,9 +34,9 @@ namespace LaudaryMis.Repositories
 
             await _db.ExecuteAsync(@"
             INSERT INTO tbl_Providers
-            (ProviderName, RatePerBed, FirmName, IsActive,CreatedDBY)
+            (ProviderName, RatePerBed, FirmName, Phone, IsActive,CreatedDBY)
             VALUES
-            (@ProviderName, @RatePerBed, @FirmName,@IsActive,'Admin')
+            (@ProviderName, @RatePerBed, @FirmName,@Phone,@IsActive,'Admin')
         ", model);
         }
         public async Task SaveProviderWithLogin(ProvidersVM model)
@@ -51,9 +51,9 @@ namespace LaudaryMis.Repositories
                 //  Insert Provider
                 var providerId = await con.ExecuteScalarAsync<int>(@"
             INSERT INTO tbl_Providers
-            (ProviderName, RatePerBed, FirmName, IsActive,CreatedDBY)
+            (ProviderName, RatePerBed, FirmName, Phone, IsActive,CreatedDBY)
             VALUES
-            (@ProviderName, @RatePerBed, @FirmName,@IsActive,'Admin');
+            (@ProviderName, @RatePerBed, @FirmName,@Phone,@IsActive,'Admin');
 
             SELECT CAST(SCOPE_IDENTITY() as int);
         ", model, tran);
@@ -116,10 +116,11 @@ namespace LaudaryMis.Repositories
                     // 1️⃣ Update Provider
                     await _db.ExecuteAsync(@"
                 UPDATE tbl_Providers
-                SET 
+                SET
                     ProviderName = @ProviderName,
                     RatePerBed = @RatePerBed,
                     FirmName = @FirmName,
+                    Phone = @Phone,
                     IsActive = @IsActive
                 WHERE ProviderId = @ProviderId
             ", model, tran);
@@ -180,7 +181,7 @@ namespace LaudaryMis.Repositories
         public async Task<ProvidersVM> GetProviderByIdAsync(int id)
         {
             return await _db.QueryFirstOrDefaultAsync<ProvidersVM>(@"
-        SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.IsActive,dm.DistrictID, dm.DistrictName,us.PasswordHash as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId 
+        SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.Phone,pr.IsActive,dm.DistrictID, dm.DistrictName,us.PasswordHash as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId
         WHERE pr.ProviderId = @Id
     ", new { Id = id });
         }
@@ -198,4 +199,4 @@ namespace LaudaryMis.Repositories
        
     }
 
-}
+}

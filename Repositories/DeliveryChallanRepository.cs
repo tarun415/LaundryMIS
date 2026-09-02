@@ -69,6 +69,8 @@ namespace LaudaryMis.Repositories
             param.Add("@PickupId", model.PickupId);
             param.Add("@DeliveredBy", model.DeliveredBy);
             param.Add("@ReceivedBy", model.ReceivedBy);
+            param.Add("@DeliveredByPhone", model.DeliveredByPhone);
+            param.Add("@ReceivedByPhone", model.ReceivedByPhone);
             param.Add("@Remarks", model.Remarks);
 
             param.Add(

@@ -8,7 +8,11 @@
 
         public string DeliveredBy { get; set; }
 
+        public string? DeliveredByPhone { get; set; }
+
         public string ReceivedBy { get; set; }
+
+        public string? ReceivedByPhone { get; set; }
 
         public string Remarks { get; set; }
 
@@ -52,6 +56,18 @@
             public string Status { get; set; }
 
             public DateTime DeliveryDateTime { get; set; }
+
+            public string? DeliveredBy { get; set; }
+
+            public string? DeliveredByPhone { get; set; }
+
+            public string? ReceivedBy { get; set; }
+
+            public string? ReceivedByPhone { get; set; }
+
+            public string? ProviderName { get; set; }
+
+            public string? ProviderPhone { get; set; }
         }
     
 }

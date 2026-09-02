@@ -53,6 +53,16 @@
                 </div>
 
                 <div class="col-12 col-md-6">
+                    <label class="form-label" for="Phone">Phone</label>
+                    <input asp-for="Phone"
+                           type="tel"
+                           class="form-control"
+                           inputmode="numeric"
+                           maxlength="10"
+                           placeholder="10 digit mobile number" />
+                </div>
+
+                <div class="col-12 col-md-6">
                     <label class="form-label" for="Password">Password <span class="text-danger">*</span></label>
                     <input asp-for="Password" type ="password"class="form-control" placeholder="Enter login password" />
                 </div>
