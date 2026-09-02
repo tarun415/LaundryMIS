@@ -51,11 +51,26 @@ namespace LaudaryMis.Controllers
                 return View(model);
             }
             user = result.User;
+
+            // Derive a canonical role from the RoleId that was actually used to
+            // authenticate. Relying on the free-text RoleName coming back from the
+            // database is fragile (casing / whitespace / stale values) and was
+            // causing Hospital and Provider users to occasionally land on the
+            // wrong dashboard. RoleId is authoritative here: 1 = Admin,
+            // 2 = Hospital, 3 = Provider.
+            var roleName = model.RoleId switch
+            {
+                1 => "Admin",
+                2 => "Hospital",
+                3 => "Provider",
+                _ => user.RoleName ?? ""
+            };
+
             var claims = new List<Claim>
             {
-                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),  // ← YEH ADD KARO
+                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
     new Claim(ClaimTypes.Name, user.FullName ?? ""),
-    new Claim(ClaimTypes.Role, user.RoleName ?? ""),
+    new Claim(ClaimTypes.Role, roleName),
     new Claim("HospitalId", user.HospitalId?.ToString() ?? ""),
     new Claim("ProviderId", user.ProviderId?.ToString() ?? "")
             };
@@ -66,7 +81,7 @@ namespace LaudaryMis.Controllers
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity));
 
-            return RedirectToAction("Dashboard", user.RoleName);
+            return RedirectToAction("Dashboard", roleName);
         }
 
         [HttpGet]

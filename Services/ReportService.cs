@@ -68,6 +68,33 @@ GetPendingLinenReport()
             var details =
                 await _repo.GetDeliveryAgingReport();
 
+            // If there is no outstanding linen (Pending <= 0), the pickup is
+            // fully returned and should never be flagged as Critical/Warning
+            // purely because the collection date is old.
+            foreach (var item in details)
+            {
+                if (item.PendingQty <= 0)
+                {
+                    item.AgingStatus = "Normal";
+                }
+            }
+
+            // Keep the summary tiles consistent with the adjusted statuses.
+            if (summary != null)
+            {
+                summary.CriticalCount =
+                    details.Count(x => x.AgingStatus == "Critical");
+                summary.WarningCount =
+                    details.Count(x => x.AgingStatus == "Warning");
+                summary.NormalCount =
+                    details.Count(x => x.AgingStatus == "Normal");
+                summary.TotalPendingPickups =
+                    details.Count(x => x.PendingQty > 0);
+                summary.TotalPendingQty =
+                    details.Where(x => x.PendingQty > 0)
+                           .Sum(x => x.PendingQty);
+            }
+
             return new DeliveryAgingReportPageVM
             {
                 Summary = summary,

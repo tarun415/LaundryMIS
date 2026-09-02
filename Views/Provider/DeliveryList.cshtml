@@ -30,6 +30,9 @@
                         <th class="text-end">Pending</th>
                         <th>Status</th>
                         <th>Delivery Date</th>
+                        <th>Provider</th>
+                        <th>Delivered By</th>
+                        <th>Received By</th>
                     </tr>
                 </thead>
 
@@ -66,6 +69,30 @@
                             </td>
 
                             <td class="nowrap">@item.DeliveryDateTime.ToString("dd MMM yyyy")</td>
+
+                            <td>
+                                <div class="fw-semibold">@(string.IsNullOrWhiteSpace(item.ProviderName) ? "—" : item.ProviderName)</div>
+                                @if (!string.IsNullOrWhiteSpace(item.ProviderPhone))
+                                {
+                                    <div class="text-muted small"><i class="fa-solid fa-phone fa-xs"></i> @item.ProviderPhone</div>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="fw-semibold">@(string.IsNullOrWhiteSpace(item.DeliveredBy) ? "—" : item.DeliveredBy)</div>
+                                @if (!string.IsNullOrWhiteSpace(item.DeliveredByPhone))
+                                {
+                                    <div class="text-muted small"><i class="fa-solid fa-phone fa-xs"></i> @item.DeliveredByPhone</div>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="fw-semibold">@(string.IsNullOrWhiteSpace(item.ReceivedBy) ? "—" : item.ReceivedBy)</div>
+                                @if (!string.IsNullOrWhiteSpace(item.ReceivedByPhone))
+                                {
+                                    <div class="text-muted small"><i class="fa-solid fa-phone fa-xs"></i> @item.ReceivedByPhone</div>
+                                }
+                            </td>
 
                         </tr>
                     }
