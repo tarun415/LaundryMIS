@@ -22,7 +22,8 @@ namespace LaudaryMis.Services
             int warningId);
 
         Task<byte[]> GenerateWarningLetterPdf(
-            int warningId);
+            int warningId,
+            int? uploadedBy = null);
 
         Task<bool> UploadWarningLetterDocument(
             WarningLetterDocument model);

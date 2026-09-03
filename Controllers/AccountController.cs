@@ -3,6 +3,7 @@ using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -82,6 +83,25 @@ namespace LaudaryMis.Controllers
                 new ClaimsPrincipal(identity));
 
             return RedirectToAction("Dashboard", roleName);
+        }
+
+        // Lets an already-rendered page detect that the auth cookie now belongs
+        // to a different user, which happens when someone signs in as another
+        // role in a second tab of the same browser (the cookie is shared).
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult WhoAmI()
+        {
+            if (User?.Identity?.IsAuthenticated != true)
+                return Json(new { authenticated = false, id = "", role = "", name = "" });
+
+            return Json(new
+            {
+                authenticated = true,
+                id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "",
+                role = User.FindFirst(ClaimTypes.Role)?.Value ?? "",
+                name = User.Identity?.Name ?? ""
+            });
         }
 
         [HttpGet]

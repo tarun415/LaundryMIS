@@ -29,6 +29,14 @@
         <form id="providerForm" asp-action="CreateProvider" asp-controller="Admin" method="post">
             <input type="hidden" asp-for="ProviderId" />
 
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i>
+                    @Html.ValidationSummary(false, "", new { @class = "mb-0 d-inline" })
+                </div>
+            }
+
             <div class="row g-3">
 
                 <div class="col-12 col-md-6">
@@ -50,6 +58,7 @@
                            type="email"
                            class="form-control"
                            placeholder="Enter email address" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
 
                 <div class="col-12 col-md-6">
@@ -63,8 +72,13 @@
                 </div>
 
                 <div class="col-12 col-md-6">
-                    <label class="form-label" for="Password">Password <span class="text-danger">*</span></label>
-                    <input asp-for="Password" type ="password"class="form-control" placeholder="Enter login password" />
+                    <label class="form-label" for="Password">
+                        Password @if (!isEdit) { <span class="text-danger">*</span> }
+                    </label>
+                    <input asp-for="Password" type="password" class="form-control" autocomplete="new-password"
+                           placeholder="@(isEdit ? "Leave blank to keep current password" : "Enter login password")" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                    <div class="form-text">Minimum 6 characters, with both letters and numbers.</div>
                 </div>
 
                 <div class="col-12">
@@ -157,9 +171,10 @@
                     return;
                 }
 
-                // Email format
+                // Email format - kept in sync with the server-side rule in ProvidersVM
+                // so values like "rohit@@gmail.commmm" are rejected here too.
                 var emailPattern =
-                    /^[A-Za-z0-9._%+-]+@@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                    /^[A-Za-z0-9._%+-]+@@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.(com|in|org|net|edu|gov|co\.in)$/;
 
                 if (!emailPattern.test(email)) {
                     e.preventDefault();
@@ -171,6 +186,37 @@
                     );
 
                     $('#Email').focus();
+                    return;
+                }
+
+                // Password policy. On edit a blank field keeps the current
+                // password, so only validate when something was entered.
+                var password = $('#Password').val() || '';
+                var isEdit = Number($('#ProviderId').val()) > 0;
+
+                if (!isEdit && password === '') {
+                    e.preventDefault();
+
+                    LMIS.alert(
+                        'Missing information',
+                        'Password is required.',
+                        'warning'
+                    );
+
+                    $('#Password').focus();
+                    return;
+                }
+
+                if (password !== '' && !/^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(password)) {
+                    e.preventDefault();
+
+                    LMIS.alert(
+                        'Weak password',
+                        'Password must be at least 6 characters and contain both letters and numbers.',
+                        'warning'
+                    );
+
+                    $('#Password').focus();
                     return;
                 }
 

@@ -10,11 +10,14 @@ namespace LaudaryMis.Services
     public class WarningLetterService : IWarningLetterService
     {
         private readonly IWarningLetterRepository _repository;
+        private readonly IWebHostEnvironment _env;
 
         public WarningLetterService(
-            IWarningLetterRepository repository)
+            IWarningLetterRepository repository,
+            IWebHostEnvironment env)
         {
             _repository = repository;
+            _env = env;
         }
         public async Task<List<WarningLetterMaster>> GetWarningLetterList(
     int? agreementId,
@@ -61,7 +64,8 @@ namespace LaudaryMis.Services
         }
       
         public async Task<byte[]> GenerateWarningLetterPdf(
-    int warningId)
+    int warningId,
+    int? uploadedBy = null)
         {
             // Get Warning Letter Details
             var warning = await _repository.GetWarningLetterDetails(warningId);
@@ -74,10 +78,13 @@ namespace LaudaryMis.Services
 
             byte[] pdfBytes = document.GeneratePdf();
 
-            // Create Folder
+            // Create Folder. This must use the same web root the controller
+            // reads from - Directory.GetCurrentDirectory() is the process
+            // working directory, which is not the content root under IIS or
+            // when hosted as a Windows service, so the PDF was written to a
+            // different folder than the one Preview/Download looks in.
             string folder = Path.Combine(
-                Directory.GetCurrentDirectory(),
-                "wwwroot",
+                _env.WebRootPath,
                 "WarningLetters");
 
             if (!Directory.Exists(folder))
@@ -98,7 +105,7 @@ namespace LaudaryMis.Services
                 WarningId = warning.WarningId,
                 FileName = fileName,
                 FilePath = Path.Combine("WarningLetters", fileName).Replace("\\", "/"),
-                UploadedBy = 1      // Later use Claims
+                UploadedBy = uploadedBy ?? 0
             };
 
             await _repository.UploadWarningLetterDocument(documentModel);

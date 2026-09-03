@@ -1,7 +1,10 @@
 ﻿using LaudaryMis.Models;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
+[Authorize]
 
 public class PaymentController : Controller
 {

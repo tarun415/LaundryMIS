@@ -1,8 +1,10 @@
 ﻿using LaudaryMis.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LaudaryMis.Controllers
 {
+    [Authorize]
     public class CommonController : Controller
     {
         private readonly ICommonService _comservice;
