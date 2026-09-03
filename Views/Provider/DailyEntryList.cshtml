@@ -1,4 +1,4 @@
-﻿@model List<LaudaryMis.ViewModels.DailyEntryListVM>
+@model List<LaudaryMis.ViewModels.DailyEntryListVM>
 
 @{
     ViewBag.Title = "Daily Linen Entries";
@@ -11,7 +11,7 @@
         <p class="ph-sub">Linen picked up, delivered and still pending</p>
     </div>
     <div class="ph-actions">
-        <a href="~/Provider/DailyEntry" class="btn btn-primary">
+        <a href="/Provider/DailyEntry" class="btn btn-primary">
             <i class="fa-solid fa-plus"></i> New Entry
         </a>
     </div>
@@ -132,7 +132,7 @@
                                 @if (item.Status == "Collected")
                                 {
                                     <div class="action-group justify-content-end">
-                                        <a href="~/Provider/EditDailyEntry/@item.EntryId"
+                                        <a href="/Provider/EditDailyEntry/@item.EntryId"
                                            class="btn btn-sm btn-icon btn-outline-primary"
                                            data-bs-toggle="tooltip" title="Edit">
                                             <i class="fa-solid fa-pen"></i>
@@ -229,7 +229,7 @@
                         if (item.status === "Collected") {
                             actionCell =
                                 '<div class="action-group justify-content-end">' +
-                                    '<a href="~/Provider/EditDailyEntry/' + item.entryId + '" class="btn btn-sm btn-icon btn-outline-primary" title="Edit">' +
+                                    '<a href="/Provider/EditDailyEntry/' + item.entryId + '" class="btn btn-sm btn-icon btn-outline-primary" title="Edit">' +
                                         '<i class="fa-solid fa-pen"></i></a>' +
                                     '<button type="button" class="btn btn-sm btn-icon btn-outline-danger" title="Delete" onclick="deleteDailyEntry(' + item.entryId + ', this)">' +
                                         '<i class="fa-solid fa-trash"></i></button>' +

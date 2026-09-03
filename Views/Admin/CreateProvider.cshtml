@@ -1,4 +1,4 @@
-﻿@model LaudaryMis.ViewModels.ProvidersVM
+@model LaudaryMis.ViewModels.ProvidersVM
 
 @{
     var isEdit = Model != null && Model.ProviderId > 0;
@@ -12,7 +12,7 @@
         <p class="ph-sub">@(isEdit ? "Update the laundry provider's details" : "Register a new laundry service provider")</p>
     </div>
     <div class="ph-actions">
-        <a href="~/Admin/Providers" class="btn btn-light">
+        <a href="/Admin/Providers" class="btn btn-light">
             <i class="fa-solid fa-arrow-left"></i> Back to List
         </a>
     </div>
@@ -94,7 +94,7 @@
             </div>
 
             <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
-                <a href="~/Admin/Providers" class="btn btn-light">Cancel</a>
+                <a href="/Admin/Providers" class="btn btn-light">Cancel</a>
                 <button type="submit" class="btn btn-primary">
                     <i class="fa-solid @(isEdit ? "fa-pen" : "fa-floppy-disk")"></i>
                     @(isEdit ? "Update Provider" : "Save Provider")
