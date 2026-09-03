@@ -3,6 +3,7 @@ using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.Repository;
 using LaudaryMis.Services;
 using LaudaryMis.Services.Interfaces;
+using LaudaryMis.Infrastructure;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Data.SqlClient;
 using Rotativa.AspNetCore;
@@ -16,18 +17,44 @@ builder.Services.AddControllersWithViews();
 
 
 // Authentication
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+//
+// One cookie per tab slot. Each cookie's Path is that slot's URL prefix, so a
+// browser only ever sends slot 0's cookie to "/u/0/..." requests. That is what
+// lets two roles stay signed in at once in the same browser: signing in on
+// "/u/1" cannot touch the session a tab on "/u/0" is using.
+//
+// The default scheme is a policy scheme that forwards to whichever slot the
+// current request is running under.
+var authentication = builder.Services
+    .AddAuthentication(TabSlots.PolicySchemeName)
+    .AddPolicyScheme(TabSlots.PolicySchemeName, TabSlots.PolicySchemeName, options =>
     {
+        options.ForwardDefaultSelector =
+            context => TabSlots.SchemeFor(context.CurrentSlot());
+    });
+
+for (int slot = 0; slot < TabSlots.Count; slot++)
+{
+    // Captured per iteration so each handler configures its own slot.
+    int currentSlot = slot;
+
+    authentication.AddCookie(TabSlots.SchemeFor(currentSlot), options =>
+    {
+        // PathBase already carries "/u/{slot}", so these stay slot-relative.
         options.LoginPath = "/Account/Login";
         options.AccessDeniedPath = "/Account/Login";
 
-        options.Cookie.Name = "LaundryMISAuth";
+        options.Cookie.Name = TabSlots.CookieNameFor(currentSlot);
+
+        // The browser scopes the cookie to this slot's URLs. This is the part
+        // that actually isolates the tabs.
+        options.Cookie.Path = TabSlots.CookiePathFor(currentSlot);
 
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
 
         options.SlidingExpiration = true;
     });
+}
 
 builder.Services.AddAuthorization();
 // DI
@@ -88,7 +115,12 @@ QuestPDF.Settings.License = LicenseType.Community;  // This is for PDF a
 var app = builder.Build();
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(); 
+
+// Must run before static files: views emit "~/css/..." as "/u/{slot}/css/...",
+// so the slot prefix has to move to PathBase before the file is looked up.
+app.UseMiddleware<TabSlotMiddleware>();
+
+app.UseStaticFiles();
 RotativaConfiguration.Setup(
     app.Environment.WebRootPath,
     "Rotativa");

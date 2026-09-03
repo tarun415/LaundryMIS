@@ -1,4 +1,4 @@
-@model dynamic
+﻿@model dynamic
 
 @{
     ViewBag.Title = "Deliver Clean Linen";
@@ -25,7 +25,7 @@
         <p class="ph-sub">Enter the clean linen being returned against this entry</p>
     </div>
     <div class="ph-actions">
-        <a href="/Provider/Pending" class="btn btn-light">
+        <a href="~/Provider/Pending" class="btn btn-light">
             <i class="fa-solid fa-arrow-left"></i> Back to List
         </a>
     </div>
@@ -117,7 +117,7 @@
         </div>
 
         <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
-            <a href="/Provider/Pending" class="btn btn-light">Cancel</a>
+            <a href="~/Provider/Pending" class="btn btn-light">Cancel</a>
             <button type="button" id="btnSaveDelivery" class="btn btn-primary" onclick="saveDelivery()">
                 <i class="fa-solid fa-floppy-disk"></i> Save Delivery
             </button>
@@ -185,7 +185,7 @@
 
                 if (r.success) {
                     LMIS.toast("Delivery saved");
-                    setTimeout(function () { window.location.href = "/Provider/Pending"; }, 700);
+                    setTimeout(function () { window.location.href = appUrl("/Provider/Pending"); }, 700);
                 } else {
                     btn.disabled = false;
                     LMIS.alert("Save failed", r.message || "Please try again.", "error");

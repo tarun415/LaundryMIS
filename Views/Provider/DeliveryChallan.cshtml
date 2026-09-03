@@ -1,4 +1,4 @@
-@model LaudaryMis.ViewModels.DeliveryChallanVM
+﻿@model LaudaryMis.ViewModels.DeliveryChallanVM
 
 @{
     ViewBag.Title = "Delivery Challan";
@@ -25,7 +25,7 @@
         <p class="ph-sub">Pickup No: <strong>@Model.PickupNo</strong></p>
     </div>
     <div class="ph-actions">
-        <a href="/Provider/AcceptPickup" class="btn btn-light">
+        <a href="~/Provider/AcceptPickup" class="btn btn-light">
             <i class="fa-solid fa-arrow-left"></i> Back
         </a>
     </div>
@@ -130,7 +130,7 @@
         </div>
 
         <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
-            <a href="/Provider/AcceptPickup" class="btn btn-light">Cancel</a>
+            <a href="~/Provider/AcceptPickup" class="btn btn-light">Cancel</a>
             <button type="button" id="btnSaveDelivery" class="btn btn-primary" onclick="saveDelivery()">
                 <i class="fa-solid fa-floppy-disk"></i> Save Delivery
             </button>
@@ -206,7 +206,7 @@
 
                 if (result.success) {
                     LMIS.toast("Delivery saved successfully");
-                    setTimeout(function () { window.location.href = '/Provider/AcceptPickup'; }, 700);
+                    setTimeout(function () { window.location.href = appUrl('/Provider/AcceptPickup'); }, 700);
                 } else {
                     btn.disabled = false;
                     LMIS.alert("Save failed", result.message || "Please try again.", "error");
