@@ -135,7 +135,10 @@ namespace LaudaryMis.Controllers
         // CREATE Provider
         public IActionResult CreateProvider()
         {
-            return View();
+            // Must pass a model: the view posts ProviderId from a hidden field,
+            // and with a null model that renders value="" which cannot bind to a
+            // non-nullable int, failing the post with "The value '' is invalid."
+            return View(new ProvidersVM());
         }
         //// SAVE Provider
         //[HttpPost]
