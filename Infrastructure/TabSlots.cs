@@ -42,31 +42,29 @@ namespace LaudaryMis.Infrastructure
             slot = 0;
             rest = path;
 
-            var value = path.Value;
-
-            if (string.IsNullOrEmpty(value))
+            if (!path.HasValue)
                 return false;
 
-            var segments = value.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            // Matched with StartsWithSegments rather than by splitting the
+            // string, so segment boundaries and odd input (trailing or repeated
+            // slashes) are handled by the framework.
+            for (int candidate = 0; candidate < Count; candidate++)
+            {
+                var prefix = new PathString($"/{Prefix}/{candidate}");
 
-            if (segments.Length < 2)
-                return false;
+                if (!path.StartsWithSegments(
+                        prefix,
+                        StringComparison.OrdinalIgnoreCase,
+                        out var remaining))
+                    continue;
 
-            if (!string.Equals(segments[0], Prefix, StringComparison.OrdinalIgnoreCase))
-                return false;
+                slot = candidate;
+                rest = remaining.HasValue ? remaining : new PathString("/");
 
-            if (!int.TryParse(segments[1], out slot) || !IsValid(slot))
-                return false;
+                return true;
+            }
 
-            // Everything after "/u/{slot}".
-            var consumed = $"/{segments[0]}/{segments[1]}";
-            var remainder = value.Substring(consumed.Length);
-
-            rest = string.IsNullOrEmpty(remainder)
-                ? new PathString("/")
-                : new PathString(remainder);
-
-            return true;
+            return false;
         }
 
         /// <summary>The slot the current request is running under.</summary>
