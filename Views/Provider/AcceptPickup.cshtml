@@ -1,4 +1,4 @@
-@model List<LaudaryMis.ViewModels.PickupListVM>
+﻿@model List<LaudaryMis.ViewModels.PickupListVM>
 
 @{
     ViewBag.Title = "Accept Pickup";
@@ -134,7 +134,7 @@
                                 }
                                 else if (item.Status == "Accepted" || item.Status == "Partial Delivered")
                                 {
-                                    <a href="/Provider/DeliveryChallan/@item.PickupId" class="btn btn-sm btn-primary">
+                                    <a href="~/Provider/DeliveryChallan/@item.PickupId" class="btn btn-sm btn-primary">
                                         <i class="fa-solid fa-truck"></i> Deliver
                                     </a>
                                 }
@@ -229,7 +229,7 @@
                         }
                         else if (item.status === "Accepted" || item.status === "Partial Delivered") {
                             actionButtons =
-                                '<a href="/Provider/DeliveryChallan/' + item.pickupId + '" class="btn btn-sm btn-primary">' +
+                                '<a href="~/Provider/DeliveryChallan/' + item.pickupId + '" class="btn btn-sm btn-primary">' +
                                     '<i class="fa-solid fa-truck"></i> Deliver</a>';
                         }
 

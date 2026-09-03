@@ -1,4 +1,4 @@
-@model IEnumerable<dynamic>
+﻿@model IEnumerable<dynamic>
 
 @{
     ViewBag.Title = "Pending Deliveries";
@@ -49,7 +49,7 @@
                             </td>
 
                             <td class="text-end">
-                                <a href="/Provider/Deliver/@item.EntryId" class="btn btn-sm btn-success">
+                                <a href="~/Provider/Deliver/@item.EntryId" class="btn btn-sm btn-success">
                                     <i class="fa-solid fa-truck"></i> Deliver
                                 </a>
                             </td>

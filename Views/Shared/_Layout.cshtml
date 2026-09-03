@@ -1,7 +1,8 @@
-@{
+﻿@{
     var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
     var displayName = User.Identity?.Name ?? "";
     var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+    var currentSlot = LaudaryMis.Infrastructure.TabSlots.CurrentSlot(Context);
     var initials = string.Join("", displayName
         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
         .Take(2)
@@ -60,12 +61,27 @@
             <div class="user-pill">
                 <div class="user-avatar">@initials</div>
                 <div class="user-meta">
-                    <div class="user-name">@displayName</div>
+                    <div class="user-name">
+                        @displayName
+                        @if (currentSlot > 0)
+                        {
+                            @* Slot 0 is the ordinary session; later slots are the
+                               extra accounts, so only those need labelling. *@
+                            <span class="role-tag" style="display:inline;margin-left:.35rem;">
+                                Session @(currentSlot + 1)
+                            </span>
+                        }
+                    </div>
                     <div class="role-tag">@roleClaim</div>
                 </div>
             </div>
 
-            <a href="/Account/Logout" class="btn-logout">
+            <a href="@Url.Action("UseAnotherAccount", "Account")" class="btn-logout"
+               title="Sign in as another user in a separate session, keeping this one active">
+                <i class="fa-solid fa-user-plus"></i><span>Add account</span>
+            </a>
+
+            <a href="~/Account/Logout" class="btn-logout">
                 <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
             </a>
 
@@ -87,6 +103,39 @@
 
     <!-- ================= SCRIPTS ================= -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Keeps every request inside this tab's sign-in slot.
+         Pages call app URLs as "/Hospital/PickupList"; those are root-relative
+         and would leave the "/u/{slot}" prefix behind, landing on another
+         session. Rewriting them centrally means page scripts stay unchanged. -->
+    <script>
+        window.APP_BASE = "@Url.Content("~/")";
+
+        window.appUrl = function (url) {
+            if (typeof url !== "string") return url;
+            if (url.charAt(0) !== "/") return url;          // relative or absolute
+            if (url.indexOf("//") === 0) return url;         // protocol-relative
+            if (url.indexOf(APP_BASE) === 0) return url;     // already scoped
+            return APP_BASE.replace(/\/$/, "") + url;
+        };
+
+        (function () {
+            if (window.jQuery) {
+                jQuery.ajaxPrefilter(function (options) {
+                    options.url = window.appUrl(options.url);
+                });
+            }
+
+            var nativeFetch = window.fetch;
+            if (nativeFetch) {
+                window.fetch = function (input, init) {
+                    if (typeof input === "string") input = window.appUrl(input);
+                    return nativeFetch.call(this, input, init);
+                };
+            }
+        })();
+    </script>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -258,9 +307,9 @@
         })();
     </script>
 
-    @* Sign-in cookies are shared by every tab of a browser, so signing in as a
-       different role in another tab silently takes over this page's session.
-       Detect that and stop the user acting as the wrong account. *@
+    @* Tabs on different slots are now independent, so the usual cross-tab
+       takeover is gone. This still catches the case that remains: signing in as
+       someone else on *this* slot from another tab, and sessions that expired. *@
     <div id="sessionChangedBar"
          data-user-id="@currentUserId"
          data-user-role="@roleClaim"

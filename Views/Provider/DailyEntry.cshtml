@@ -1,4 +1,4 @@
-@using LaudaryMis.ViewModels
+﻿@using LaudaryMis.ViewModels
 @model LaudaryMis.ViewModels.DailyEntryVM
 
 @{
@@ -158,7 +158,7 @@
         </div>
 
         <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
-            <a href="/Provider/DailyEntryList" class="btn btn-light">Cancel</a>
+            <a href="~/Provider/DailyEntryList" class="btn btn-light">Cancel</a>
             <button type="button" id="btnSaveEntry" class="btn btn-primary" onclick="saveEntry()">
                 <i class="fa-solid @(isEdit ? "fa-pen" : "fa-floppy-disk")"></i>
                 @(isEdit ? "Update Entry" : "Save Entry")
@@ -286,7 +286,7 @@
                     if (result.success) {
                         LMIS.toast("Saved successfully");
                         setTimeout(function () {
-                            window.location.href = '/Provider/DailyEntryList';
+                            window.location.href = appUrl('/Provider/DailyEntryList');
                         }, 700);
                     } else {
                         $btn.prop("disabled", false);

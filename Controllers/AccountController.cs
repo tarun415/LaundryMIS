@@ -1,4 +1,5 @@
-﻿using LaudaryMis.Models;
+﻿using LaudaryMis.Infrastructure;
+using LaudaryMis.Models;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 using Microsoft.AspNetCore.Authentication;
@@ -76,11 +77,18 @@ namespace LaudaryMis.Controllers
     new Claim("ProviderId", user.ProviderId?.ToString() ?? "")
             };
 
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            // Sign in to this tab's slot only, so a sign-in here cannot disturb
+            // an account already signed in on another slot.
+            var slot = HttpContext.CurrentSlot();
+            var scheme = TabSlots.SchemeFor(slot);
+
+            var identity = new ClaimsIdentity(claims, scheme);
 
             await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
+                scheme,
                 new ClaimsPrincipal(identity));
+
+            TabSlots.MarkOccupied(HttpContext, slot, true);
 
             return RedirectToAction("Dashboard", roleName);
         }
@@ -107,9 +115,48 @@ namespace LaudaryMis.Controllers
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            // Only this slot signs out; accounts on other slots stay signed in.
+            var slot = HttpContext.CurrentSlot();
+
+            await HttpContext.SignOutAsync(TabSlots.SchemeFor(slot));
+
+            TabSlots.MarkOccupied(HttpContext, slot, false);
 
             return RedirectToAction("Login", "Account");
+        }
+
+        /// <summary>
+        /// Opens the sign-in page on a different slot, so another account can be
+        /// used alongside this one instead of replacing it.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult UseAnotherAccount(int? slot)
+        {
+            var target = slot ?? NextSlot();
+
+            if (!TabSlots.IsValid(target))
+                target = 0;
+
+            // Built by hand rather than with Url.Action: this deliberately
+            // leaves the current slot for a different one, and Url.Action would
+            // keep reusing the slot already on the request.
+            return Redirect($"/{TabSlots.Prefix}/{target}/Account/Login");
+        }
+
+        // Picks the first slot nobody is signed in on, falling back to the one
+        // after the current slot when they are all taken.
+        private int NextSlot()
+        {
+            var occupied = TabSlots.OccupiedSlots(Request);
+
+            for (int slot = 0; slot < TabSlots.Count; slot++)
+            {
+                if (!occupied.Contains(slot))
+                    return slot;
+            }
+
+            return (HttpContext.CurrentSlot() + 1) % TabSlots.Count;
         }
     }
 }
