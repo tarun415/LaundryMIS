@@ -1,10 +1,12 @@
 ﻿using LaudaryMis.Services;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LaudaryMis.Controllers
 {
+    [Authorize]
     public class ReportController : Controller
     {
         private readonly IReportService _rptservice;

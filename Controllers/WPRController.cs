@@ -2,10 +2,12 @@
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LaudaryMis.Controllers
 {
+    [Authorize]
     public class WPRController : Controller
     {
         private readonly IWPRService _wprService;

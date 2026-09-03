@@ -2,6 +2,7 @@
 using LaudaryMis.Services;
 using LaudaryMis.ViewModels;
 using LaundryMIS.Models.LaudaryMis.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Rotativa.AspNetCore;
@@ -10,6 +11,7 @@ using System;
 
 namespace LaudaryMis.Controllers
 {
+    [Authorize]
     public class InvoiceController : Controller
     {
         private readonly IInvoiceService _invoiceService;

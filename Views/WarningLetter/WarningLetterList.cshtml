@@ -4,6 +4,16 @@
     ViewData["Title"] = "Warning Letter List";
     int srNo = 1;
     var total = Model?.Count() ?? 0;
+
+    var hospitals = ViewBag.Hospitals as IEnumerable<LaudaryMis.ViewModels.HospitalVM>
+                    ?? Enumerable.Empty<LaudaryMis.ViewModels.HospitalVM>();
+
+    var agreements = ViewBag.Agreements as IEnumerable<LaudaryMis.ViewModels.AgreementVM>
+                     ?? Enumerable.Empty<LaudaryMis.ViewModels.AgreementVM>();
+
+    var selectedAgreement = Context.Request.Query["agreementId"].ToString();
+    var selectedHospital = Context.Request.Query["hospitalId"].ToString();
+    var selectedStatus = Context.Request.Query["status"].ToString();
 }
 
 <div class="page-header">
@@ -22,14 +32,28 @@
 
         <div class="filter-field">
             <label class="form-label" for="agreementId">Agreement</label>
-            <input type="text" name="agreementId" id="agreementId" class="form-control"
-                   value="@Context.Request.Query["agreementId"]" placeholder="Agreement ID" />
+            <select name="agreementId" id="agreementId" class="form-select">
+                <option value="">All Agreements</option>
+                @foreach (var a in agreements)
+                {
+                    <option value="@a.Id" selected="@(selectedAgreement == a.Id.ToString())">
+                        @a.ProviderName &mdash; @a.HospitalName
+                    </option>
+                }
+            </select>
         </div>
 
         <div class="filter-field">
             <label class="form-label" for="hospitalId">Hospital</label>
-            <input type="text" name="hospitalId" id="hospitalId" class="form-control"
-                   value="@Context.Request.Query["hospitalId"]" placeholder="Hospital ID" />
+            <select name="hospitalId" id="hospitalId" class="form-select">
+                <option value="">All Hospitals</option>
+                @foreach (var h in hospitals)
+                {
+                    <option value="@h.HospitalId" selected="@(selectedHospital == h.HospitalId.ToString())">
+                        @h.HospitalName
+                    </option>
+                }
+            </select>
         </div>
 
         <div class="filter-field">
@@ -48,9 +72,10 @@
             <label class="form-label" for="status">Status</label>
             <select name="status" id="status" class="form-select">
                 <option value="">All</option>
-                <option value="Generated">Generated</option>
-                <option value="Approved">Approved</option>
-                <option value="Closed">Closed</option>
+                @foreach (var s in new[] { "Generated", "Approved", "Closed" })
+                {
+                    <option value="@s" selected="@(selectedStatus == s)">@s</option>
+                }
             </select>
         </div>
 
