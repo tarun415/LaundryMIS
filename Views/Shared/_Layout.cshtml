@@ -1,6 +1,7 @@
 @{
     var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
     var displayName = User.Identity?.Name ?? "";
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
     var initials = string.Join("", displayName
         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
         .Take(2)
@@ -253,6 +254,77 @@
                 buildSidebar();
                 setupSidebarToggle();
             });
+
+        })();
+    </script>
+
+    @* Sign-in cookies are shared by every tab of a browser, so signing in as a
+       different role in another tab silently takes over this page's session.
+       Detect that and stop the user acting as the wrong account. *@
+    <div id="sessionChangedBar"
+         data-user-id="@currentUserId"
+         data-user-role="@roleClaim"
+         hidden
+         style="position:fixed;left:0;right:0;bottom:0;z-index:2000;padding:12px 16px;
+                background:#8a1c1c;color:#fff;gap:12px;align-items:center;
+                justify-content:center;flex-wrap:wrap;font-size:14px;">
+        <span id="sessionChangedText"></span>
+        <button type="button" onclick="location.reload()"
+                style="border:0;border-radius:4px;padding:6px 14px;background:#fff;color:#8a1c1c;
+                       font-weight:600;cursor:pointer;">
+            Reload page
+        </button>
+    </div>
+
+    <script>
+        (function () {
+
+            var bar = document.getElementById("sessionChangedBar");
+            if (!bar) { return; }
+
+            var pageUserId = bar.getAttribute("data-user-id") || "";
+
+            // Anonymous pages (login) have nothing to protect.
+            if (pageUserId === "") { return; }
+
+            var notified = false;
+
+            function show(message) {
+                if (notified) { return; }
+                notified = true;
+                document.getElementById("sessionChangedText").textContent = message;
+                bar.hidden = false;
+                bar.style.display = "flex";
+            }
+
+            function checkSession() {
+                if (notified || document.hidden) { return; }
+
+                fetch("/Account/WhoAmI", { credentials: "same-origin", cache: "no-store" })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data) { return; }
+
+                        if (!data.authenticated) {
+                            show("Your session has ended. Please sign in again.");
+                            return;
+                        }
+
+                        if (String(data.id) !== String(pageUserId)) {
+                            show("This page is out of date - you are now signed in as "
+                                 + (data.name || "another user")
+                                 + (data.role ? " (" + data.role + ")" : "")
+                                 + " in another tab. Reload before continuing.");
+                        }
+                    })
+                    .catch(function () { /* offline or transient - ignore */ });
+            }
+
+            document.addEventListener("visibilitychange", function () {
+                if (!document.hidden) { checkSession(); }
+            });
+
+            window.addEventListener("focus", checkSession);
 
         })();
     </script>

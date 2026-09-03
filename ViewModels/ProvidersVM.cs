@@ -32,11 +32,12 @@ namespace LaudaryMis.ViewModels
 
         public bool IsActive { get; set; } = true;
 
-        [Required(ErrorMessage = "Password is required.")]
-        [MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]
+        // Required only when adding a provider (enforced in AdminController).
+        // On edit a blank value means "keep the current password", so the
+        // policy below is only applied when a password is actually entered.
         [RegularExpression(
             @"^(?=.*[A-Za-z])(?=.*\d).{6,}$",
             ErrorMessage = "Password must be at least 6 characters and contain both letters and numbers.")]
-        public string Password { get; set; } = string.Empty;
+        public string? Password { get; set; }
     }
 }

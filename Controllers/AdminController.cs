@@ -162,10 +162,15 @@ namespace LaudaryMis.Controllers
                 return View(model);
             }
 
-            //if (!ModelState.IsValid)
-            //{
-            //    return View(model);
-            //}
+            // On edit a blank password means "keep the current one", so it must
+            // not trip the policy validation.
+            if (isEdit && string.IsNullOrWhiteSpace(model.Password))
+                ModelState.Remove(nameof(model.Password));
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
             try
             {
@@ -205,6 +210,16 @@ namespace LaudaryMis.Controllers
         public async Task<IActionResult> EditProvider(int id)
         {
             var data = await _providerService.GetProviderByIdAsync(id);
+
+            if (data == null)
+            {
+                TempData["ErrorMessage"] = "Provider not found.";
+                return RedirectToAction("Providers");
+            }
+
+            // Never send the stored password back to the browser. A blank field
+            // on edit keeps the existing password.
+            data.Password = null;
 
             return View("CreateProvider", data);
         }
