@@ -1,4 +1,4 @@
-﻿@model LaudaryMis.ViewModels.LoginVM
+@model LaudaryMis.ViewModels.LoginVM
 @{
     Layout = null;
 }
@@ -154,16 +154,6 @@
 
             </form>
 
-            @* Signing in here replaces only this tab's slot. To keep an account
-               already signed in on another slot, open a free one instead. *@
-            <div class="login-foot" style="padding-bottom:0;">
-                Signing in as someone else?
-                <a href="@Url.Action("UseAnotherAccount", "Account")">
-                    Open a separate session
-                </a>
-                so your other account stays signed in.
-            </div>
-
             <div class="login-foot">
                 Directorate General of Medical &amp; Health Services, Uttar Pradesh
             </div>
@@ -223,7 +213,7 @@
         function loadDistricts() {
             if (districtLoaded) return;
 
-            fetch('@Url.Content("~/User/GetDistricts")')
+            fetch('/User/GetDistricts')
                 .then(res => res.json())
                 .then(data => {
                     let ddl = document.getElementById("DistrictId");
@@ -238,7 +228,7 @@
         }
 
         function loadHospitals(districtId) {
-            fetch('@Url.Content("~/User/GetHospitalsByDistrict")?districtId=' + districtId)
+            fetch('/User/GetHospitalsByDistrict?districtId=' + districtId)
                 .then(res => res.json())
                 .then(data => {
                     let ddl = document.getElementById("HospitalId");
@@ -253,7 +243,7 @@
         function loadProviders() {
             if (providerLoaded) return;
 
-            fetch('@Url.Content("~/User/GetProviders")')
+            fetch('/User/GetProviders')
                 .then(res => res.json())
                 .then(data => {
                     let ddl = document.getElementById("ProviderId");

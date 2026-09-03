@@ -1,4 +1,4 @@
-﻿@using LaudaryMis.ViewModels
+@using LaudaryMis.ViewModels
 @model PickupVM
 
 @{
@@ -162,7 +162,7 @@
         </div>
 
         <div class="d-flex justify-content-end flex-wrap gap-2 mt-4 pt-3 border-top">
-            <a href="~/Hospital/PickupList" class="btn btn-light">Cancel</a>
+            <a href="/Hospital/PickupList" class="btn btn-light">Cancel</a>
             <button type="button" class="btn btn-primary" id="btnSavePickup" onclick="savePickup()">
                 <i class="fa-solid @(isEdit ? "fa-pen" : "fa-floppy-disk")"></i>
                 @(isEdit ? "Update Pickup" : "Save Pickup")
@@ -290,7 +290,7 @@
                     if (result.success) {
                         LMIS.toast(result.message || "Saved successfully");
                         setTimeout(function () {
-                            window.location.href = appUrl('/Hospital/PickupList');
+                            window.location.href = '/Hospital/PickupList';
                         }, 700);
                     } else {
                         $btn.prop("disabled", false);

@@ -1,4 +1,4 @@
-﻿@using LaudaryMis.ViewModels
+@using LaudaryMis.ViewModels
 @model List<DailyEntryListVM>
 
 @{
@@ -43,14 +43,14 @@
                             <td>
                                 <div class="d-flex flex-wrap align-items-center gap-2">
 
-                                    <form method="post" action="~/Hospital/Verify" class="d-inline">
+                                    <form method="post" action="/Hospital/Verify" class="d-inline">
                                         <input type="hidden" name="id" value="@item.EntryId" />
                                         <button type="submit" class="btn btn-sm btn-success">
                                             <i class="fa-solid fa-check"></i> Verify
                                         </button>
                                     </form>
 
-                                    <form method="post" action="~/Hospital/Reject" class="d-flex align-items-center gap-2">
+                                    <form method="post" action="/Hospital/Reject" class="d-flex align-items-center gap-2">
                                         <input type="hidden" name="id" value="@item.EntryId" />
                                         <input type="text" name="reason" class="form-control form-control-sm"
                                                placeholder="Reason" required style="max-width: 170px;" />

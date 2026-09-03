@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LaudaryMis.ViewModels.HospitalVM>
+@model IEnumerable<LaudaryMis.ViewModels.HospitalVM>
 
 @{
     ViewBag.Title = "Hospital List";
@@ -13,7 +13,7 @@
         <p class="ph-sub">@total registered &middot; @active active</p>
     </div>
     <div class="ph-actions">
-        <a href="~/Admin/CreateHospital" class="btn btn-primary">
+        <a href="/Admin/CreateHospital" class="btn btn-primary">
             <i class="fa-solid fa-plus"></i> Add Hospital
         </a>
     </div>
@@ -52,7 +52,7 @@
                             </td>
                             <td class="text-end">
                                 <div class="action-group justify-content-end">
-                                    <a href="~/Admin/EditHospital/@h.HospitalId"
+                                    <a href="/Admin/EditHospital/@h.HospitalId"
                                        class="btn btn-sm btn-icon btn-outline-primary"
                                        data-bs-toggle="tooltip" title="Edit">
                                         <i class="fa-solid fa-pen"></i>

@@ -1,4 +1,4 @@
-﻿@model List<LaudaryMis.ViewModels.PickupListVM>
+@model List<LaudaryMis.ViewModels.PickupListVM>
 
 @{
     ViewBag.Title = "Pickup Entries";
@@ -11,7 +11,7 @@
         <p class="ph-sub">Linen collected from wards, and its delivery status</p>
     </div>
     <div class="ph-actions">
-        <a href="~/Hospital/CreatePickUp" class="btn btn-primary">
+        <a href="/Hospital/CreatePickUp" class="btn btn-primary">
             <i class="fa-solid fa-plus"></i> New Pickup
         </a>
     </div>
@@ -152,7 +152,7 @@
 
                                     @if (item.Status == "Collected")
                                     {
-                                        <a href="~/Hospital/EditPickup/@item.PickupId"
+                                        <a href="/Hospital/EditPickup/@item.PickupId"
                                            class="btn btn-sm btn-icon btn-outline-primary"
                                            data-bs-toggle="tooltip" title="Edit">
                                             <i class="fa-solid fa-pen"></i>
@@ -165,7 +165,7 @@
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
 
-                                        <a href="~/Hospital/PrintPickup/@item.PickupId"
+                                        <a href="/Hospital/PrintPickup/@item.PickupId"
                                            target="_blank" rel="noopener"
                                            class="btn btn-sm btn-icon btn-outline-secondary"
                                            data-bs-toggle="tooltip" title="Print">
@@ -305,11 +305,11 @@
                         if (item.status === "Collected") {
                             actionButtons =
                                 '<div class="action-group justify-content-end">' +
-                                    '<a href="~/Hospital/EditPickup/' + item.pickupId + '" class="btn btn-sm btn-icon btn-outline-primary" title="Edit">' +
+                                    '<a href="/Hospital/EditPickup/' + item.pickupId + '" class="btn btn-sm btn-icon btn-outline-primary" title="Edit">' +
                                         '<i class="fa-solid fa-pen"></i></a>' +
                                     '<button type="button" class="btn btn-sm btn-icon btn-outline-danger" title="Delete" onclick="deletePickup(' + item.pickupId + ',this)">' +
                                         '<i class="fa-solid fa-trash"></i></button>' +
-                                    '<a href="~/Hospital/PrintPickup/' + item.pickupId + '" target="_blank" rel="noopener" class="btn btn-sm btn-icon btn-outline-secondary" title="Print">' +
+                                    '<a href="/Hospital/PrintPickup/' + item.pickupId + '" target="_blank" rel="noopener" class="btn btn-sm btn-icon btn-outline-secondary" title="Print">' +
                                         '<i class="fa-solid fa-print"></i></a>' +
                                 '</div>';
                         }

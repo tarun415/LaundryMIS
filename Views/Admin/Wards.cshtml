@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LaudaryMis.ViewModels.WardVM>
+@model IEnumerable<LaudaryMis.ViewModels.WardVM>
 
 @{
     ViewBag.Title = "Ward List";
@@ -12,7 +12,7 @@
         <p class="ph-sub">@total ward@(total == 1 ? "" : "s") configured</p>
     </div>
     <div class="ph-actions">
-        <a href="~/Admin/CreateWard" class="btn btn-primary">
+        <a href="/Admin/CreateWard" class="btn btn-primary">
             <i class="fa-solid fa-plus"></i> Add Ward
         </a>
     </div>
@@ -36,7 +36,7 @@
                             <td class="fw-semibold">@w.WardName</td>
                             <td class="text-end">
                                 <div class="action-group justify-content-end">
-                                    <a href="~/Admin/EditWard/@w.WardId"
+                                    <a href="/Admin/EditWard/@w.WardId"
                                        class="btn btn-sm btn-icon btn-outline-primary"
                                        data-bs-toggle="tooltip" title="Edit">
                                         <i class="fa-solid fa-pen"></i>
