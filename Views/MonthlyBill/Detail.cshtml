@@ -158,24 +158,15 @@
                             </a>
                         }
 
-                        @if (Model.Status == "Draft" || Model.Status == "HospitalRejected")
+                        @if (Model.CanSubmitToHospital)
                         {
+                            var isResubmit = Model.Status != "Draft";
                             <form asp-action="SubmitToHospital" method="post" class="d-inline js-confirm-submit">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="billId" value="@Model.BillId" />
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fa-solid fa-hospital"></i> Submit to Hospital
-                                </button>
-                            </form>
-                        }
-
-                        @if (Model.Status == "CMSRejected")
-                        {
-                            <form asp-action="SubmitToHospital" method="post" class="d-inline js-confirm-submit">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="billId" value="@Model.BillId" />
-                                <button type="submit" class="btn btn-gold">
-                                    <i class="fa-solid fa-rotate"></i> Re-Submit to Hospital
+                                <button type="submit" class="btn @(isResubmit ? "btn-gold" : "btn-success")">
+                                    <i class="fa-solid @(isResubmit ? "fa-rotate" : "fa-hospital")"></i>
+                                    @(isResubmit ? "Re-Submit to Hospital" : "Submit to Hospital")
                                 </button>
                             </form>
                         }

@@ -1,0 +1,378 @@
+@model LaudaryMis.ViewModels.PaymentDetailsVM
+
+@{
+    var p = Model.Payment;
+    var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(p.MonthNo);
+
+    ViewData["Title"] = "Payment Details";
+
+    var isAdmin = User.IsInRole("Admin");
+    var isPending = p.Status == "Pending";
+
+    var statusBadge = p.Status switch
+    {
+        "Approved" => "badge-ok",
+        "Rejected" => "badge-danger",
+        "Pending" => "badge-warn",
+        _ => "badge-navy"
+    };
+
+    var scoreBadge = p.AverageScore >= 81 ? "badge-ok"
+                   : p.AverageScore >= 61 ? "badge-warn"
+                   : "badge-danger";
+}
+
+@section Styles {
+    <style>
+        .net-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+            padding: 13px 15px;
+            background: var(--ok-bg);
+            border: 1px solid var(--ok-line);
+            border-radius: var(--r-sm);
+        }
+        .net-row .val { font-weight: 800; color: var(--ok); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+        .calc-row span:last-child { font-variant-numeric: tabular-nums; }
+        .doc-name { word-break: break-all; }
+    </style>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" data-auto-dismiss>
+        <i class="fa-solid fa-circle-check"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+    <div class="ph-text">
+        <h1>Payment @p.PaymentNo</h1>
+        <p class="ph-sub">@p.HospitalName &middot; @monthName @p.YearNo</p>
+    </div>
+    <div class="ph-actions">
+        <span class="badge @statusBadge" style="font-size: .8rem; padding: 7px 14px;">@p.Status</span>
+        <a asp-action="PaymentList" class="btn btn-light">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+
+    <div class="col-12 col-lg-7">
+
+        <!-- PAYMENT INFO -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fa-solid fa-file-signature text-teal"></i>
+                <span class="card-title">Payment Information</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 col-sm-6">
+                        <div class="dl-item"><dt>Hospital</dt><dd>@p.HospitalName</dd></div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <div class="dl-item"><dt>Provider</dt><dd>@p.ProviderName</dd></div>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <div class="dl-item"><dt>Month</dt><dd>@monthName @p.YearNo</dd></div>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <div class="dl-item"><dt>Beds (Occupied / Sanctioned)</dt><dd>@p.BedOccupancy / @p.SanctionedBeds</dd></div>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <div class="dl-item">
+                            <dt>Avg WPR Score</dt>
+                            <dd><span class="badge @scoreBadge">@p.AverageScore.ToString("N2") %</span></dd>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <div class="dl-item"><dt>Generated On</dt><dd>@p.CreatedOn.ToString("dd MMM yyyy")</dd></div>
+                    </div>
+                    @if (p.ApprovedOn != null)
+                    {
+                        <div class="col-6 col-sm-4">
+                            <div class="dl-item"><dt>Approved On</dt><dd>@p.ApprovedOn.Value.ToString("dd MMM yyyy")</dd></div>
+                        </div>
+                    }
+                    <div class="col-6 col-sm-4">
+                        <div class="dl-item">
+                            <dt>Invoice</dt>
+                            <dd>
+                                @if (p.InvoiceId != null)
+                                {
+                                    <a asp-controller="Invoice" asp-action="PreviewInvoice" asp-route-invoiceId="@p.InvoiceId"
+                                       target="_blank" rel="noopener">
+                                        <i class="fa-solid fa-eye"></i> View
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not generated</span>
+                                }
+                            </dd>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(p.Remarks))
+                    {
+                        <div class="col-12">
+                            <div class="dl-item"><dt>Remarks</dt><dd class="fw-normal text-muted">@p.Remarks</dd></div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIONS (Admin / CMS) -->
+        @if (isAdmin && isPending)
+        {
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="fa-solid fa-bolt text-teal"></i>
+                    <span class="card-title">Actions</span>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalApprove">
+                            <i class="fa-solid fa-check"></i> Approve
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalReject">
+                            <i class="fa-solid fa-xmark"></i> Reject
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- DOCUMENTS -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fa-solid fa-paperclip text-teal"></i>
+                <span class="card-title">Documents</span>
+            </div>
+            <div class="card-body">
+
+                @if (Model.Documents.Any())
+                {
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>File</th>
+                                    <th>Uploaded</th>
+                                    <th class="text-end"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var d in Model.Documents)
+                                {
+                                    <tr>
+                                        <td><span class="badge badge-navy">@d.DocumentType</span></td>
+                                        <td class="doc-name">@(d.OriginalFileName ?? d.FileName)</td>
+                                        <td class="nowrap text-muted small">@d.UploadedOn.ToString("dd MMM yyyy")</td>
+                                        <td class="text-end">
+                                            <a href="@d.FilePath" target="_blank" rel="noopener"
+                                               class="btn btn-sm btn-icon btn-outline-primary" title="Open">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">Abhi koi document upload nahi hua.</p>
+                }
+
+                <form asp-action="UploadPaymentDocument" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="paymentId" value="@p.PaymentId" />
+
+                    <div class="row g-2 align-items-end">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="documentType">Document Type</label>
+                            <select name="documentType" id="documentType" class="form-select" required>
+                                <option value="Invoice">Invoice</option>
+                                <option value="Sanction Order">Sanction Order</option>
+                                <option value="Payment Proof">Payment Proof</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <label class="form-label" for="file">File (PDF / JPG / PNG, max 10 MB)</label>
+                            <input type="file" name="file" id="file" accept=".pdf,.jpg,.jpeg,.png" class="form-control" required />
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fa-solid fa-upload"></i> Upload
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-12 col-lg-5">
+
+        <!-- CALCULATION -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-calculator text-teal"></i>
+                <span class="card-title">Calculation</span>
+            </div>
+            <div class="card-body">
+
+                <div class="calc-row">
+                    <span>Beds Occupied &times; Rate (₹@p.RatePerBed.ToString("N2"))</span>
+                    <span>₹@p.MonthlyBill.ToString("N2")</span>
+                </div>
+                <div class="calc-row">
+                    <span>Payment Band (@p.PaymentPercentage.ToString("0.##")%)</span>
+                    <span>₹@p.GrossPayable.ToString("N2")</span>
+                </div>
+                <div class="calc-row">
+                    <span>GST (@p.GSTPercentage.ToString("0.##")%)</span>
+                    <span>+₹@p.GSTAmount.ToString("N2")</span>
+                </div>
+                <div class="calc-row">
+                    <span class="fw-semibold">Invoice Amount</span>
+                    <span class="fw-semibold">₹@p.InvoiceAmount.ToString("N2")</span>
+                </div>
+                <div class="calc-row">
+                    <span>TDS (@p.TDSPercentage.ToString("0.##")%)</span>
+                    <span class="text-danger">-₹@p.TDSAmount.ToString("N2")</span>
+                </div>
+
+                <div class="net-row">
+                    <span class="fw-bold">Net Payable</span>
+                    <span class="val">₹@p.NetPayable.ToString("N2")</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- HISTORY -->
+        @if (Model.History.Any())
+        {
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="fa-solid fa-clock-rotate-left text-teal"></i>
+                    <span class="card-title">History</span>
+                </div>
+                <div class="card-body">
+                    <div class="tl">
+                        @foreach (var h in Model.History)
+                        {
+                            var dotClass = h.Status switch
+                            {
+                                "Approved" => "is-ok",
+                                "Rejected" => "is-danger",
+                                _ => "is-navy"
+                            };
+                            var badgeClass = h.Status switch
+                            {
+                                "Approved" => "badge-ok",
+                                "Rejected" => "badge-danger",
+                                _ => "badge-navy"
+                            };
+
+                            <div class="tl-item">
+                                <div class="tl-dot @dotClass"></div>
+                                <div class="tl-box">
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <span class="badge @badgeClass">@h.Status</span>
+                                        <strong>@(h.ActionByName ?? $"User #{h.ActionBy}")</strong>
+                                    </div>
+                                    <div class="text-muted small mt-1">
+                                        @h.ActionDate.ToString("dd MMM yyyy, hh:mm tt")
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(h.Remarks))
+                                    {
+                                        <div class="text-muted mt-1">
+                                            <i class="fa-solid fa-comment-dots"></i> @h.Remarks
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@if (isAdmin && isPending)
+{
+    <!-- APPROVE -->
+    <div class="modal fade" id="modalApprove" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa-solid fa-circle-check text-success me-1"></i> Approve Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="ApprovePayment" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="paymentId" value="@p.PaymentId" />
+                    <div class="modal-body">
+                        <p class="mb-2">Net Payable: <strong>₹@p.NetPayable.ToString("N2")</strong></p>
+                        <label class="form-label" for="approveRemarks">Remarks (Optional)</label>
+                        <textarea name="remarks" id="approveRemarks" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success"><i class="fa-solid fa-check"></i> Approve</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- REJECT -->
+    <div class="modal fade" id="modalReject" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa-solid fa-circle-xmark text-danger me-1"></i> Reject Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="RejectPayment" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="paymentId" value="@p.PaymentId" />
+                    <div class="modal-body">
+                        <label class="form-label" for="rejectRemarks">Reason <span class="text-danger">*</span></label>
+                        <textarea name="remarks" id="rejectRemarks" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger"><i class="fa-solid fa-xmark"></i> Reject</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

@@ -96,9 +96,13 @@ namespace LaudaryMis.Repositories
             using var connection = CreateConnection();
 
             return await connection.QueryFirstOrDefaultAsync<PaymentMaster>(
-                @"SELECT *
-                  FROM PaymentMaster
-                  WHERE PaymentId=@PaymentId",
+                @"SELECT pm.*,
+                         h.HospitalName,
+                         p.ProviderName
+                  FROM PaymentMaster pm
+                  LEFT JOIN Tbl_Hospitals h ON pm.HospitalId = h.HospitalId
+                  LEFT JOIN tbl_Providers p ON pm.ProviderId = p.ProviderId
+                  WHERE pm.PaymentId=@PaymentId",
                 new { PaymentId = paymentId });
         }
 
@@ -113,7 +117,8 @@ namespace LaudaryMis.Repositories
         {
             using var conn = CreateConnection();
 
-            int rows = await conn.ExecuteAsync(
+            // Proc affected rows SELECT karta hai (0 = payment Pending nahi thi)
+            int rows = await conn.ExecuteScalarAsync<int>(
                 "sp_ApprovePayment",
                 new
                 {
@@ -137,7 +142,7 @@ namespace LaudaryMis.Repositories
         {
             using var conn = CreateConnection();
 
-            int rows = await conn.ExecuteAsync(
+            int rows = await conn.ExecuteScalarAsync<int>(
                 "sp_RejectPayment",
                 new
                 {
@@ -181,7 +186,9 @@ namespace LaudaryMis.Repositories
             var data = await connection.QueryAsync<PaymentDocument>(
                 @"SELECT *
                   FROM PaymentDocuments
-                  WHERE PaymentId=@PaymentId",
+                  WHERE PaymentId=@PaymentId
+                    AND IsDeleted = 0
+                  ORDER BY UploadedOn DESC",
                 new
                 {
                     PaymentId = paymentId
@@ -204,7 +211,10 @@ namespace LaudaryMis.Repositories
                 PaymentId,
                 DocumentType,
                 FileName,
+                OriginalFileName,
                 FilePath,
+                ContentType,
+                FileSize,
                 UploadedBy,
                 UploadedOn
             )
@@ -213,7 +223,10 @@ namespace LaudaryMis.Repositories
                 @PaymentId,
                 @DocumentType,
                 @FileName,
+                @OriginalFileName,
                 @FilePath,
+                @ContentType,
+                @FileSize,
                 @UploadedBy,
                 GETDATE()
             )",
@@ -229,15 +242,17 @@ namespace LaudaryMis.Repositories
 
             var sql = @"
         SELECT
-            Id,
-            PaymentId,
-            Status,
-            Remarks,
-            ActionBy,
-            ActionDate
-        FROM PaymentApprovalLog
-        WHERE PaymentId = @PaymentId
-        ORDER BY ActionDate DESC";
+            l.Id,
+            l.PaymentId,
+            l.ActionTaken AS Status,
+            l.Remarks,
+            l.ActionBy,
+            u.FullName    AS ActionByName,
+            l.ActionOn    AS ActionDate
+        FROM PaymentApprovalLog l
+        LEFT JOIN Tbl_Users u ON l.ActionBy = u.UserId
+        WHERE l.PaymentId = @PaymentId
+        ORDER BY l.ActionOn DESC";
 
             var result = await con.QueryAsync<PaymentApprovalLog>(
                 sql,
@@ -248,6 +263,7 @@ namespace LaudaryMis.Repositories
         public async Task<List<PaymentMaster>> GetPayments(
     int? agreementId,
     int? hospitalId,
+    int? providerId,
     int? monthNo,
     int? yearNo,
     string status)
@@ -258,6 +274,7 @@ namespace LaudaryMis.Repositories
 
             parameters.Add("@AgreementId", agreementId);
             parameters.Add("@HospitalId", hospitalId);
+            parameters.Add("@ProviderId", providerId);
             parameters.Add("@MonthNo", monthNo);
             parameters.Add("@YearNo", yearNo);
             parameters.Add("@Status", status);

@@ -67,12 +67,12 @@ namespace LaudaryMis.ViewModels
 
         // Provider
         public bool CanSubmitToHospital =>
-            Status == "Draft" || Status == "HospitalRejected";
+            Status is "Draft" or "HospitalRejected" or "CMSRejected";
 
         public bool CanSubmit => CanSubmitToHospital; // 🔥 FIX
 
         public bool CanEdit =>
-            Status == "Draft" || Status == "HospitalRejected";
+            Status is "Draft" or "HospitalRejected" or "CMSRejected";
 
         // Hospital
         public bool CanHospitalAction =>

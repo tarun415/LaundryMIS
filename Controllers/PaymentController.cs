@@ -27,9 +27,20 @@ public class PaymentController : Controller
         int? yearNo,
         string status)
     {
+        int? providerId = null;
+
+        // Hospital / Provider sirf apni payments dekhein; Admin filter chuna sakta hai
+        if (User.IsInRole("Hospital"))
+            hospitalId = GetClaimId("HospitalId");
+        else if (User.IsInRole("Provider"))
+            providerId = GetClaimId("ProviderId");
+        else if (!User.IsInRole("Admin"))
+            return Forbid();
+
         var model = await _paymentService.GetPayments(
             agreementId,
             hospitalId,
+            providerId,
             monthNo,
             yearNo,
             status);
@@ -97,57 +108,74 @@ public class PaymentController : Controller
     // Payment Details
     //-------------------------------------------------------
 
+    [HttpGet]
     public async Task<IActionResult> PaymentDetails(int paymentId)
     {
+        var payment = await _paymentService.GetPaymentById(paymentId);
+
+        if (payment == null)
+            return NotFound();
+
+        if (!CanAccess(payment))
+            return Forbid();
+
         var vm = new PaymentDetailsVM
         {
-            Payment = await _paymentService.GetPaymentById(paymentId),
-            Calculations = await _paymentService.GetCalculations(paymentId),
+            Payment = payment,
             Documents = await _paymentService.GetDocuments(paymentId),
             History = await _paymentService.GetApprovalHistory(paymentId)
         };
-
-        if (vm.Payment == null)
-            return NotFound();
 
         return View(vm);
     }
 
     //-------------------------------------------------------
-    // Approve
+    // Approve (Admin / CMS)
     //-------------------------------------------------------
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ApprovePayment(
      int paymentId,
-     string remarks)
+     string? remarks)
     {
         bool result = await _paymentService.ApprovePayment(
             paymentId,
-            1,
-            remarks);
+            GetUserId(),
+            remarks ?? "");
 
-        TempData["Success"] = result
-            ? "Payment Approved Successfully."
-            : "Approval Failed.";
+        if (result)
+            TempData["Success"] = "Payment Approved Successfully.";
+        else
+            TempData["Error"] = "Sirf 'Pending' payment approve ho sakti hai.";
 
         return RedirectToAction(nameof(PaymentDetails),
             new { paymentId });
     }
 
     //-------------------------------------------------------
-    // Reject
+    // Reject (Admin / CMS)
     //-------------------------------------------------------
 
     [HttpPost]
-    public async Task<IActionResult> RejectPayment( int paymentId, string remarks)
+    [Authorize(Roles = "Admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RejectPayment(int paymentId, string? remarks)
     {
-        bool result = await _paymentService.RejectPayment(
-            paymentId,  1,  remarks);
+        if (string.IsNullOrWhiteSpace(remarks))
+        {
+            TempData["Error"] = "Reject karte waqt reason likhna zaroori hai.";
+            return RedirectToAction(nameof(PaymentDetails), new { paymentId });
+        }
 
-        TempData["Success"] = result
-            ? "Payment Rejected Successfully."
-            : "Reject Failed.";
+        bool result = await _paymentService.RejectPayment(
+            paymentId, GetUserId(), remarks);
+
+        if (result)
+            TempData["Success"] = "Payment Rejected Successfully.";
+        else
+            TempData["Error"] = "Sirf 'Pending' payment reject ho sakti hai.";
 
         return RedirectToAction(nameof(PaymentDetails),
             new { paymentId });
@@ -157,12 +185,108 @@ public class PaymentController : Controller
     // Upload Document
     //-------------------------------------------------------
 
+    private static readonly string[] AllowedDocExtensions =
+        { ".pdf", ".jpg", ".jpeg", ".png" };
+
+    private const long MaxDocSize = 10 * 1024 * 1024; // 10 MB
+
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UploadPaymentDocument(
-        PaymentDocument model)
+        int paymentId,
+        string documentType,
+        IFormFile? file)
     {
-        await _paymentService.UploadDocument(model);
-        return RedirectToAction(nameof(PaymentDetails), new { paymentId = model.PaymentId });
+        var payment = await _paymentService.GetPaymentById(paymentId);
+
+        if (payment == null)
+            return NotFound();
+
+        if (!CanAccess(payment))
+            return Forbid();
+
+        string ext = Path.GetExtension(file?.FileName ?? "").ToLowerInvariant();
+
+        string? error = null;
+
+        if (file == null || file.Length == 0)
+            error = "Upload karne ke liye file select karein.";
+        else if (!AllowedDocExtensions.Contains(ext))
+            error = "Sirf PDF, JPG ya PNG file upload ho sakti hai.";
+        else if (file.Length > MaxDocSize)
+            error = "File 10 MB se badi nahi honi chahiye.";
+        else if (string.IsNullOrWhiteSpace(documentType))
+            error = "Document type select karein.";
+
+        if (error != null)
+        {
+            TempData["Error"] = error;
+            return RedirectToAction(nameof(PaymentDetails), new { paymentId });
+        }
+
+        string folderPath = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "wwwroot", "uploads", "PaymentDocuments");
+
+        Directory.CreateDirectory(folderPath);
+
+        string fileName = $"{Guid.NewGuid()}{ext}";
+
+        using (var stream = new FileStream(
+            Path.Combine(folderPath, fileName), FileMode.Create))
+        {
+            await file!.CopyToAsync(stream);
+        }
+
+        await _paymentService.UploadDocument(new PaymentDocument
+        {
+            PaymentId = paymentId,
+            DocumentType = documentType,
+            FileName = fileName,
+            OriginalFileName = Path.GetFileName(file.FileName),
+            FilePath = "/uploads/PaymentDocuments/" + fileName,
+            ContentType = file.ContentType,
+            FileSize = file.Length,
+            UploadedBy = GetUserId()
+        });
+
+        TempData["Success"] = "Document upload ho gaya.";
+        return RedirectToAction(nameof(PaymentDetails), new { paymentId });
+    }
+
+    //-------------------------------------------------------
+    // Helpers
+    //-------------------------------------------------------
+
+    private int GetUserId()
+    {
+        var val = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(val, out int id))
+            throw new UnauthorizedAccessException("User ID claim nahi mila.");
+        return id;
+    }
+
+    // Claim missing/0 ho to -1 return, taaki koi payment match na ho
+    private int GetClaimId(string claimType)
+    {
+        return int.TryParse(User.FindFirst(claimType)?.Value, out int id) && id > 0
+            ? id
+            : -1;
+    }
+
+    // Admin sab dekh sakta hai; Hospital/Provider sirf apni payment
+    private bool CanAccess(PaymentMaster payment)
+    {
+        if (User.IsInRole("Admin"))
+            return true;
+
+        if (User.IsInRole("Hospital"))
+            return User.FindFirst("HospitalId")?.Value == payment.HospitalId.ToString();
+
+        if (User.IsInRole("Provider"))
+            return User.FindFirst("ProviderId")?.Value == payment.ProviderId.ToString();
+
+        return false;
     }
 
     [HttpGet]

@@ -42,7 +42,7 @@ namespace LaudaryMis.Repositories
         public async Task<ProvidersVM> GetProviderByIdAsync(int id)
         {
             var sql = @"SELECT *
-                        FROM Providers
+                        FROM tbl_Providers
                         WHERE ProviderId = @Id";
 
             return await _db.QueryFirstOrDefaultAsync<ProvidersVM>(
@@ -52,7 +52,7 @@ namespace LaudaryMis.Repositories
 
         public async Task<List<DropdownVM>> GetHospitalsByProvider(int providerId)
         {
-            var sql = @"select distinct hs.HospitalId as Id, hs.HospitalName as Name from ProviderHospitalAgreements as ag left join tbl_Hospitals hs on ag.ProviderId= hs.HospitalId where ag.ProviderId= = @ProviderId";
+            var sql = @"select distinct hs.HospitalId as Id, hs.HospitalName as Name from ProviderHospitalAgreements as ag inner join tbl_Hospitals hs on ag.HospitalId = hs.HospitalId where ag.ProviderId = @ProviderId";
 
             var data = await _db.QueryAsync<DropdownVM>(
                 sql,

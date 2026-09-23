@@ -122,7 +122,8 @@
                 Hospitals:  '@Url.Action("Hospitals", "Admin")',
                 Agreements: '@Url.Action("Agreements", "Admin")',
                 Providers:  '@Url.Action("Providers", "Admin")',
-                Wards:      '@Url.Action("Wards", "Admin")'
+                Wards:      '@Url.Action("Wards", "Admin")',
+                Payments:   '@Url.Action("PaymentList", "Payment")'
             },
             hospital: {
                 dashboard:             '@Url.Action("Dashboard", "Hospital")',
@@ -157,7 +158,9 @@
                 { id: "hospitals",  icon: "fa-hospital",        label: "Hospitals",  route: routes.admin.Hospitals },
                 { id: "providers",  icon: "fa-truck-fast",      label: "Providers",  route: routes.admin.Providers },
                 { id: "wards",      icon: "fa-bed",             label: "Wards",      route: routes.admin.Wards },
-                { id: "agreements", icon: "fa-file-signature",  label: "Agreements", route: routes.admin.Agreements }
+                { id: "agreements", icon: "fa-file-signature",  label: "Agreements", route: routes.admin.Agreements },
+                { section: "Finance" },
+                { id: "payments",   icon: "fa-money-bill-wave", label: "Payments",   route: routes.admin.Payments }
             ],
             Hospital: [
                 { section: "Overview" },

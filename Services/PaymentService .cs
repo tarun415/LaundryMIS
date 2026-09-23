@@ -112,6 +112,7 @@ namespace LaudaryMis.Services
         public async Task<List<PaymentMaster>> GetPayments(
     int? agreementId,
     int? hospitalId,
+    int? providerId,
     int? monthNo,
     int? yearNo,
     string status)
@@ -119,6 +120,7 @@ namespace LaudaryMis.Services
             return await _repository.GetPayments(
                 agreementId,
                 hospitalId,
+                providerId,
                 monthNo,
                 yearNo,
                 status);

@@ -11,12 +11,9 @@ namespace LaudaryMis.Services.Interfaces
         // Recalculate amounts (AJAX ke liye bhi)
         void ComputeAmounts(MonthlyBillVM vm);
 
-        // Hospital actions
+        // Provider draft save
         Task<(bool Success, string Message, int BillId)>
             SaveDraftAsync(MonthlyBillVM vm, int userId);
-
-        Task<(bool Success, string Message)>
-            SubmitBillAsync(int billId, int userId);
 
         // CMS actions
         Task<(bool Success, string Message)>
@@ -37,7 +34,7 @@ namespace LaudaryMis.Services.Interfaces
 
         // Provider bill submit to hospital
         Task<(bool Success, string Message)>
-            SubmitToHospitalAsync(int billId, int providerId);
+            SubmitToHospitalAsync(int billId, int providerId, int userId);
 
         // Hospital verify karta hai
         Task<(bool Success, string Message)>

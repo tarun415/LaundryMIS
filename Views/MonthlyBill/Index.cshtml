@@ -5,7 +5,7 @@
 
     var list = Model.ToList();
     var draft = list.Count(x => x.Status == "Draft");
-    var subm  = list.Count(x => x.Status == "Submitted");
+    var subm  = list.Count(x => x.Status == "HospitalApproved");
     var appr  = list.Count(x => x.Status == "CMSApproved");
     var rej   = list.Count(x => x.Status == "CMSRejected");
 }
@@ -72,7 +72,9 @@
             <select name="status" id="status" class="form-select">
                 <option value="">All</option>
                 <option value="Draft" selected="@(ViewBag.FilterStatus as string == "Draft")">Draft</option>
-                <option value="Submitted" selected="@(ViewBag.FilterStatus as string == "Submitted")">Submitted</option>
+                <option value="HospitalSubmitted" selected="@(ViewBag.FilterStatus as string == "HospitalSubmitted")">With Hospital</option>
+                <option value="HospitalApproved" selected="@(ViewBag.FilterStatus as string == "HospitalApproved")">Pending CMS</option>
+                <option value="HospitalRejected" selected="@(ViewBag.FilterStatus as string == "HospitalRejected")">Hospital Rejected</option>
                 <option value="CMSApproved" selected="@(ViewBag.FilterStatus as string == "CMSApproved")">Approved</option>
                 <option value="CMSRejected" selected="@(ViewBag.FilterStatus as string == "CMSRejected")">Rejected</option>
             </select>
@@ -117,7 +119,9 @@
                         {
                             "CMSApproved" => "badge-ok",
                             "CMSRejected" => "badge-danger",
-                            "Submitted" => "badge-warn",
+                            "HospitalRejected" => "badge-danger",
+                            "HospitalApproved" => "badge-warn",
+                            "HospitalSubmitted" => "badge-info",
                             _ => "badge-navy"
                         };
 
