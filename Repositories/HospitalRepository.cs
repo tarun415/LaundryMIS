@@ -30,9 +30,9 @@ namespace LaudaryMis.Repositories
         public async Task InsertAsync(HospitalVM model)
         {
             var sql = @"INSERT INTO Tbl_Hospitals
-                        (HospitalName, DistrictId, Address, City, ContactPerson, Phone, Email, IsActive)
+                        (HospitalName, DistrictId, Address, ContactPerson, Phone, Email, IsActive)
                         VALUES
-                        (@HospitalName, @DistrictId, @Address, @City, @ContactPerson, @Phone, @Email, 1)";
+                        (@HospitalName, @DistrictId, @Address, @ContactPerson, @Phone, @Email, 1)";
 
             await _db.ExecuteAsync(sql, model);
         }

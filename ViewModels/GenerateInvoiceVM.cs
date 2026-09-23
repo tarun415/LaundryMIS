@@ -47,6 +47,9 @@
 
             public decimal NetPayable { get; set; }
 
+            // Payment status — invoice sirf 'Approved' payment pe banta hai
+            public string? Status { get; set; }
+
             public DateTime InvoiceDate { get; set; } = DateTime.Today;
 
             public string? Remarks { get; set; }

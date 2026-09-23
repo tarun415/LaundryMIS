@@ -137,20 +137,38 @@
                                 <td class="text-end nowrap fw-bold text-success">₹ @item.NetPayable.ToString("N2")</td>
 
                                 <td>
-                                    @if (item.InvoiceId == null)
-                                    {
-                                        <span class="badge badge-warn">Pending</span>
+                                    @{
+                                        var payBadge = item.Status switch
+                                        {
+                                            "Approved" => "badge-ok",
+                                            "Rejected" => "badge-danger",
+                                            _ => "badge-warn"
+                                        };
                                     }
-                                    else
+                                    <span class="badge @payBadge">@item.Status</span>
+                                    @if (item.InvoiceId != null)
                                     {
-                                        <span class="badge badge-ok">Invoice Generated</span>
+                                        <span class="badge badge-info">Invoiced</span>
                                     }
                                 </td>
 
-                                <td class="text-end">
+                                <td class="text-end nowrap">
+                                    <a asp-action="PaymentDetails"
+                                       asp-route-paymentId="@item.PaymentId"
+                                       class="btn btn-sm btn-icon btn-outline-secondary"
+                                       data-bs-toggle="tooltip" title="Payment details">
+                                        <i class="fa-solid fa-circle-info"></i>
+                                    </a>
                                     @if (item.InvoiceId == null)
                                     {
-                                        @if (User.IsInRole("Provider"))
+                                        @if (User.IsInRole("Provider") && item.Status != "Approved")
+                                        {
+                                            <span class="badge badge-navy" data-bs-toggle="tooltip"
+                                                  title="Invoice payment approve hone ke baad banega">
+                                                Awaiting approval
+                                            </span>
+                                        }
+                                        else if (User.IsInRole("Provider"))
                                         {
                                             <a asp-controller="Invoice"
                                                asp-action="GenerateInvoice"
@@ -158,10 +176,6 @@
                                                class="btn btn-sm btn-primary">
                                                 <i class="fa-solid fa-file-invoice"></i> Generate
                                             </a>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">&mdash;</span>
                                         }
                                     }
                                     else

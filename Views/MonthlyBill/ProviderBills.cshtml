@@ -5,7 +5,7 @@
 
     var list = Model.ToList();
     var draft = list.Count(x => x.Status == "Draft");
-    var pending = list.Count(x => x.Status == "HospitalSubmitted" || x.Status == "Submitted");
+    var pending = list.Count(x => x.Status == "HospitalSubmitted" || x.Status == "HospitalApproved");
     var approved = list.Count(x => x.Status == "CMSApproved");
     var rejected = list.Count(x => x.Status is "CMSRejected" or "HospitalRejected");
 }
@@ -127,7 +127,7 @@
                                 "CMSRejected" => "badge-danger",
                                 "HospitalRejected" => "badge-danger",
                                 "HospitalSubmitted" => "badge-info",
-                                "Submitted" => "badge-warn",
+                                "HospitalApproved" => "badge-warn",
                                 _ => "badge-navy"
                             };
 

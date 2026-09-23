@@ -12,6 +12,8 @@
 
         public int ActionBy { get; set; }
 
+        public string? ActionByName { get; set; }
+
         public DateTime ActionDate { get; set; }
     }
 }

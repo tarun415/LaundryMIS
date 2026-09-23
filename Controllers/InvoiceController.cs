@@ -38,6 +38,7 @@ namespace LaudaryMis.Controllers
 
             return View(result);
         }
+        [Authorize(Roles = "Provider")]
         public async Task<IActionResult> GenerateInvoice(
     int paymentId)
         {
@@ -50,13 +51,38 @@ namespace LaudaryMis.Controllers
                 return NotFound();
             }
 
+            if (!IsOwnProvider(model.ProviderId))
+                return Forbid();
+
+            if (model.Status != "Approved")
+            {
+                TempData["Error"] = "Invoice sirf approved payment ke liye generate ho sakta hai.";
+                return RedirectToAction("PaymentList", "Payment");
+            }
+
             return View(model);
         }
         [HttpPost]
+        [Authorize(Roles = "Provider")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GenerateInvoice(
     GenerateInvoiceVM model)
         {
+            // Payment ka asli status/provider DB se check karo (form pe bharosa nahi)
+            var payment = await _invoiceService.GetGenerateInvoiceData(model.PaymentId);
+
+            if (payment == null)
+                return NotFound();
+
+            if (!IsOwnProvider(payment.ProviderId))
+                return Forbid();
+
+            if (payment.Status != "Approved")
+            {
+                TempData["Error"] = "Invoice sirf approved payment ke liye generate ho sakta hai.";
+                return RedirectToAction("PaymentList", "Payment");
+            }
+
             if (!ModelState.IsValid)
             {
                 var vm = await _invoiceService
@@ -69,7 +95,9 @@ namespace LaudaryMis.Controllers
                 return View(vm);
             }
 
-            model.CreatedBy = 1; //Later Claims
+            model.CreatedBy = int.TryParse(
+                User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+                out int userId) ? userId : 0;
 
             var result = await _invoiceService.GenerateInvoice(model);
 
@@ -334,6 +362,11 @@ int invoiceId)
             return PhysicalFile(
                 path,
                 "application/pdf");
+        }
+
+        private bool IsOwnProvider(int providerId)
+        {
+            return User.FindFirst("ProviderId")?.Value == providerId.ToString();
         }
     }
 }

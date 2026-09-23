@@ -62,11 +62,13 @@ namespace LaudaryMis.Repositories
                     a.BedCount      AS SanctionedBeds,
                     a.RatePerBed    AS RatePerBedPerYear,
                     h.HospitalName,
-                    h.District,
+                    dm.DistrictName AS District,
                     a.AgreementFile AS ContractNo
                 FROM ProviderHospitalAgreements a
                 JOIN tbl_Hospitals h
                     ON a.HospitalId = h.HospitalId
+                LEFT JOIN DistrictMaster dm
+                    ON h.DistrictId = dm.DistrictID
                 WHERE a.HospitalId = @hospitalId
                   AND a.IsActive   = 1";
 
@@ -166,7 +168,7 @@ namespace LaudaryMis.Repositories
         }
 
         // ──────────────────────────────────────────────────────
-        // Update Status (Submit / CMSApprove / CMSReject)
+        // Update Status (HospitalSubmit / CMSApprove / CMSReject)
         // ──────────────────────────────────────────────────────
         public async Task UpdateBillStatusAsync(
             int billId, string newStatus, int actionBy, string? remarks,
@@ -176,7 +178,7 @@ namespace LaudaryMis.Repositories
                 UPDATE MonthlyBills SET
                     Status       = @newStatus,
                     SubmittedAt  = CASE
-                                     WHEN @newStatus = 'Submitted'
+                                     WHEN @newStatus = 'HospitalSubmitted'
                                      THEN GETDATE()
                                      ELSE SubmittedAt
                                    END,
@@ -215,7 +217,7 @@ namespace LaudaryMis.Repositories
                 SELECT
                     b.Id                AS BillId,
                     h.HospitalName,
-                    h.District,
+                    dm.DistrictName AS District,
                     b.BillingMonth,
                     b.BillingYear,
                     b.WPRAvgScore,
@@ -227,6 +229,8 @@ namespace LaudaryMis.Repositories
                 FROM MonthlyBills b
                 JOIN tbl_Hospitals h
                     ON b.HospitalId = h.HospitalId
+                LEFT JOIN DistrictMaster dm
+                    ON h.DistrictId = dm.DistrictID
                 WHERE (@status     IS NULL OR b.Status     = @status)
                   AND (@hospitalId IS NULL OR b.HospitalId = @hospitalId)
                 ORDER BY
@@ -283,11 +287,12 @@ namespace LaudaryMis.Repositories
             a.BedCount      AS SanctionedBeds,
             a.RatePerBed    AS RatePerBedPerYear,
             h.HospitalName,
-            h.District,
+            dm.DistrictName AS District,
             a.AgreementFile AS ContractNo,
             p.ProviderName
         FROM ProviderHospitalAgreements a
         JOIN tbl_Hospitals h ON a.HospitalId = h.HospitalId
+        LEFT JOIN DistrictMaster dm ON h.DistrictId = dm.DistrictID
         JOIN tbl_Providers p ON a.ProviderId  = p.ProviderId
         WHERE a.ProviderId  = @providerId
           AND a.HospitalId  = @hospitalId
@@ -322,7 +327,7 @@ namespace LaudaryMis.Repositories
         SELECT
             b.Id                AS BillId,
             h.HospitalName,
-            h.District,
+            dm.DistrictName AS District,
             p.ProviderName,
             b.ProviderId,
             b.BillingMonth,
@@ -335,6 +340,7 @@ namespace LaudaryMis.Repositories
             b.CreatedAt
         FROM MonthlyBills b
         JOIN tbl_Hospitals h ON b.HospitalId  = h.HospitalId
+        LEFT JOIN DistrictMaster dm ON h.DistrictId = dm.DistrictID
         JOIN tbl_Providers p ON b.ProviderId   = p.ProviderId
         WHERE b.ProviderId = @providerId
         ORDER BY b.BillingYear DESC, b.BillingMonth DESC";

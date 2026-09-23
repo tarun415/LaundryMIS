@@ -53,6 +53,7 @@ namespace LaudaryMis.Repositories.Interfaces
         Task<List<PaymentMaster>> GetPayments(
     int? agreementId,
     int? hospitalId,
+            int? providerId,
     int? monthNo,
     int? yearNo,
     string status);

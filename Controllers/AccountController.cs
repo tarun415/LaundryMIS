@@ -31,21 +31,20 @@ namespace LaudaryMis.Controllers
                 return View(model);
 
             User? user = null;
-            LoginResult result = null;
-            if (model.RoleId == 1)
+            LoginResult? result = model.RoleId switch
             {
+                1 => await _service.Login(model.Username ?? "", model.Password, model.RoleId),
+                2 => await _service.LoginHospital(model.HospitalId, model.Password),
+                3 => await _service.LoginProvider(model.ProviderId, model.Password),
+                _ => null
+            };
 
-                result = await _service.Login(model.Username ?? "", model.Password, model.RoleId);
+            if (result == null)
+            {
+                ModelState.AddModelError("", "Please select a valid role.");
+                return View(model);
+            }
 
-            }
-            else if (model.RoleId == 2)
-            {
-                result = await _service.LoginHospital(model.HospitalId, model.Password);
-            }
-            else if (model.RoleId == 3)
-            {
-                result = await _service.LoginProvider(model.ProviderId, model.Password);
-            }                
             if (!result.Success)
             {
                 ModelState.AddModelError("", result.Message);

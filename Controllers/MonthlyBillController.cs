@@ -88,7 +88,7 @@ namespace LaudaryMis.Controllers
         {
             var (success, message) =
                 await _billService.SubmitToHospitalAsync(
-                    billId, GetProviderId());
+                    billId, GetProviderId(), GetUserId());
 
             TempData[success ? "Success" : "Error"] = message;
             return RedirectToAction(nameof(Detail), new { id = billId });

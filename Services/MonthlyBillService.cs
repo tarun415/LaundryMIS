@@ -103,7 +103,7 @@ namespace LaudaryMis.Services
                 vm.HospitalId, vm.BillingMonth, vm.BillingYear);
 
             if (existing != null &&
-                existing.Status is not ("Draft" or "CMSRejected"))
+                existing.Status is not ("Draft" or "HospitalRejected" or "CMSRejected"))
                 return (false,
                     $"Is month ka bill already '{existing.Status}' " +
                     $"status mein hai.", 0);
@@ -164,39 +164,7 @@ namespace LaudaryMis.Services
         }
 
         // ──────────────────────────────────────────────────────
-        // Submit to CMS
-        // ──────────────────────────────────────────────────────
-        public async Task<(bool Success, string Message)>
-            SubmitBillAsync(int billId, int userId)
-        {
-            var bill = await _repo.GetBillByIdAsync(billId);
-            if (bill == null)
-                return (false, "Bill nahi mila.");
-            if (bill.Status != "Draft")
-                return (false,
-                    $"Bill '{bill.Status}' status mein hai, submit nahi ho sakta.");
-            if (bill.WPRAvgScore <= 0)
-                return (false,
-                    "WPR score 0 hai. Submit karne se pehle score verify karein.");
-
-            await _repo.UpdateBillStatusAsync(
-                billId, "Submitted", userId, null);
-
-            await _repo.InsertWorkflowLogAsync(new BillWorkflowLog
-            {
-                BillId = billId,
-                FromStatus = "Draft",
-                ToStatus = "Submitted",
-                ActionBy = userId,
-                ActionAt = DateTime.Now,
-                Remarks = "CMS ko submit kiya"
-            });
-
-            return (true, "Bill CMS ko bhej diya gaya.");
-        }
-
-        // ──────────────────────────────────────────────────────
-        // CMS Approve / Reject
+        // CMS Approve / Reject (sirf Hospital-approved bills)
         // ──────────────────────────────────────────────────────
         public async Task<(bool Success, string Message)>
             CMSActionAsync(int billId, int cmsUserId,
@@ -205,9 +173,9 @@ namespace LaudaryMis.Services
             var bill = await _repo.GetBillByIdAsync(billId);
             if (bill == null)
                 return (false, "Bill nahi mila.");
-            if (bill.Status != "Submitted")
+            if (bill.Status != "HospitalApproved")
                 return (false,
-                    "Sirf 'Submitted' status ke bills pe action ho sakta hai.");
+                    "Sirf 'HospitalApproved' status ke bills pe CMS action ho sakta hai.");
             if (!approve && string.IsNullOrWhiteSpace(remarks))
                 return (false,
                     "Reject karte waqt reason likhna zaroori hai.");
@@ -225,7 +193,7 @@ namespace LaudaryMis.Services
             await _repo.InsertWorkflowLogAsync(new BillWorkflowLog
             {
                 BillId = billId,
-                FromStatus = "Submitted",
+                FromStatus = "HospitalApproved",
                 ToStatus = newStatus,
                 ActionBy = cmsUserId,
                 ActionAt = DateTime.Now,
@@ -336,14 +304,14 @@ namespace LaudaryMis.Services
         // Provider → Hospital ko submit karo
         // ──────────────────────────────────────────────────────
         public async Task<(bool Success, string Message)>
-            SubmitToHospitalAsync(int billId, int providerId)
+            SubmitToHospitalAsync(int billId, int providerId, int userId)
         {
             var bill = await _repo.GetBillByIdAsync(billId);
             if (bill == null)
                 return (false, "Bill nahi mila.");
             if (bill.ProviderId != providerId)
                 return (false, "Yeh bill aapka nahi hai.");
-            if (bill.Status != "Draft" && bill.Status != "HospitalRejected")
+            if (bill.Status is not ("Draft" or "HospitalRejected" or "CMSRejected"))
                 return (false,
                     $"Bill '{bill.Status}' status mein hai — submit nahi ho sakta.");
             if (bill.WPRAvgScore <= 0)
@@ -351,14 +319,14 @@ namespace LaudaryMis.Services
                     "WPR Score 0 hai. Submit karne se pehle score check karein.");
 
             await _repo.UpdateBillStatusAsync(
-                billId, "HospitalSubmitted", providerId, null);
+                billId, "HospitalSubmitted", userId, null);
 
             await _repo.InsertWorkflowLogAsync(new BillWorkflowLog
             {
                 BillId = billId,
                 FromStatus = bill.Status,
                 ToStatus = "HospitalSubmitted",
-                ActionBy = providerId,
+                ActionBy = userId,
                 ActionAt = DateTime.Now,
                 Remarks = "Provider ne Hospital ko submit kiya"
             });
