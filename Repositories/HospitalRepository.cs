@@ -72,7 +72,7 @@ namespace LaudaryMis.Repositories
             (Null, @FullName, @Email, @PasswordHash, 2, @HospitalId, 1, @Username)
         ", new
                 {
-                    FullName = model.ContactPerson,
+                    FullName = model.HospitalName,
                     Email = model.Email,
                     PasswordHash = hashedPassword,
                     HospitalId = hospitalId,

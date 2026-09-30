@@ -115,6 +115,18 @@ namespace LaudaryMis.Repositories
                     new { Hash = PasswordHasher.Hash(password), user.UserId });
             }
 
+            // Older hospital users were saved with a placeholder name such as
+            // "." (the contact person), which leaves the navbar blank. Fall
+            // back to the hospital's own name in that case.
+            if (!(user.FullName ?? "").Any(char.IsLetterOrDigit))
+            {
+                var hospitalName = await con.ExecuteScalarAsync<string?>(
+                    "SELECT HospitalName FROM Tbl_Hospitals WHERE HospitalId = @HospitalId",
+                    new { user.HospitalId });
+                if (!string.IsNullOrWhiteSpace(hospitalName))
+                    user.FullName = hospitalName;
+            }
+
             return new LoginResult
             {
                 Success = true,
