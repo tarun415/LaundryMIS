@@ -26,7 +26,6 @@
                         <th data-priority="4">Linen</th>
                         <th data-priority="5" class="text-end">Pickup</th>
                         <th data-priority="5" class="text-end">Delivered</th>
-                        <th data-priority="1" class="no-sort">Action</th>
                     </tr>
                 </thead>
 
@@ -39,28 +38,6 @@
                             <td class="fw-semibold">@item.LinenTypeName</td>
                             <td class="text-end fw-bold text-teal">@item.TotalPickupQty</td>
                             <td class="text-end fw-bold text-success">@item.CleanDeliveredQty</td>
-
-                            <td>
-                                <div class="d-flex flex-wrap align-items-center gap-2">
-
-                                    <form method="post" action="/Hospital/Verify" class="d-inline">
-                                        <input type="hidden" name="id" value="@item.EntryId" />
-                                        <button type="submit" class="btn btn-sm btn-success">
-                                            <i class="fa-solid fa-check"></i> Verify
-                                        </button>
-                                    </form>
-
-                                    <form method="post" action="/Hospital/Reject" class="d-flex align-items-center gap-2">
-                                        <input type="hidden" name="id" value="@item.EntryId" />
-                                        <input type="text" name="reason" class="form-control form-control-sm"
-                                               placeholder="Reason" required style="max-width: 170px;" />
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="fa-solid fa-xmark"></i> Reject
-                                        </button>
-                                    </form>
-
-                                </div>
-                            </td>
                         </tr>
                     }
                 </tbody>
@@ -74,10 +51,7 @@
     <script>
         $(function () {
             LMIS.initTable('#verificationTable', {
-                exportTitle: 'Pending Verification',
-                columnDefs: [
-                    { targets: 'no-sort', orderable: false }
-                ]
+                exportTitle: 'Pending Verification'
             });
         });
     </script>

@@ -231,6 +231,12 @@ else if (ViewBag.IsMonthVerified == true && !string.IsNullOrEmpty(ViewBag.LogBoo
 
 @section Scripts {
     <script>
+        @if (TempData["Error"] != null)
+        {
+            <text>
+        LMIS.alert('Upload failed', @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"]?.ToString())), 'error');
+            </text>
+        }
 
         $(function () {
 

@@ -1,6 +1,9 @@
 @{
     var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
     var displayName = User.Identity?.Name ?? "";
+    var csrfToken = Context.RequestServices
+        .GetRequiredService<Microsoft.AspNetCore.Antiforgery.IAntiforgery>()
+        .GetAndStoreTokens(Context).RequestToken ?? "";
     var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
     var initials = string.Join("", displayName
         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
@@ -111,6 +114,16 @@
 
     <!-- Shared helpers: DataTable defaults, toasts, confirm dialogs -->
     <script src="~/js/app.js" asp-append-version="true"></script>
+    <script>
+        // Anti-forgery token for AJAX/fetch POSTs (sent as a request header).
+        window.CSRF_TOKEN = "@csrfToken";
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS)$/i.test(settings.type || 'GET'))
+                    xhr.setRequestHeader('RequestVerificationToken', window.CSRF_TOKEN);
+            }
+        });
+    </script>
 
     <!-- ================= NAVIGATION ================= -->
     <script>

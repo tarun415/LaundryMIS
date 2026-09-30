@@ -9,6 +9,7 @@ using System.Security.Claims;
 
 namespace LaudaryMis.Controllers
 {
+    [Authorize(Roles = "Hospital")]
     public class HospitalController : Controller
     {
         private readonly IDailyService _service;
@@ -38,15 +39,16 @@ namespace LaudaryMis.Controllers
             _deliverychanService = deliverychanService;
         }
 
-        [Authorize(Roles = "Hospital")]
-
         public IActionResult Dashboard()
         {
             return View();
         }
         private int GetHospitalId()
         {
-            return int.Parse(User.FindFirst("HospitalId").Value);
+            var val = User.FindFirst("HospitalId")?.Value;
+            if (!int.TryParse(val, out int id) || id <= 0)
+                throw new UnauthorizedAccessException("Hospital ID nahi mila.");
+            return id;
         }
 
         // 📊 LIST
@@ -54,7 +56,7 @@ namespace LaudaryMis.Controllers
         {
             var hospitalId = GetHospitalId();
 
-            var data = await _service.GetAllEntries();
+            var data = await _service.GetAllEntries(hospitalId);
             return View(data);
         }
 
@@ -161,6 +163,15 @@ namespace LaudaryMis.Controllers
 
                 if (model.LogBookFile != null)
                 {
+                    var uploadError = await LaudaryMis.Helpers.UploadValidator.ValidateAsync(
+                        model.LogBookFile, LaudaryMis.Helpers.UploadValidator.DocumentExtensions);
+                    if (uploadError != null)
+                    {
+                        TempData["Error"] = uploadError;
+                        return RedirectToAction("MonthlyVerification",
+                            new { month = model.Month, year = model.Year });
+                    }
+
                     string folderPath =
                         Path.Combine(
                             Directory.GetCurrentDirectory(),
@@ -171,7 +182,7 @@ namespace LaudaryMis.Controllers
 
                     fileName =
                         Guid.NewGuid().ToString()
-                        + Path.GetExtension(model.LogBookFile.FileName);
+                        + Path.GetExtension(model.LogBookFile.FileName).ToLowerInvariant();
 
                     string filePath =
                         Path.Combine(folderPath, fileName);

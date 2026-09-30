@@ -1,4 +1,5 @@
-﻿using LaudaryMis.Models;
+﻿using LaudaryMis.Helpers;
+using LaudaryMis.Models;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
 using Microsoft.AspNetCore.Authentication;
@@ -12,10 +13,12 @@ namespace LaudaryMis.Controllers
     public class AccountController : Controller
     {
         private readonly IUserService _service;
+        private readonly LoginAttemptTracker _attempts;
 
-        public AccountController(IUserService service)
+        public AccountController(IUserService service, LoginAttemptTracker attempts)
         {
             _service = service;
+            _attempts = attempts;
         }
 
         [HttpGet]
@@ -29,6 +32,22 @@ namespace LaudaryMis.Controllers
         {
             if (!ModelState.IsValid)
                 return View(model);
+
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var account = model.RoleId switch
+            {
+                1 => "admin:" + (model.Username ?? "").Trim().ToLowerInvariant(),
+                2 => "hospital:" + model.HospitalId,
+                3 => "provider:" + model.ProviderId,
+                _ => "other"
+            };
+
+            if (_attempts.IsLocked(account, ip, out var remaining))
+            {
+                ModelState.AddModelError("",
+                    $"Bahut zyada galat koshishein. {Math.Ceiling(remaining.TotalMinutes)} minute baad dobara try karein.");
+                return View(model);
+            }
 
             User? user = null;
             LoginResult? result = model.RoleId switch
@@ -47,9 +66,11 @@ namespace LaudaryMis.Controllers
 
             if (!result.Success)
             {
+                _attempts.RecordFailure(account, ip);
                 ModelState.AddModelError("", result.Message);
                 return View(model);
             }
+            _attempts.Reset(account);
             user = result.User;
 
             // Derive a canonical role from the RoleId that was actually used to

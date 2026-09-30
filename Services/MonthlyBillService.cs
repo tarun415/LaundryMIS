@@ -108,6 +108,20 @@ namespace LaudaryMis.Services
                     $"Is month ka bill already '{existing.Status}' " +
                     $"status mein hai.", 0);
 
+            // Agreement, beds and rate come from the database, never from the form.
+            var agr = await _repo.GetAgreementInfoByProviderHospitalAsync(
+                vm.ProviderId, vm.HospitalId);
+            if (agr == null)
+                return (false,
+                    "Is Provider-Hospital ke beech koi active agreement nahi hai.", 0);
+            vm.AgreementId = agr.AgreementId;
+            vm.SanctionedBeds = agr.SanctionedBeds;
+            vm.RatePerBedPerYear = agr.RatePerBedPerYear;
+            vm.GSTPercent = 18m;
+
+            if (existing != null && existing.ProviderId != vm.ProviderId)
+                return (false, "Yeh bill aapka nahi hai.", 0);
+
             ComputeAmounts(vm);
 
             var bill = new MonthlyBill
@@ -222,6 +236,7 @@ namespace LaudaryMis.Services
                 BillId = bill.Id,
                 AgreementId = bill.AgreementId,
                 HospitalId = bill.HospitalId,
+                ProviderId = bill.ProviderId,
                 HospitalName = agr?.HospitalName ?? string.Empty,
                 ContractNo = agr?.ContractNo ?? string.Empty,
                 BillingMonth = bill.BillingMonth,
@@ -339,11 +354,13 @@ namespace LaudaryMis.Services
         // ──────────────────────────────────────────────────────
         public async Task<(bool Success, string Message)>
             HospitalActionAsync(int billId, int hospitalUserId,
-                                bool approve, string? remarks)
+                                bool approve, string? remarks, int hospitalId)
         {
             var bill = await _repo.GetBillByIdAsync(billId);
             if (bill == null)
                 return (false, "Bill nahi mila.");
+            if (bill.HospitalId != hospitalId)
+                return (false, "Yeh bill aapke hospital ka nahi hai.");
             if (bill.Status != "HospitalSubmitted")
                 return (false,
                     "Sirf 'HospitalSubmitted' status ke bills verify ho sakte hain.");

@@ -121,6 +121,12 @@
 
 @section Scripts {
     <script>
+        @if (TempData["Error"] != null)
+        {
+            <text>
+        LMIS.alert('Upload failed', @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"]?.ToString())), 'error');
+            </text>
+        }
         @if (TempData["success"] != null)
         {
             <text>

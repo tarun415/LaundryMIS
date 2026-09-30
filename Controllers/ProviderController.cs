@@ -40,6 +40,9 @@ namespace LaudaryMis.Controllers
             return id;
         }
 
+        private async Task<bool> OwnsEntry(int entryId) =>
+            await _service.IsEntryOwnedByProviderAsync(entryId, GetProviderId());
+
         //public IActionResult Dashboard() => View();
         public IActionResult Dashboard()
         {
@@ -64,7 +67,7 @@ namespace LaudaryMis.Controllers
             return View(vm);
         }
         [HttpPost]
-        [IgnoreAntiforgeryToken]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Save([FromBody] DailyEntryVM model)
         {
             var providerId = GetProviderId();
@@ -73,6 +76,10 @@ namespace LaudaryMis.Controllers
 
             if (!allowedHospitals.Any(h => h.HospitalId == model.HospitalId))
                 return BadRequest("Invalid hospital selection");
+
+            // Editing an existing entry: it must belong to this provider.
+            if (model.EntryId > 0 && !await OwnsEntry(model.EntryId))
+                return Forbid();
 
             model.ProviderId = providerId;
 
@@ -93,6 +100,7 @@ namespace LaudaryMis.Controllers
         [HttpPost]
         public async Task<IActionResult> MarkDelivered(int id)
         {
+            if (!await OwnsEntry(id)) return Forbid();
             await _service.UpdateStatus(id, "Delivered");
             return Ok();
         }
@@ -104,12 +112,12 @@ namespace LaudaryMis.Controllers
 
         public async Task<IActionResult> DailyEntryList()
         {
-            var data = await _service.GetAllEntries();
+            var data = await _service.GetAllEntries(providerId: GetProviderId());
             return View(data);
         }
         public async Task<IActionResult> DailyEntryItems(int id)
         {
-            var data = await _service.GetAllItems(id);
+            var data = await _service.GetAllItems(id, GetProviderId());
             return Json(data);
         }
 
@@ -124,14 +132,16 @@ namespace LaudaryMis.Controllers
 
         public async Task<IActionResult> Deliver(int id)
         {
+            if (!await OwnsEntry(id)) return Forbid();
             var vm = await _service.GetEntryForDelivery(id);
             return View(vm);
         }
 
         [HttpPost]
-        [IgnoreAntiforgeryToken]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Deliver([FromBody] DeliveryVM model)
         {
+            if (!await OwnsEntry(model.EntryId)) return Forbid();
             var id = await _service.DeliverAsync(model);
             return Ok(new { success = true, id });
         }
@@ -158,22 +168,26 @@ namespace LaudaryMis.Controllers
         [HttpGet]
         public async Task<IActionResult> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date)
         {
-            var data = await _service.SearchDailyEntries(status, hospitalId, wardId, date);
+            var data = await _service.SearchDailyEntries(status, hospitalId, wardId, date, GetProviderId());
             return Json(data);
         }
         // EDIT
         public async Task<IActionResult> EditDailyEntry(int id)
         {
+            if (!await OwnsEntry(id)) return Forbid();
             var data = await _service.GetDailyEntryByIdAsync(id);
             return View("DailyEntry", data);
         }
 
         // DELETE
         [HttpPost]
-        public async Task<JsonResult> DeleteDailyEntry(int id)
+        public async Task<IActionResult> DeleteDailyEntry(int id)
         {
             try
             {
+                if (!await OwnsEntry(id))
+                    return Json(new { success = false, message = "Not allowed" });
+
                 var result = await _service.DeleteAsync(id);
 
                 if (!result)

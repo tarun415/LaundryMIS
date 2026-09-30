@@ -12,7 +12,9 @@ using QuestPDF.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 // MVC
-builder.Services.AddControllersWithViews();
+// Every POST/PUT/DELETE must carry a valid anti-forgery token.
+builder.Services.AddControllersWithViews(o =>
+    o.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute()));
 
 
 // Authentication
@@ -30,6 +32,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddAntiforgery(o => o.HeaderName = "RequestVerificationToken");
+builder.Services.AddSingleton<LaudaryMis.Helpers.LoginAttemptTracker>();
+
+// Cap request bodies (uploads are validated to 10 MB individually).
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
+    o.MultipartBodyLengthLimit = 12 * 1024 * 1024);
 // DI
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();

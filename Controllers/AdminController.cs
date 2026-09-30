@@ -275,7 +275,17 @@ namespace LaudaryMis.Controllers
 
             if (model.AgreementFile != null)
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(model.AgreementFile.FileName);
+                var uploadError = await LaudaryMis.Helpers.UploadValidator.ValidateAsync(
+                    model.AgreementFile, new[] { ".pdf" });
+                if (uploadError != null)
+                {
+                    TempData["Error"] = uploadError;
+                    return model.Id > 0
+                        ? RedirectToAction("EditAgreement", new { id = model.Id })
+                        : RedirectToAction("CreateAgreement");
+                }
+
+                var fileName = Guid.NewGuid() + Path.GetExtension(model.AgreementFile.FileName).ToLowerInvariant();
 
                 var folderPath = Path.Combine(Directory.GetCurrentDirectory(),
                     "wwwroot/uploads/agreements");

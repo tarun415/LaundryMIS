@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using LaudaryMis.Helpers;
 using LaudaryMis.Models;
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.ViewModels;
@@ -60,7 +61,7 @@ namespace LaudaryMis.Repositories
 
                 // 3️⃣ Generate Password
                 var rawPassword = model.Password; // default
-                var hashedPassword = rawPassword; 
+                var hashedPassword = PasswordHasher.Hash(rawPassword ?? "");
                 // var hashedPassword = HashPassword(rawPassword);
 
                 // 4️⃣ Insert User
@@ -140,7 +141,7 @@ namespace LaudaryMis.Repositories
                         model.HospitalName,
                         model.Email,
                         model.HospitalId,
-                        PasswordHash = model.Password // null if not changing
+                        PasswordHash = string.IsNullOrEmpty(model.Password) ? null : PasswordHasher.Hash(model.Password) // null if not changing
                     }, tran);
 
                     tran.Commit();
@@ -156,7 +157,7 @@ namespace LaudaryMis.Repositories
         public async Task<HospitalVM?> GetHospitalByIdAsync(int id)
         {
             return await _db.QueryFirstOrDefaultAsync<HospitalVM>(
-                "SELECT hs.HospitalId ,hs.HospitalName,hs.Address,hs.ContactPerson,hs.Phone,hs.Email,hs.IsActive,dm.DistrictID, dm.DistrictName,us.PasswordHash as [Password] FROM Tbl_Hospitals as hs left join DistrictMaster as dm on hs.DistrictId=dm.DistrictID left join Tbl_Users us on us.HospitalId=hs.HospitalId  WHERE hs.HospitalId=@id",
+                "SELECT hs.HospitalId ,hs.HospitalName,hs.Address,hs.ContactPerson,hs.Phone,hs.Email,hs.IsActive,dm.DistrictID, dm.DistrictName,CAST(NULL AS NVARCHAR(1)) as [Password] FROM Tbl_Hospitals as hs left join DistrictMaster as dm on hs.DistrictId=dm.DistrictID left join Tbl_Users us on us.HospitalId=hs.HospitalId  WHERE hs.HospitalId=@id",
                 new { id });
         }
 

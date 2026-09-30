@@ -177,7 +177,7 @@
             try {
                 const res = await fetch('/Provider/Deliver', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': window.CSRF_TOKEN },
                     body: JSON.stringify(data)
                 });
 

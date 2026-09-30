@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using LaudaryMis.Helpers;
 using LaudaryMis.Models;
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.ViewModels;
@@ -47,13 +48,20 @@ namespace LaudaryMis.Repositories
                 };
             }
 
-            if (user.PasswordHash != password)
+            if (!PasswordHasher.Verify(password, user.PasswordHash))
             {
                 return new LoginResult
                 {
                     Success = false,
                     Message = "Incorrect password."
                 };
+            }
+
+            if (PasswordHasher.NeedsRehash(user.PasswordHash))
+            {
+                await con.ExecuteAsync(
+                    "UPDATE Tbl_Users SET PasswordHash = @Hash WHERE UserId = @UserId",
+                    new { Hash = PasswordHasher.Hash(password), user.UserId });
             }
 
             return new LoginResult
@@ -91,13 +99,20 @@ namespace LaudaryMis.Repositories
                 };
             }
 
-            if (user.PasswordHash != password)
+            if (!PasswordHasher.Verify(password, user.PasswordHash))
             {
                 return new LoginResult
                 {
                     Success = false,
                     Message = "Incorrect password."
                 };
+            }
+
+            if (PasswordHasher.NeedsRehash(user.PasswordHash))
+            {
+                await con.ExecuteAsync(
+                    "UPDATE Tbl_Users SET PasswordHash = @Hash WHERE UserId = @UserId",
+                    new { Hash = PasswordHasher.Hash(password), user.UserId });
             }
 
             return new LoginResult
@@ -134,13 +149,20 @@ namespace LaudaryMis.Repositories
                 };
             }
 
-            if (user.PasswordHash != password)
+            if (!PasswordHasher.Verify(password, user.PasswordHash))
             {
                 return new LoginResult
                 {
                     Success = false,
                     Message = "Incorrect password."
                 };
+            }
+
+            if (PasswordHasher.NeedsRehash(user.PasswordHash))
+            {
+                await con.ExecuteAsync(
+                    "UPDATE Tbl_Users SET PasswordHash = @Hash WHERE UserId = @UserId",
+                    new { Hash = PasswordHasher.Hash(password), user.UserId });
             }
 
             return new LoginResult

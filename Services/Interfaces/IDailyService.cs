@@ -6,8 +6,8 @@ namespace LaudaryMis.Services.Interfaces
     public interface IDailyService
     {
         Task<int> SaveAsync(DailyEntryVM model);
-        Task<List<DailyEntryListVM>> GetAllEntries();
-        Task<List<DailyEntryItemsVM>> GetAllItems(int id);
+        Task<List<DailyEntryListVM>> GetAllEntries(int? hospitalId = null, int? providerId = null);
+        Task<List<DailyEntryItemsVM>> GetAllItems(int id, int? providerId = null);
         Task<List<Hospital>> GetHospitalsByProvider(int providerId);
         Task<List<WardVM>> GetWards();
         Task UpdateStatus(int id, string status);
@@ -18,11 +18,12 @@ namespace LaudaryMis.Services.Interfaces
 
         Task<int> DeliverAsync(DeliveryVM model);
 
-        Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date);
+        Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date, int? providerId = null);
 
        Task<DailyEntryVM> GetDailyEntryByIdAsync(int id);
 
         Task<bool> DeleteAsync(int id);
+        Task<bool> IsEntryOwnedByProviderAsync(int entryId, int providerId);
 
 
     }

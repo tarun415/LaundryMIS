@@ -155,15 +155,22 @@ SELECT CAST(SCOPE_IDENTITY() as int);
 
             return (await _db.QueryAsync<WardVM>(sql)).ToList();
         }
-        public async Task<List<DailyEntryListVM>> GetAllEntries()
+        public async Task<List<DailyEntryListVM>> GetAllEntries(int? hospitalId = null, int? providerId = null)
         {
-            var sql = @"SELECT ROW_NUMBER() OVER (ORDER BY de.Id DESC) AS RowNum, de.Id as EntryId, de.Status,de.Supervisor,de.IsInfected,de.CollectedBy,de.ReceivedBy,de.Remarks,de.Shift,de.EntryDate,de.DeliveredBy,ho.HospitalName,wr.WardName, ISNULL(( SELECT SUM(di.DirtyCount)FROM DailyEntryItems di WHERE di.EntryId = de.Id ),0) AS TotalPickupQty,  ISNULL((  SELECT SUM(di.CleanCount)  FROM DailyEntryItems di WHERE di.EntryId = de.Id  ),0) AS CleanDeliveredQty,ISNULL((  SELECT SUM(di.DirtyCount)  FROM DailyEntryItems di   WHERE di.EntryId = de.Id ),0) - ISNULL((  SELECT SUM(di.CleanCount)  FROM DailyEntryItems di  WHERE di.EntryId = de.Id ),0) AS TotalPendingQty  FROM  DailyEntries de  left join tbl_Hospitals ho on de.HospitalId=ho.HospitalId  left join  tbl_Wards as wr on de.Ward=wr.WardId ORDER BY Id DESC";
-            return (await _db.QueryAsync<DailyEntryListVM>(sql)).ToList();
+            var sql = @"SELECT ROW_NUMBER() OVER (ORDER BY de.Id DESC) AS RowNum, de.Id as EntryId, de.Status,de.Supervisor,de.IsInfected,de.CollectedBy,de.ReceivedBy,de.Remarks,de.Shift,de.EntryDate,de.DeliveredBy,ho.HospitalName,wr.WardName, STUFF((SELECT ', ' + di.LinenType FROM DailyEntryItems di WHERE di.EntryId = de.Id FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS LinenTypeName, ISNULL(( SELECT SUM(di.DirtyCount)FROM DailyEntryItems di WHERE di.EntryId = de.Id ),0) AS TotalPickupQty,  ISNULL((  SELECT SUM(di.CleanCount)  FROM DailyEntryItems di WHERE di.EntryId = de.Id  ),0) AS CleanDeliveredQty,ISNULL((  SELECT SUM(di.DirtyCount)  FROM DailyEntryItems di   WHERE di.EntryId = de.Id ),0) - ISNULL((  SELECT SUM(di.CleanCount)  FROM DailyEntryItems di  WHERE di.EntryId = de.Id ),0) AS TotalPendingQty  FROM  DailyEntries de  left join tbl_Hospitals ho on de.HospitalId=ho.HospitalId  left join  tbl_Wards as wr on de.Ward=wr.WardId WHERE (@HospitalId IS NULL OR de.HospitalId = @HospitalId) AND (@ProviderId IS NULL OR de.ProviderId = @ProviderId) ORDER BY Id DESC";
+            return (await _db.QueryAsync<DailyEntryListVM>(sql, new { HospitalId = hospitalId, ProviderId = providerId })).ToList();
         }
-        public async Task<List<DailyEntryItemsVM>> GetAllItems(int id)
+        public async Task<bool> IsEntryOwnedByProviderAsync(int entryId, int providerId)
         {
-            var sql = @"select Id,EntryId,LinenType as LinenTypeName,DirtyCount as TotalPickupQty,CleanCount as CleanDeliveredQty,isnull( isnull(DirtyCount,0)- isnull(CleanCount,0),0) as TotalpendingQty From DailyEntryItems WHERE EntryId = @Id";
-            return (await _db.QueryAsync<DailyEntryItemsVM>(sql, new { Id = id })).ToList();
+            return await _db.ExecuteScalarAsync<bool>(
+                "SELECT CASE WHEN EXISTS (SELECT 1 FROM DailyEntries WHERE Id = @entryId AND ProviderId = @providerId) THEN 1 ELSE 0 END",
+                new { entryId, providerId });
+        }
+
+        public async Task<List<DailyEntryItemsVM>> GetAllItems(int id, int? providerId = null)
+        {
+            var sql = @"select Id,EntryId,LinenType as LinenTypeName,DirtyCount as TotalPickupQty,CleanCount as CleanDeliveredQty,isnull( isnull(DirtyCount,0)- isnull(CleanCount,0),0) as TotalpendingQty From DailyEntryItems WHERE EntryId = @Id AND (@ProviderId IS NULL OR EXISTS (SELECT 1 FROM DailyEntries de WHERE de.Id = @Id AND de.ProviderId = @ProviderId))";
+            return (await _db.QueryAsync<DailyEntryItemsVM>(sql, new { Id = id, ProviderId = providerId })).ToList();
         }
 
         public async Task UpdateStatus(int id, string status)
@@ -319,7 +326,7 @@ SELECT CAST(SCOPE_IDENTITY() as int);
                 throw;
             }
         }
-        public async Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date)
+        public async Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date, int? providerId = null)
         {
             var sql = @"
     SELECT 
@@ -328,6 +335,7 @@ SELECT CAST(SCOPE_IDENTITY() as int);
         de.EntryDate,
         ho.HospitalName,
         wr.WardName,
+        STUFF((SELECT ', ' + di.LinenType FROM DailyEntryItems di WHERE di.EntryId = de.Id FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS LinenTypeName,
         de.Status,
          ISNULL(( SELECT SUM(di.DirtyCount)FROM DailyEntryItems di WHERE di.EntryId = de.Id ),0) AS TotalPickupQty,  ISNULL((  SELECT SUM(di.CleanCount)  FROM DailyEntryItems di WHERE di.EntryId = de.Id  ),0) AS CleanDeliveredQty,ISNULL((  SELECT SUM(di.DirtyCount)  FROM DailyEntryItems di   WHERE di.EntryId = de.Id ),0) - ISNULL((  SELECT SUM(di.CleanCount)  FROM DailyEntryItems di  WHERE di.EntryId = de.Id ),0) AS TotalPendingQty
     FROM DailyEntries de
@@ -337,6 +345,7 @@ SELECT CAST(SCOPE_IDENTITY() as int);
         AND (@status IS NULL OR @status = '' OR de.Status = @status)
         AND (@hospitalId IS NULL OR de.HospitalId = @hospitalId)
         AND (@wardId IS NULL OR de.Ward = @wardId)
+        AND (@providerId IS NULL OR de.ProviderId = @providerId)
         AND (@date IS NULL OR CAST(de.EntryDate AS DATE) = @date)
     ORDER BY de.Id DESC
     ";
@@ -346,7 +355,8 @@ SELECT CAST(SCOPE_IDENTITY() as int);
                 status,
                 hospitalId,
                 wardId,
-                date
+                date,
+                providerId
             });
 
             return data.ToList();
