@@ -39,7 +39,7 @@ namespace LaudaryMis.Services.Interfaces
         // Hospital verify karta hai
         Task<(bool Success, string Message)>
             HospitalActionAsync(int billId, int hospitalUserId,
-                                bool approve, string? remarks);
+                                bool approve, string? remarks, int hospitalId);
 
         // Provider ke bills
         Task<IEnumerable<BillListItemVM>> GetProviderBillsAsync(int providerId);

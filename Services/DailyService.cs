@@ -25,13 +25,13 @@ namespace LaudaryMis.Services
                 return await _repo.InsertAsync(model);   // 🔥 INSERT
         }
 
-        public async Task<List<DailyEntryListVM>> GetAllEntries()
+        public async Task<List<DailyEntryListVM>> GetAllEntries(int? hospitalId = null, int? providerId = null)
         {
-            return await _repo.GetAllEntries();
+            return await _repo.GetAllEntries(hospitalId, providerId);
         }
-        public async Task<List<DailyEntryItemsVM>> GetAllItems(int id)
+        public async Task<List<DailyEntryItemsVM>> GetAllItems(int id, int? providerId = null)
         {
-            return await _repo.GetAllItems(id);
+            return await _repo.GetAllItems(id, providerId);
         }
         public async Task<List<Hospital>> GetHospitalsByProvider(int providerId)
         {
@@ -61,13 +61,18 @@ namespace LaudaryMis.Services
             return await _repo.GetEntryWithItems(id);
         }
 
+        public async Task<bool> IsEntryOwnedByProviderAsync(int entryId, int providerId)
+        {
+            return await _repo.IsEntryOwnedByProviderAsync(entryId, providerId);
+        }
+
         public async Task<int> DeliverAsync(DeliveryVM model)
         {
             return await _repo.InsertDelivery(model);
         }
-        public async Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date)
+        public async Task<List<DailyEntryListVM>> SearchDailyEntries(string status, int? hospitalId, int? wardId, DateTime? date, int? providerId = null)
         {
-            return await _repo.SearchDailyEntries(status, hospitalId, wardId, date);
+            return await _repo.SearchDailyEntries(status, hospitalId, wardId, date, providerId);
         }
         public async Task<DailyEntryVM> GetDailyEntryByIdAsync(int id)
         {

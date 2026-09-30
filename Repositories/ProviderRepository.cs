@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using LaudaryMis.Helpers;
 using LaudaryMis.Models;
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.ViewModels;
@@ -63,7 +64,7 @@ namespace LaudaryMis.Repositories
 
                 // 3️⃣ Generate Password
                 var rawPassword = model.Password; // default
-                var hashedPassword = rawPassword;
+                var hashedPassword = PasswordHasher.Hash(rawPassword ?? "");
                 // var hashedPassword = HashPassword(rawPassword);
 
                 // 4️⃣ Insert User
@@ -143,7 +144,7 @@ namespace LaudaryMis.Repositories
                         model.ProviderName,
                         model.Email,
                         model.ProviderId,
-                        PasswordHash = model.Password // send null if not changing
+                        PasswordHash = string.IsNullOrEmpty(model.Password) ? null : PasswordHasher.Hash(model.Password) // send null if not changing
                     }, tran);
 
                     tran.Commit();
@@ -167,7 +168,7 @@ namespace LaudaryMis.Repositories
         public async Task<IEnumerable<ProvidersVM>> GetProviderAsync()
         {
             return await _db.QueryAsync<ProvidersVM>(
-                "SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.IsActive,dm.DistrictID, dm.DistrictName,us.PasswordHash as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId  WHERE pr.IsActive = 1"
+                "SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.IsActive,dm.DistrictID, dm.DistrictName,CAST(NULL AS NVARCHAR(1)) as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId  WHERE pr.IsActive = 1"
             );
         }
 
@@ -181,7 +182,7 @@ namespace LaudaryMis.Repositories
         public async Task<ProvidersVM> GetProviderByIdAsync(int id)
         {
             return await _db.QueryFirstOrDefaultAsync<ProvidersVM>(@"
-        SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.Phone,pr.IsActive,dm.DistrictID, dm.DistrictName,us.PasswordHash as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId
+        SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.Phone,pr.IsActive,dm.DistrictID, dm.DistrictName,CAST(NULL AS NVARCHAR(1)) as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId
         WHERE pr.ProviderId = @Id
     ", new { Id = id });
         }
@@ -199,4 +200,4 @@ namespace LaudaryMis.Repositories
        
     }
 
-}
+}

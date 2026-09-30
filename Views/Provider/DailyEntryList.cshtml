@@ -83,6 +83,7 @@
                         <th>Date</th>
                         <th>Hospital</th>
                         <th>Ward</th>
+                        <th>Linen</th>
                         <th class="text-end">Pickup</th>
                         <th class="text-end">Delivered</th>
                         <th class="text-end">Pending</th>
@@ -100,6 +101,7 @@
                             <td class="nowrap">@item.EntryDate.ToString("dd MMM yyyy")</td>
                             <td class="fw-semibold">@item.HospitalName</td>
                             <td>@item.WardName</td>
+                            <td>@item.LinenTypeName</td>
 
                             <td class="text-end fw-bold text-teal">@item.TotalPickupQty</td>
                             <td class="text-end fw-bold text-success">@item.CleanDeliveredQty</td>
@@ -243,6 +245,7 @@
                                 '<td class="nowrap">' + formatDate(item.entryDate) + '</td>' +
                                 '<td class="fw-semibold">' + item.hospitalName + '</td>' +
                                 '<td>' + item.wardName + '</td>' +
+                                '<td>' + $('<div>').text(item.linenTypeName || '').html() + '</td>' +
                                 '<td class="text-end fw-bold text-teal">' + item.totalPickupQty + '</td>' +
                                 '<td class="text-end fw-bold text-success">' + item.cleanDeliveredQty + '</td>' +
                                 '<td class="text-end fw-bold text-danger">' + item.totalPendingQty + '</td>' +

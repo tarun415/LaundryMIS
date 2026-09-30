@@ -52,6 +52,7 @@ public class PaymentController : Controller
     // Generate Payment
     //-------------------------------------------------------
 
+    [Authorize(Roles = "Hospital")]
     public async Task<IActionResult> GeneratePayment()
     {
         int hospitalId = Convert.ToInt32(
@@ -66,9 +67,42 @@ public class PaymentController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Hospital")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> GeneratePayment(
      GeneratePaymentVM model)
     {
+        // Hospital comes from the login, never from the posted form.
+        model.HospitalId = GetClaimId("HospitalId");
+
+        // Agreement must belong to this hospital; amounts are recalculated
+        // on the server so posted values cannot be tampered with.
+        var agreement = await _paymentService.GetAgreementDetails(model.AgreementId);
+        if (agreement == null || agreement.HospitalId != model.HospitalId)
+            return Forbid();
+
+        var calc = await _paymentService.GetPaymentCalculation(
+            model.AgreementId, model.HospitalId,
+            model.MonthNo, model.YearNo, model.BedOccupancy);
+        if (calc == null)
+            ModelState.AddModelError("", "Payment calculate nahi ho saka.");
+        else
+        {
+            model.ProviderId = agreement.ProviderId;
+            model.BedCount = agreement.BedCount;
+            model.RatePerBed = calc.RatePerBed;
+            model.MonthlyBill = calc.MonthlyBill;
+            model.AverageScore = calc.AverageScore;
+            model.PaymentPercentage = calc.PaymentPercentage;
+            model.GrossPayable = calc.GrossPayable;
+            model.GSTPercentage = calc.GSTPercentage;
+            model.GSTAmount = calc.GSTAmount;
+            model.InvoiceAmount = calc.InvoiceAmount;
+            model.TDSPercentage = calc.TDSPercentage;
+            model.TDSAmount = calc.TDSAmount;
+            model.NetPayable = calc.NetPayable;
+        }
+
         if (!ModelState.IsValid)
         {
             var vm = await _paymentService
@@ -207,15 +241,10 @@ public class PaymentController : Controller
 
         string ext = Path.GetExtension(file?.FileName ?? "").ToLowerInvariant();
 
-        string? error = null;
+        string? error = await LaudaryMis.Helpers.UploadValidator.ValidateAsync(
+            file, AllowedDocExtensions, MaxDocSize);
 
-        if (file == null || file.Length == 0)
-            error = "Upload karne ke liye file select karein.";
-        else if (!AllowedDocExtensions.Contains(ext))
-            error = "Sirf PDF, JPG ya PNG file upload ho sakti hai.";
-        else if (file.Length > MaxDocSize)
-            error = "File 10 MB se badi nahi honi chahiye.";
-        else if (string.IsNullOrWhiteSpace(documentType))
+        if (error == null && string.IsNullOrWhiteSpace(documentType))
             error = "Document type select karein.";
 
         if (error != null)
@@ -290,6 +319,7 @@ public class PaymentController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Hospital")]
     public async Task<IActionResult> GetAgreementDetails(int agreementId)
     {
         var result =
@@ -298,9 +328,13 @@ public class PaymentController : Controller
         if (result == null)
             return NotFound();
 
+        if (result.HospitalId != GetClaimId("HospitalId"))
+            return Forbid();
+
         return Json(result);
     }
     [HttpGet]
+    [Authorize(Roles = "Hospital")]
     public async Task<IActionResult> GetAgreementsByProvider(int providerId)
     {
         int hospitalId = Convert.ToInt32(
@@ -314,6 +348,7 @@ public class PaymentController : Controller
         return Json(agreements);
     }
     [HttpGet]
+    [Authorize(Roles = "Hospital")]
     public async Task<IActionResult> GetPaymentCalculation(
     int agreementId,
     int hospitalId,
@@ -321,6 +356,8 @@ public class PaymentController : Controller
     int yearNo,
     int bedOccupancy)
     {
+        hospitalId = GetClaimId("HospitalId");
+
         var result = await _paymentService.GetPaymentCalculation(
             agreementId,
             hospitalId,

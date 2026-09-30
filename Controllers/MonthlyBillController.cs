@@ -60,6 +60,7 @@ namespace LaudaryMis.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveDraft(MonthlyBillVM model)
         {
+            model.ProviderId = GetProviderId();
             if (!ModelState.IsValid)
             {
                 _billService.ComputeAmounts(model);
@@ -126,7 +127,7 @@ namespace LaudaryMis.Controllers
             int billId, bool approve, string? remarks)
         {
             var (success, message) = await _billService.HospitalActionAsync(
-                billId, GetUserId(), approve, remarks);
+                billId, GetUserId(), approve, remarks, GetHospitalId());
 
             TempData[success ? "Success" : "Error"] = message;
             return RedirectToAction(nameof(Detail), new { id = billId });
@@ -173,11 +174,21 @@ namespace LaudaryMis.Controllers
         {
             var vm = await _billService.GetBillDetailAsync(id);
             if (vm == null) return NotFound();
+
+            bool allowed =
+                User.IsInRole("Admin") ||
+                (User.IsInRole("Hospital") &&
+                    User.FindFirst("HospitalId")?.Value == vm.HospitalId.ToString()) ||
+                (User.IsInRole("Provider") &&
+                    User.FindFirst("ProviderId")?.Value == vm.ProviderId.ToString());
+            if (!allowed) return Forbid();
+
             return View(vm);
         }
 
         // POST /MonthlyBill/Recalculate  (AJAX)
         [HttpPost]
+        [Authorize(Roles = "Provider")]
         public IActionResult Recalculate([FromBody] MonthlyBillVM model)
         {
             _billService.ComputeAmounts(model);

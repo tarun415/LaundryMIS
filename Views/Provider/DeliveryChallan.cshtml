@@ -198,7 +198,7 @@
             try {
                 const response = await fetch('/Provider/DeliveryChallan', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': window.CSRF_TOKEN },
                     body: JSON.stringify(model)
                 });
 
