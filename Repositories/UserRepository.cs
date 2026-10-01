@@ -266,7 +266,7 @@ namespace LaudaryMis.Repositories
                     new { model.DistrictId, HospitalName = model.HospitalName!.Trim() }, tran);
 
                 if (duplicate > 0)
-                    return Fail(tran, "Is district mein is naam ka hospital pehle se registered hai.");
+                    return Fail(tran, "Is district mein is naam ka hospital tender list mein pehle se hai. Naya account mat banayein: Login page se 'Register karein' kholkar apna hospital chunein aur DGMH ka diya activation code daalein.");
 
                 var hospitalId = await con.ExecuteScalarAsync<int>(@"
                     INSERT INTO Tbl_Hospitals
@@ -332,7 +332,7 @@ namespace LaudaryMis.Repositories
                     new { FirmName = model.FirmName!.Trim() }, tran);
 
                 if (duplicate > 0)
-                    return Fail(tran, "Is naam ki firm pehle se registered hai.");
+                    return Fail(tran, "Is naam ki firm tender list mein pehle se hai. Naya account mat banayein: Login page se 'Register karein' kholkar apni firm chunein aur DGMH ka diya activation code daalein.");
 
                 var providerId = await con.ExecuteScalarAsync<int>(@"
                     INSERT INTO tbl_Providers

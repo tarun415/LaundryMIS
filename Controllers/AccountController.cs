@@ -14,11 +14,13 @@ namespace LaudaryMis.Controllers
     {
         private readonly IUserService _service;
         private readonly LoginAttemptTracker _attempts;
+        private readonly IActivationCodeService _activation;
 
-        public AccountController(IUserService service, LoginAttemptTracker attempts)
+        public AccountController(IUserService service, LoginAttemptTracker attempts, IActivationCodeService activation)
         {
             _service = service;
             _attempts = attempts;
+            _activation = activation;
         }
 
         [HttpGet]
@@ -75,6 +77,68 @@ namespace LaudaryMis.Controllers
 
             var roleName = await SignInUser(user!, model.RoleId);
 
+            return RedirectToAction("Dashboard", roleName);
+        }
+
+        // ──────────────────────────────────────────────────────
+        // Register with an activation code — for hospitals / vendors that are
+        // already on the tender list. Picks the listed record and attaches a login.
+        // ──────────────────────────────────────────────────────
+
+        [HttpGet]
+        public IActionResult Claim(int roleId = 2)
+        {
+            return View(new ClaimVM { RoleId = roleId == 3 ? 3 : 2 });
+        }
+
+        // Dropdown data for the Claim page: only entries that have no login yet.
+        [HttpGet]
+        public async Task<IActionResult> UnclaimedHospitals(int districtId) =>
+            Json(await _activation.GetUnclaimedHospitalsAsync(districtId));
+
+        [HttpGet]
+        public async Task<IActionResult> UnclaimedProviders() =>
+            Json(await _activation.GetUnclaimedProvidersAsync());
+
+        [HttpPost]
+        public async Task<IActionResult> Claim(ClaimVM model)
+        {
+            // Doosre role ke chhupe hue fields ko na save karo
+            if (model.RoleId == 3) { model.HospitalId = null; model.DistrictId = null; }
+            else model.ProviderId = null;
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            int? entityId = model.RoleId == 2 ? model.HospitalId : model.ProviderId;
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+            // Wrong codes are counted per hospital / vendor and per IP (same limits as login)
+            var account = $"claim:{model.RoleId}:{entityId}";
+            if (_attempts.IsLocked(account, "claim-" + ip, out var remaining))
+            {
+                ModelState.AddModelError("",
+                    $"Bahut zyada galat koshishein. {Math.Ceiling(remaining.TotalMinutes)} minute baad dobara try karein.");
+                return View(model);
+            }
+
+            var result = await _activation.ClaimAsync(model);
+
+            if (!result.Success || result.User == null)
+            {
+                if (result.BadCode)
+                    _attempts.RecordFailure(account, "claim-" + ip);
+
+                ModelState.AddModelError("", result.Message);
+                model.Code = string.Empty;
+                return View(model);
+            }
+
+            _attempts.Reset(account);
+
+            var roleName = await SignInUser(result.User, model.RoleId);
+
+            TempData["Success"] = "Registration ho gaya. Laundry MIS mein aapka swagat hai!";
             return RedirectToAction("Dashboard", roleName);
         }
 

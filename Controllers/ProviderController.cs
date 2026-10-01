@@ -154,10 +154,11 @@ namespace LaudaryMis.Controllers
         }
 
         // 🔥 WPR GET
+        // Filter dropdown: only the hospitals this vendor has an active agreement with
         public async Task<IActionResult> GetHospitals()
         {
-            var data = await _hosservice.GetHospitalNamesAsync();
-            return Json(data);
+            var data = await _service.GetHospitalsByProvider(GetProviderId());
+            return Json(data.Select(h => new { id = h.HospitalId, name = h.HospitalName }));
         }
         public async Task<IActionResult> GetWards()
         {

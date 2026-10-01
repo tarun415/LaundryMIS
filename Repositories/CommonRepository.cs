@@ -52,7 +52,7 @@ namespace LaudaryMis.Repositories
 
         public async Task<List<DropdownVM>> GetHospitalsByProvider(int providerId)
         {
-            var sql = @"select distinct hs.HospitalId as Id, hs.HospitalName as Name from ProviderHospitalAgreements as ag inner join tbl_Hospitals hs on ag.HospitalId = hs.HospitalId where ag.ProviderId = @ProviderId";
+            var sql = @"select distinct hs.HospitalId as Id, hs.HospitalName as Name from ProviderHospitalAgreements as ag inner join tbl_Hospitals hs on ag.HospitalId = hs.HospitalId where ag.ProviderId = @ProviderId and ag.IsActive = 1";
 
             var data = await _db.QueryAsync<DropdownVM>(
                 sql,
@@ -62,7 +62,7 @@ namespace LaudaryMis.Repositories
 
         public async Task<List<DropdownVM>> GetProviderByHospital(int hospitalId)
         {
-            var sql = @"select distinct pv.ProviderId as Id, pv.ProviderName as Name from ProviderHospitalAgreements as ag left join tbl_Providers pv on ag.ProviderId= pv.ProviderId where ag.HospitalId= @HospitalId";
+            var sql = @"select distinct pv.ProviderId as Id, pv.ProviderName as Name from ProviderHospitalAgreements as ag left join tbl_Providers pv on ag.ProviderId= pv.ProviderId where ag.HospitalId= @HospitalId and ag.IsActive = 1";
             var data = await _db.QueryAsync<DropdownVM>(
                 sql,
                 new { HospitalId = hospitalId });

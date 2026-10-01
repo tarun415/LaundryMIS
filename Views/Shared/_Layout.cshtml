@@ -136,7 +136,8 @@
                 Agreements: '@Url.Action("Agreements", "Admin")',
                 Providers:  '@Url.Action("Providers", "Admin")',
                 Wards:      '@Url.Action("Wards", "Admin")',
-                Payments:   '@Url.Action("PaymentList", "Payment")'
+                Payments:   '@Url.Action("PaymentList", "Payment")',
+                Activation: '@Url.Action("Index", "ActivationCode")'
             },
             hospital: {
                 dashboard:             '@Url.Action("Dashboard", "Hospital")',
@@ -173,6 +174,7 @@
                 { id: "providers",  icon: "fa-truck-fast",      label: "Providers",  route: routes.admin.Providers },
                 { id: "wards",      icon: "fa-bed",             label: "Wards",      route: routes.admin.Wards },
                 { id: "agreements", icon: "fa-file-signature",  label: "Agreements", route: routes.admin.Agreements },
+                { id: "activation", icon: "fa-key",             label: "Activation Codes", route: routes.admin.Activation },
                 { section: "Finance" },
                 { id: "payments",   icon: "fa-money-bill-wave", label: "Payments",   route: routes.admin.Payments }
             ],
