@@ -74,6 +74,86 @@ window.LMIS = (function () {
             "<'col-12 col-md-7'p>" +
         ">";
 
+    /* ---------------------------------------------------------------------
+       Serial number column
+       Every list table gets an "S.No." column automatically unless it already
+       has one (header like "S.No.", "Sr No", "#") or opts out with the
+       attribute data-no-serial. It counts 1, 2, 3 ... in the order the user
+       currently sees (after sorting and searching), also in exports.
+       If the first header cell is empty (expand / checkbox column) the serial
+       goes right after it.
+       --------------------------------------------------------------------- */
+    var SERIAL_HEADER = /^\s*(#|s\.?\s*no\.?|sr\.?\s*no\.?|serial(\s*no\.?)?)\s*$/i;
+
+    function addSerialColumn($el, options) {
+        if ($el.is('[data-no-serial]') || options.serial === false) return -1;
+
+        var $ths = $el.find('thead tr').first().children('th');
+        if (!$ths.length) return -1;
+
+        var hasSerial = $ths.toArray().some(function (th) {
+            return SERIAL_HEADER.test(th.textContent);
+        });
+        if (hasSerial) return -1;
+
+        var idx = jQuery.trim($ths.eq(0).text()) === '' && $ths.length > 1 ? 1 : 0;
+
+        // header cell
+        var $th = jQuery('<th class="no-sort text-center lmis-serial" data-priority="2">S.No.</th>');
+        if (idx < $ths.length) $ths.eq(idx).before($th); else $ths.last().after($th);
+
+        // server-rendered body rows (ajax tables have none yet; "no data" rows span all columns)
+        $el.find('tbody tr').each(function () {
+            var $tds = jQuery(this).children('td');
+            if ($tds.length === 1 && $tds.eq(0).attr('colspan')) {
+                // empty-state row: keep it spanning every column, including the new one
+                $tds.eq(0).attr('colspan', parseInt($tds.eq(0).attr('colspan'), 10) + 1);
+                return;
+            }
+            var $td = jQuery('<td class="text-center lmis-serial"></td>');
+            if (idx < $tds.length) $tds.eq(idx).before($td); else jQuery(this).append($td);
+        });
+
+        // Every column index the view passed in shifts by one
+        var shift = function (n) { return typeof n === 'number' && n >= idx ? n + 1 : n; };
+
+        if (options.order) {
+            options.order = options.order.map(function (o) { return [shift(o[0]), o[1]]; });
+        } else if (idx === 0) {
+            options.order = [[1, 'asc']];   // DataTables sorted by the first column by default
+        }
+
+        options.columnDefs = (options.columnDefs || []).map(function (cd) {
+            var c = jQuery.extend({}, cd);
+            c.targets = Array.isArray(c.targets) ? c.targets.map(shift) : shift(c.targets);
+            return c;
+        });
+        options.columnDefs.unshift({ targets: idx, orderable: false, searchable: false });
+
+        if (options.columns) {
+            options.columns = options.columns.slice();
+            // ajax rows are plain objects, so keep the number on the row object itself
+            options.columns.splice(idx, 0, {
+                data: function (row, type, val) {
+                    if (type === 'set') { row.__lmisSerial = val; return; }
+                    return row.__lmisSerial || '';
+                },
+                orderable: false, searchable: false, className: 'text-center lmis-serial'
+            });
+        }
+
+        return idx;
+    }
+
+    function numberRows(table, idx) {
+        var n = 1;
+        // set the data of every row (not only the visible page) so exports are numbered too
+        // cells(rows, column, opts): only the serial column, in the order on screen
+        table.cells(null, idx, { order: 'applied', search: 'applied' }).every(function () {
+            this.data(n++);
+        });
+    }
+
     /**
      * Initialise a table with the house style.
      * @param {string|jQuery} selector  table element or selector
@@ -103,6 +183,8 @@ window.LMIS = (function () {
         delete options.exportTitle;
         delete options.expandable;
 
+        var serialIdx = addSerialColumn($el, options);
+
         var config = jQuery.extend(true, {
             dom: TOOLBAR_DOM,
             buttons: showExports ? exportButtons(exportTitle) : []
@@ -121,6 +203,17 @@ window.LMIS = (function () {
         }
 
         var table = $el.DataTable(config);
+
+        if (serialIdx >= 0) {
+            var renumbering = false;
+            table.on('order.dt search.dt draw.dt', function () {
+                if (renumbering) return;
+                renumbering = true;
+                numberRows(table, serialIdx);
+                renumbering = false;
+            });
+            numberRows(table, serialIdx);
+        }
 
         // Re-measure on resize so columns stay sized correctly and Responsive
         // re-picks which columns to collapse (also covers tables revealed later

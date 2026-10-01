@@ -173,6 +173,7 @@
                         <table class="table table-sm align-middle mb-0">
                             <thead>
                                 <tr>
+                                    <th class="text-center">S.No.</th>
                                     <th>Type</th>
                                     <th>File</th>
                                     <th>Uploaded</th>
@@ -180,9 +181,11 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @{ int docNo = 0; }
                                 @foreach (var d in Model.Documents)
                                 {
                                     <tr>
+                                        <td class="text-center text-muted">@(++docNo)</td>
                                         <td><span class="badge badge-navy">@d.DocumentType</span></td>
                                         <td class="doc-name">@(d.OriginalFileName ?? d.FileName)</td>
                                         <td class="nowrap text-muted small">@d.UploadedOn.ToString("dd MMM yyyy")</td>
