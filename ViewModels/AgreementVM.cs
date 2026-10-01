@@ -22,5 +22,9 @@ namespace LaudaryMis.ViewModels
         public List<Provider> Providers { get; set; } = new();
         public string? FilePath { get; set; }
 
+        // From the signed agreement (read-only on the list)
+        public string? AgreementNo { get; set; }
+        public int? ScheduleNo { get; set; }
+
     }
 }

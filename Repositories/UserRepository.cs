@@ -92,10 +92,17 @@ namespace LaudaryMis.Repositories
 
             if (user == null)
             {
+                // Hospital loaded from the tender list but nobody has registered yet
+                var listed = await con.ExecuteScalarAsync<int>(
+                    "SELECT COUNT(*) FROM Tbl_Hospitals WHERE HospitalId = @HospitalId",
+                    new { HospitalId = hospitalId });
+
                 return new LoginResult
                 {
                     Success = false,
-                    Message = "Invalid District or hospital."
+                    Message = listed > 0
+                        ? "Is hospital ka account abhi nahi bana hai. Pehle Register karein."
+                        : "Invalid District or hospital."
                 };
             }
 
@@ -160,10 +167,16 @@ namespace LaudaryMis.Repositories
 
             if (user == null)
             {
+                var listed = await con.ExecuteScalarAsync<int>(
+                    "SELECT COUNT(*) FROM tbl_Providers WHERE ProviderId = @ProviderId",
+                    new { ProviderId = providerId });
+
                 return new LoginResult
                 {
                     Success = false,
-                    Message = "Invalid provider."
+                    Message = listed > 0
+                        ? "Is vendor ka account abhi nahi bana hai. Pehle Register karein."
+                        : "Invalid provider."
                 };
             }
 

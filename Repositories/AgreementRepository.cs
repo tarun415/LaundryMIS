@@ -57,6 +57,8 @@ SELECT
     a.StartDate,
     a.EndDate,
     a.AgreementFile AS FilePath,
+    a.AgreementNo,
+    a.ScheduleNo,
     p.ProviderName,
     h.HospitalName
 FROM ProviderHospitalAgreements a

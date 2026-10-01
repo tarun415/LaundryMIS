@@ -36,6 +36,8 @@
                     <tr>
                         <th data-priority="1">Provider</th>
                         <th data-priority="2">Hospital</th>
+                        <th data-priority="9" class="text-center">Sch.</th>
+                        <th data-priority="10">Agreement No.</th>
                         <th data-priority="6" class="text-end">Beds</th>
                         <th data-priority="5" class="text-end">Rate</th>
                         <th data-priority="7">Start</th>
@@ -52,6 +54,8 @@
                         <tr>
                             <td class="fw-semibold">@item.ProviderName</td>
                             <td>@item.HospitalName</td>
+                            <td class="text-center">@(item.ScheduleNo?.ToString() ?? "—")</td>
+                            <td class="small nowrap">@(item.AgreementNo ?? "—")</td>
                             <td class="text-end">@item.BedCount</td>
                             <td class="text-end nowrap">₹ @item.RatePerBed</td>
                             <td class="nowrap">@item.StartDate?.ToString("dd-MM-yyyy")</td>
