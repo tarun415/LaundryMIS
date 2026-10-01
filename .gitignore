@@ -6,3 +6,6 @@ bin/
 obj/
 .vs/
 /wwwroot/uploads/agreements
+
+# Vendor KYC documents (private, never commit)
+App_Data/

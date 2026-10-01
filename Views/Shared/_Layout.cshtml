@@ -159,7 +159,8 @@
                 DeliveryAgingReport:   '@Url.Action("DeliveryAgingReport", "Report")',
                 GenerateInvoice:       '@Url.Action("PaymentList", "Payment")',
                 InvoiceList:           '@Url.Action("InvoiceList", "Invoice")',
-                WarningLetterList:     '@Url.Action("WarningLetterList", "WarningLetter")'
+                WarningLetterList:     '@Url.Action("WarningLetterList", "WarningLetter")',
+                Profile:               '@Url.Action("Index", "ProviderProfile")'
             }
         };
 
@@ -206,7 +207,9 @@
                 { id: "GenerateInvoice", icon: "fa-file-invoice-dollar", label: "Generate Invoice", route: routes.provider.GenerateInvoice },
                 { id: "InvoiceList",     icon: "fa-file-invoice",        label: "Invoice List",     route: routes.provider.InvoiceList },
                 { section: "Compliance" },
-                { id: "WarningLetterList", icon: "fa-triangle-exclamation", label: "Warning Letters", route: routes.provider.WarningLetterList }
+                { id: "WarningLetterList", icon: "fa-triangle-exclamation", label: "Warning Letters", route: routes.provider.WarningLetterList },
+                { section: "Account" },
+                { id: "Profile", icon: "fa-id-card", label: "Profile & Documents", route: routes.provider.Profile }
             ]
         };
 
