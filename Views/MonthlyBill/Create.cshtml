@@ -225,7 +225,7 @@
                     </div>
 
                     <div class="calc-row">
-                        <span class="lbl">Monthly Gross</span>
+                        <span class="lbl">Monthly Gross (ex-GST)</span>
                         <span class="val" id="dGross">₹@Model.MonthlyGrossAmount.ToString("N2")</span>
                     </div>
 
@@ -235,8 +235,13 @@
                     </div>
 
                     <div class="calc-row">
-                        <span class="lbl">Base Payable</span>
+                        <span class="lbl">Base Payable (ex-GST)</span>
                         <span class="val" id="dBase">₹@Model.BasePayableAmount.ToString("N2")</span>
+                    </div>
+
+                    <div class="calc-row">
+                        <span class="lbl">GST (@Model.GSTPercent.ToString("0.##")%)</span>
+                        <span class="val" id="dGST">+₹@Model.GSTAmount.ToString("N2")</span>
                     </div>
 
                     <div class="calc-row">
@@ -297,6 +302,7 @@
                     $('#dGross').text('₹' + r.monthlyGross);
                     $('#dBand').text(r.paymentBand + '%');
                     $('#dBase').text('₹' + r.basePayable);
+                    $('#dGST').text('+₹' + r.gstAmount);
                     $('#dTDS').text('-₹' + r.tdsAmount);
                     $('#dDeduct').text('-₹' + (parseFloat($('#inpDeduct').val()) || 0).toFixed(2));
                     $('#dNet').text('₹' + r.netPayable);
