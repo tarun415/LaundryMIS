@@ -44,6 +44,10 @@
         }
         .pwd-toggle:hover { color: var(--teal-700); background: var(--surface-3); }
 
+        .login-switch { margin-top: 14px; text-align: center; font-size: .85rem; color: var(--ink-3); }
+        .login-switch a { font-weight: 600; color: var(--teal-700); text-decoration: none; }
+        .login-switch a:hover { text-decoration: underline; }
+
         .login-foot {
             margin-top: 18px;
             padding-top: 14px;
@@ -174,6 +178,10 @@
 
             </form>
 
+            <div class="login-switch">
+                Naya hospital ya vendor? <a asp-action="Register">Register karein</a>
+            </div>
+
             <div class="login-foot">
                 Directorate General of Medical &amp; Health Services, Uttar Pradesh
             </div>
@@ -237,26 +245,24 @@
                 .then(res => res.json())
                 .then(data => {
                     let ddl = document.getElementById("DistrictId");
-                    ddl.innerHTML = '<option value="">Select District</option>';
+                    ddl.length = 1;
 
-                    data.forEach(d => {
-                        ddl.innerHTML += `<option value="${d.districtId}">${d.districtName}</option>`;
-                    });
+                    // Names come from self-registration, so build options
+                    // with text (never innerHTML).
+                    data.forEach(d => ddl.add(new Option(d.districtName, d.districtId)));
 
                     districtLoaded = true;
                 });
         }
 
         function loadHospitals(districtId) {
-            fetch('/User/GetHospitalsByDistrict?districtId=' + districtId)
+            fetch('/User/GetHospitalsByDistrict?districtId=' + encodeURIComponent(districtId))
                 .then(res => res.json())
                 .then(data => {
                     let ddl = document.getElementById("HospitalId");
-                    ddl.innerHTML = '<option value="">Select Hospital</option>';
+                    ddl.length = 1;
 
-                    data.forEach(h => {
-                        ddl.innerHTML += `<option value="${h.hospitalId}">${h.hospitalName}</option>`;
-                    });
+                    data.forEach(h => ddl.add(new Option(h.hospitalName, h.hospitalId)));
                 });
         }
 
@@ -267,10 +273,16 @@
                 .then(res => res.json())
                 .then(data => {
                     let ddl = document.getElementById("ProviderId");
-                    ddl.innerHTML = '<option value="">Select Provider</option>';
+                    ddl.length = 1;
 
+                    // Show the firm name too: two vendors can share a contact name.
                     data.forEach(p => {
-                        ddl.innerHTML += `<option value="${p.providerId}">${p.providerName}</option>`;
+                        const name = p.providerName || "";
+                        const firm = p.firmName || "";
+                        const label = firm && !name.toLowerCase().includes(firm.toLowerCase())
+                            ? `${name} (${firm})`
+                            : name || firm;
+                        ddl.add(new Option(label, p.providerId));
                     });
 
                     providerLoaded = true;

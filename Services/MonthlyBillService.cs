@@ -61,30 +61,46 @@ namespace LaudaryMis.Services
         // ──────────────────────────────────────────────────────
         // Core Calculation — ek jagah, sab jagah use hoga
         // ──────────────────────────────────────────────────────
+        // Contract (Part-III, Payment Mechanism):
+        //   Monthly gross bill = beds × rate per bed per year ÷ 12 (GST ke bina)
+        //   WPR band % gross bill pe lagta hai → Base Payable
+        //   GST (18%) base payable pe alag se judta hai
+        //   TDS (2%, Sec 194C) base payable (GST ke bina) pe katta hai
+        //   Net = Base + GST − TDS − extra deductions
         public void ComputeAmounts(MonthlyBillVM vm)
         {
             vm.AnnualValueExGST = vm.SanctionedBeds * vm.RatePerBedPerYear;
-            vm.AnnualValueInGST = vm.AnnualValueExGST
-                                    * (1 + vm.GSTPercent / 100);
-            vm.MonthlyGrossAmount = vm.AnnualValueInGST / 12;
+            vm.AnnualValueInGST = Round2(vm.AnnualValueExGST
+                                    * (1 + vm.GSTPercent / 100));
+            vm.MonthlyGrossAmount = Round2(vm.AnnualValueExGST / 12);
 
-            vm.PaymentBandPercent = vm.WPRAvgScore switch
-            {
-                <= 20 => 0m,
-                <= 40 => 40m,
-                <= 60 => 60m,
-                <= 70 => 80m,
-                <= 80 => 90m,
-                _ => 100m
-            };
+            vm.PaymentBandPercent = GetPaymentBandPercent(vm.WPRAvgScore);
 
-            vm.BasePayableAmount = vm.MonthlyGrossAmount
-                                   * vm.PaymentBandPercent / 100;
-            vm.TDSAmount = vm.BasePayableAmount * 0.02m;
+            vm.BasePayableAmount = Round2(vm.MonthlyGrossAmount
+                                   * vm.PaymentBandPercent / 100);
+            vm.GSTAmount = Round2(vm.BasePayableAmount * vm.GSTPercent / 100);
+            vm.TDSAmount = Round2(vm.BasePayableAmount * 0.02m);
             vm.NetPayableAmount = vm.BasePayableAmount
+                                   + vm.GSTAmount
                                    - vm.TDSAmount
                                    - vm.AdditionalDeductions;
         }
+
+        // WPR monthly average → % of gross bill (contract bands:
+        // 0-20 nil, 21-40 40%, 41-60 60%, 61-70 80%, 71-80 90%, 81-100 100%).
+        // sp_GetPaymentCalculation mein bhi yahi boundaries hain.
+        public static decimal GetPaymentBandPercent(decimal avgScore) => avgScore switch
+        {
+            >= 81 => 100m,
+            >= 71 => 90m,
+            >= 61 => 80m,
+            >= 41 => 60m,
+            >= 21 => 40m,
+            _ => 0m
+        };
+
+        private static decimal Round2(decimal value) =>
+            Math.Round(value, 2, MidpointRounding.AwayFromZero);
 
         // ──────────────────────────────────────────────────────
         // Save Draft
@@ -253,6 +269,7 @@ namespace LaudaryMis.Services
                 MonthlyGrossAmount = bill.MonthlyGrossAmount,
                 PaymentBandPercent = bill.PaymentBandPercent,
                 BasePayableAmount = bill.BasePayableAmount,
+                GSTAmount = Round2(bill.BasePayableAmount * bill.GSTPercent / 100),
                 TDSAmount = bill.TDSAmount,
                 AdditionalDeductions = bill.AdditionalDeductions,
                 DeductionRemarks = bill.DeductionRemarks,

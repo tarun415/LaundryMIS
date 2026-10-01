@@ -1,0 +1,274 @@
+@model LaudaryMis.ViewModels.RegisterVM
+@{
+    Layout = null;
+    var isHospital = Model.RoleId != 3;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1f3a" />
+    <title>Register &middot; Laundry MIS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+
+    <style>
+        .login-box { max-width: 520px; }
+        .reg-row { display: grid; grid-template-columns: 1fr; gap: 0 14px; }
+        @@media (min-width: 520px) { .reg-row { grid-template-columns: 1fr 1fr; } }
+
+        .field-err { color: var(--danger, #b42318); font-size: .74rem; margin-top: 4px; }
+        .field-err:empty { display: none; }
+
+        .pwd-wrap { position: relative; }
+        .pwd-wrap input { padding-right: 42px; }
+        .pwd-toggle {
+            position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+            width: 32px; height: 32px; display: grid; place-items: center;
+            border: none; background: transparent; color: var(--ink-3);
+            cursor: pointer; border-radius: var(--r-sm);
+        }
+        .pwd-toggle:hover { color: var(--teal-700); background: var(--surface-3); }
+
+        .login-switch { margin-top: 14px; text-align: center; font-size: .85rem; color: var(--ink-3); }
+        .login-switch a { font-weight: 600; color: var(--teal-700); text-decoration: none; }
+        .login-switch a:hover { text-decoration: underline; }
+
+        .login-foot {
+            margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line);
+            text-align: center; font-size: .7rem; color: var(--ink-3); letter-spacing: .04em;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-page">
+
+        <div class="login-box">
+
+            <div class="login-logo">
+                <div class="emblem"><i class="fa-solid fa-user-plus"></i></div>
+                <h1>Register &middot; Laundry MIS</h1>
+                <p>Hospital ya Vendor account banayein</p>
+            </div>
+
+            <form method="post" asp-action="Register" id="regForm" novalidate>
+
+                @Html.AntiForgeryToken()
+
+                @{
+                    var formErrors = ViewData.ModelState[string.Empty]?.Errors;
+                }
+                @if (formErrors?.Count > 0)
+                {
+                    <div class="login-err">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i>
+                        @string.Join(" ", formErrors.Select(e => e.ErrorMessage))
+                    </div>
+                }
+
+                <!-- ROLE SELECTOR -->
+                <div class="role-selector" role="radiogroup" aria-label="Register as" style="grid-template-columns: 1fr 1fr;">
+
+                    <div class="role-btn @(isHospital ? "selected" : "")" role="radio" tabindex="0"
+                         aria-checked="@(isHospital ? "true" : "false")" onclick="setRole(2, this)">
+                        <div class="role-icon"><i class="fa-solid fa-hospital"></i></div>
+                        <div class="role-label">Hospital</div>
+                        <div class="role-sub">Facility</div>
+                    </div>
+
+                    <div class="role-btn @(!isHospital ? "selected" : "")" role="radio" tabindex="0"
+                         aria-checked="@(!isHospital ? "true" : "false")" onclick="setRole(3, this)">
+                        <div class="role-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                        <div class="role-label">Vendor</div>
+                        <div class="role-sub">Laundry Provider</div>
+                    </div>
+
+                </div>
+
+                <input type="hidden" asp-for="RoleId" id="RoleId" />
+
+                <!-- HOSPITAL -->
+                <div id="hospitalFields" style="@(isHospital ? "" : "display:none;")">
+                    <div class="login-field">
+                        <label asp-for="HospitalName">Hospital ka naam</label>
+                        <input asp-for="HospitalName" maxlength="200" placeholder="Jaise: District Hospital (Male), Agra" />
+                        <span class="field-err d-block" asp-validation-for="HospitalName"></span>
+                    </div>
+
+                    <div class="reg-row">
+                        <div class="login-field">
+                            <label asp-for="DistrictId">District</label>
+                            <select asp-for="DistrictId" id="DistrictId" data-selected="@Model.DistrictId">
+                                <option value="">Select District</option>
+                            </select>
+                            <span class="field-err d-block" asp-validation-for="DistrictId"></span>
+                        </div>
+
+                        <div class="login-field">
+                            <label asp-for="ContactPerson">Contact person</label>
+                            <input asp-for="ContactPerson" maxlength="100" placeholder="CMS / nodal officer ka naam" />
+                            <span class="field-err d-block" asp-validation-for="ContactPerson"></span>
+                        </div>
+                    </div>
+
+                    <div class="login-field">
+                        <label asp-for="Address">Address <span class="text-muted fw-normal">(optional)</span></label>
+                        <input asp-for="Address" maxlength="250" placeholder="Hospital ka pata" />
+                        <span class="field-err d-block" asp-validation-for="Address"></span>
+                    </div>
+                </div>
+
+                <!-- VENDOR -->
+                <div id="providerFields" style="@(!isHospital ? "" : "display:none;")">
+                    <div class="login-field">
+                        <label asp-for="FirmName">Firm / company ka naam</label>
+                        <input asp-for="FirmName" maxlength="150" placeholder="Jaise: M/s ABC Laundry Services" />
+                        <span class="field-err d-block" asp-validation-for="FirmName"></span>
+                    </div>
+
+                    <div class="login-field">
+                        <label asp-for="ProviderName">Contact person</label>
+                        <input asp-for="ProviderName" maxlength="150" placeholder="Owner / manager ka naam" />
+                        <span class="field-err d-block" asp-validation-for="ProviderName"></span>
+                    </div>
+                </div>
+
+                <!-- COMMON -->
+                <div class="reg-row">
+                    <div class="login-field">
+                        <label asp-for="Phone">Mobile number</label>
+                        <input asp-for="Phone" maxlength="10" inputmode="numeric" autocomplete="tel" placeholder="10 digit mobile" />
+                        <span class="field-err d-block" asp-validation-for="Phone"></span>
+                    </div>
+
+                    <div class="login-field">
+                        <label asp-for="Email">Email</label>
+                        <input asp-for="Email" type="email" maxlength="200" autocomplete="email" placeholder="name@example.com" />
+                        <span class="field-err d-block" asp-validation-for="Email"></span>
+                    </div>
+                </div>
+
+                <div class="reg-row">
+                    <div class="login-field">
+                        <label asp-for="Password">Password</label>
+                        <div class="pwd-wrap">
+                            <input asp-for="Password" type="password" autocomplete="new-password" placeholder="Kam se kam 8 characters" />
+                            <button type="button" class="pwd-toggle" data-target="Password" aria-label="Show password">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                        <span class="field-err d-block" asp-validation-for="Password"></span>
+                    </div>
+
+                    <div class="login-field">
+                        <label asp-for="ConfirmPassword">Password dobara</label>
+                        <div class="pwd-wrap">
+                            <input asp-for="ConfirmPassword" type="password" autocomplete="new-password" placeholder="Wahi password" />
+                            <button type="button" class="pwd-toggle" data-target="ConfirmPassword" aria-label="Show password">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                        <span class="field-err d-block" asp-validation-for="ConfirmPassword"></span>
+                    </div>
+                </div>
+                <div class="login-hint" style="margin-top:-6px;">Password mein kam se kam ek letter aur ek number ho.</div>
+
+                <button type="submit" class="btn-login mt-3" id="regBtn">
+                    <i class="fa-solid fa-user-plus me-1"></i> Register &amp; Sign In
+                </button>
+
+            </form>
+
+            <div class="login-switch">
+                Pehle se account hai? <a asp-action="Login">Sign in karein</a>
+            </div>
+
+            <div class="login-foot">
+                Directorate General of Medical &amp; Health Services, Uttar Pradesh
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        let districtLoaded = false;
+
+        function setRole(roleId, el) {
+            document.getElementById("RoleId").value = roleId;
+
+            document.querySelectorAll(".role-btn").forEach(r => {
+                r.classList.remove("selected");
+                r.setAttribute("aria-checked", "false");
+            });
+            el.classList.add("selected");
+            el.setAttribute("aria-checked", "true");
+
+            document.getElementById("hospitalFields").style.display = roleId == 2 ? "" : "none";
+            document.getElementById("providerFields").style.display = roleId == 3 ? "" : "none";
+
+            if (roleId == 2) loadDistricts();
+        }
+
+        document.querySelectorAll(".role-btn").forEach(btn => {
+            btn.addEventListener("keydown", e => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    btn.click();
+                }
+            });
+        });
+
+        // Names come from the database, so options are built with
+        // textContent (never innerHTML).
+        function loadDistricts() {
+            if (districtLoaded) return;
+
+            const ddl = document.getElementById("DistrictId");
+            const selected = ddl.dataset.selected;
+
+            fetch('/User/GetDistricts')
+                .then(res => res.json())
+                .then(data => {
+                    ddl.length = 1;
+                    data.forEach(d => {
+                        const opt = new Option(d.districtName, d.districtId);
+                        if (String(d.districtId) === selected) opt.selected = true;
+                        ddl.add(opt);
+                    });
+                    districtLoaded = true;
+                });
+        }
+
+        if (document.getElementById("RoleId").value == "2") loadDistricts();
+
+        document.querySelectorAll(".pwd-toggle").forEach(btn => {
+            btn.addEventListener("click", function () {
+                const input = document.getElementById(this.dataset.target);
+                const icon = this.querySelector("i");
+                const show = input.type === "password";
+                input.type = show ? "text" : "password";
+                icon.className = show ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+                this.setAttribute("aria-label", show ? "Hide password" : "Show password");
+            });
+        });
+
+        document.getElementById("regForm").addEventListener("submit", function () {
+            const btn = document.getElementById("regBtn");
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Registering…';
+        });
+    </script>
+
+</body>
+</html>

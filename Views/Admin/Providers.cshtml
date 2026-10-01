@@ -59,6 +59,11 @@
                             </td>
                             <td class="text-end">
                                 <div class="action-group justify-content-end">
+                                    <a asp-controller="ProviderProfile" asp-action="Details" asp-route-id="@p.ProviderId"
+                                       class="btn btn-sm btn-icon btn-outline-secondary"
+                                       data-bs-toggle="tooltip" title="Profile & documents">
+                                        <i class="fa-solid fa-id-card"></i>
+                                    </a>
                                     @if (p.ApprovalStatus == "Pending" || p.ApprovalStatus == "Rejected")
                                     {
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-success"

@@ -219,5 +219,182 @@ namespace LaudaryMis.Repositories
 
             return new LoginResult { Success = false, Message = message };
         }
+
+        // ──────────────────────────────────────────────────────
+        // Self-registration: hospital/provider record + login user,
+        // ek hi transaction mein. Admin approval nahi chahiye — isliye
+        // ApprovalStatus seedha 'Approved' (Admin se bane records 'Pending' se shuru hote hain).
+        // ──────────────────────────────────────────────────────
+        public async Task<LoginResult> RegisterHospital(RegisterVM model)
+        {
+            using var con = new SqlConnection(
+                _config.GetConnectionString("DefaultConnection"));
+            await con.OpenAsync();
+            using var tran = con.BeginTransaction();
+
+            try
+            {
+                var email = model.Email.Trim();
+
+                if (await EmailExists(con, tran, email))
+                    return Fail(tran, "Is email se pehle hi account bana hua hai. Login karein.");
+
+                var districtOk = await con.ExecuteScalarAsync<int>(
+                    "SELECT COUNT(*) FROM DistrictMaster WHERE DistrictID = @DistrictId",
+                    new { model.DistrictId }, tran);
+
+                if (districtOk == 0)
+                    return Fail(tran, "Sahi district chunein.");
+
+                var duplicate = await con.ExecuteScalarAsync<int>(@"
+                    SELECT COUNT(*) FROM Tbl_Hospitals
+                    WHERE DistrictId = @DistrictId
+                      AND LTRIM(RTRIM(HospitalName)) = @HospitalName",
+                    new { model.DistrictId, HospitalName = model.HospitalName!.Trim() }, tran);
+
+                if (duplicate > 0)
+                    return Fail(tran, "Is district mein is naam ka hospital pehle se registered hai.");
+
+                var hospitalId = await con.ExecuteScalarAsync<int>(@"
+                    INSERT INTO Tbl_Hospitals
+                        (HospitalName, DistrictId, Address, ContactPerson, Phone, Email, IsActive, ApprovalStatus)
+                    VALUES
+                        (@HospitalName, @DistrictId, @Address, @ContactPerson, @Phone, @Email, 1, 'Approved');
+                    SELECT CAST(SCOPE_IDENTITY() AS INT);",
+                    new
+                    {
+                        HospitalName = model.HospitalName.Trim(),
+                        model.DistrictId,
+                        Address = model.Address?.Trim(),
+                        ContactPerson = model.ContactPerson?.Trim(),
+                        model.Phone,
+                        Email = email
+                    }, tran);
+
+                var user = new User
+                {
+                    FullName = model.HospitalName.Trim(),
+                    Username = email,
+                    RoleId = 2,
+                    RoleName = "Hospital",
+                    HospitalId = hospitalId,
+                    IsActive = true
+                };
+
+                user.UserId = await InsertUser(con, tran, user, email, model.Password);
+
+                tran.Commit();
+                return new LoginResult { Success = true, User = user };
+            }
+            catch (SqlException ex) when (ex.Number is 2601 or 2627)
+            {
+                // Unique index on Tbl_Users.Email (do log ek saath register karein)
+                tran.Rollback();
+                return new LoginResult { Success = false, Message = "Is email se pehle hi account bana hua hai. Login karein." };
+            }
+            catch
+            {
+                tran.Rollback();
+                throw;
+            }
+        }
+
+        public async Task<LoginResult> RegisterProvider(RegisterVM model)
+        {
+            using var con = new SqlConnection(
+                _config.GetConnectionString("DefaultConnection"));
+            await con.OpenAsync();
+            using var tran = con.BeginTransaction();
+
+            try
+            {
+                var email = model.Email.Trim();
+
+                if (await EmailExists(con, tran, email))
+                    return Fail(tran, "Is email se pehle hi account bana hua hai. Login karein.");
+
+                var duplicate = await con.ExecuteScalarAsync<int>(@"
+                    SELECT COUNT(*) FROM tbl_Providers
+                    WHERE LTRIM(RTRIM(FirmName)) = @FirmName",
+                    new { FirmName = model.FirmName!.Trim() }, tran);
+
+                if (duplicate > 0)
+                    return Fail(tran, "Is naam ki firm pehle se registered hai.");
+
+                var providerId = await con.ExecuteScalarAsync<int>(@"
+                    INSERT INTO tbl_Providers
+                        (ProviderName, FirmName, Phone, IsActive, CreatedDBY, ApprovalStatus)
+                    VALUES
+                        (@ProviderName, @FirmName, @Phone, 1, 'Self-registration', 'Approved');
+                    SELECT CAST(SCOPE_IDENTITY() AS INT);",
+                    new
+                    {
+                        ProviderName = model.ProviderName!.Trim(),
+                        FirmName = model.FirmName.Trim(),
+                        model.Phone
+                    }, tran);
+
+                var user = new User
+                {
+                    FullName = model.ProviderName.Trim(),
+                    Username = email,
+                    RoleId = 3,
+                    RoleName = "Provider",
+                    ProviderId = providerId,
+                    HospitalId = 0,   // Tbl_Users.HospitalId NOT NULL hai; providers ke liye 0
+                    IsActive = true
+                };
+
+                user.UserId = await InsertUser(con, tran, user, email, model.Password);
+
+                tran.Commit();
+                return new LoginResult { Success = true, User = user };
+            }
+            catch (SqlException ex) when (ex.Number is 2601 or 2627)
+            {
+                tran.Rollback();
+                return new LoginResult { Success = false, Message = "Is email se pehle hi account bana hua hai. Login karein." };
+            }
+            catch
+            {
+                tran.Rollback();
+                throw;
+            }
+        }
+
+        private static async Task<bool> EmailExists(
+            SqlConnection con, SqlTransaction tran, string email)
+        {
+            return await con.ExecuteScalarAsync<int>(
+                "SELECT COUNT(*) FROM Tbl_Users WHERE Email = @Email",
+                new { Email = email }, tran) > 0;
+        }
+
+        private static async Task<int> InsertUser(
+            SqlConnection con, SqlTransaction tran, User user, string email, string password)
+        {
+            return await con.ExecuteScalarAsync<int>(@"
+                INSERT INTO Tbl_Users
+                    (ProviderId, FullName, Email, PasswordHash, RoleId, HospitalId, IsActive, Username)
+                VALUES
+                    (@ProviderId, @FullName, @Email, @PasswordHash, @RoleId, @HospitalId, 1, @Username);
+                SELECT CAST(SCOPE_IDENTITY() AS INT);",
+                new
+                {
+                    user.ProviderId,
+                    user.FullName,
+                    Email = email,
+                    PasswordHash = PasswordHasher.Hash(password),
+                    user.RoleId,
+                    HospitalId = user.HospitalId ?? 0,
+                    user.Username
+                }, tran);
+        }
+
+        private static LoginResult Fail(SqlTransaction tran, string message)
+        {
+            tran.Rollback();
+            return new LoginResult { Success = false, Message = message };
+        }
     }
 }

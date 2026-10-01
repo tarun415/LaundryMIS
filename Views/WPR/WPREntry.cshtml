@@ -253,7 +253,7 @@
                 if (agreement.hospitalName) {
                     const display = document.getElementById("hospitalDisplay");
                     if (display) {
-                        display.innerHTML = '<i class="fa-solid fa-hospital text-teal"></i> ' + agreement.hospitalName;
+                        display.innerHTML = '<i class="fa-solid fa-hospital text-teal"></i> ' + LMIS.esc(agreement.hospitalName);
                         display.style.display = "inline-flex";
                     }
                 }

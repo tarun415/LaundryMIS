@@ -46,6 +46,7 @@ namespace LaudaryMis.ViewModels
         public decimal MonthlyGrossAmount { get; set; }
         public decimal PaymentBandPercent { get; set; }
         public decimal BasePayableAmount { get; set; }
+        public decimal GSTAmount { get; set; }   // base payable pe GST (DB mein nahi, har baar calculate hota hai)
         public decimal TDSAmount { get; set; }
         public decimal NetPayableAmount { get; set; }
 

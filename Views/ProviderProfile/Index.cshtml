@@ -1,0 +1,511 @@
+@model LaudaryMis.ViewModels.ProviderProfileVM
+@using LaudaryMis.ViewModels
+
+@{
+    ViewData["Title"] = Model.ReadOnly ? "Vendor Profile" : "Profile & Documents";
+
+    var ro = Model.ReadOnly;
+    var pct = Model.CompletionPercent;
+    var pctClass = pct >= 100 ? "badge-ok" : pct >= 60 ? "badge-warn" : "badge-danger";
+    var checklist = Model.DocumentChecklist().ToList();
+    var missingDocs = checklist.Count(c => c.Type.Required && (c.Latest == null || c.Latest.IsExpired));
+    var labour = checklist.First(c => c.Type.Name == "Labour Licence").Latest;
+}
+
+@section Styles {
+    <style>
+        .pf-progress { height: 8px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+        .pf-progress > div { height: 100%; background: var(--teal-600, #0f766e); border-radius: 99px; }
+        .ck-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+        .ck-row:last-child { border-bottom: none; }
+        .ck-ico { width: 20px; flex: 0 0 20px; text-align: center; margin-top: 2px; }
+        .ck-name { font-weight: 600; font-size: .88rem; }
+        .ck-hint { font-size: .75rem; color: var(--ink-3); }
+        .doc-name { word-break: break-all; }
+        fieldset[disabled] .form-control, fieldset[disabled] .form-select { background: var(--surface-2, #f6f7f9); }
+        .text-upper { text-transform: uppercase; }
+    </style>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" data-auto-dismiss>
+        <i class="fa-solid fa-circle-check"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-id-card"></i></div>
+    <div class="ph-text">
+        <h1>@(ro ? Model.FirmName : "Profile & Documents")</h1>
+        <p class="ph-sub">
+            @(ro ? Model.ProviderName : Model.FirmName)
+            @if (Model.UpdatedOn != null)
+            {
+                <span>&middot; Last updated @Model.UpdatedOn.Value.ToString("dd MMM yyyy")</span>
+            }
+        </p>
+    </div>
+    <div class="ph-actions">
+        <span class="badge @pctClass" style="font-size:.8rem; padding:7px 14px;">@pct% complete</span>
+        @if (ro)
+        {
+            <a asp-controller="Admin" asp-action="Providers" class="btn btn-light">
+                <i class="fa-solid fa-arrow-left"></i> Providers
+            </a>
+        }
+    </div>
+</div>
+
+@if (labour == null || labour.IsExpired)
+{
+    <div class="alert alert-warning">
+        <i class="fa-solid fa-scale-balanced"></i>
+        <span>
+            <strong>Labour Licence @(labour == null ? "upload nahi hua" : "expire ho gaya") hai.</strong>
+            Contract ke hisaab se (Part III, General Terms 9) labour licence jama hone tak payment release nahi hoti.
+        </span>
+    </div>
+}
+
+<div class="row g-3">
+
+    <!-- ═══════════ PROFILE FORM ═══════════ -->
+    <div class="col-12 col-xl-7">
+        <form asp-action="Save" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <fieldset @(ro ? "disabled" : "")>
+
+                <!-- FIRM -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <i class="fa-solid fa-building text-teal"></i>
+                        <span class="card-title">Firm ki jaankari</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" asp-for="FirmName">Firm / company ka naam <span class="text-danger">*</span></label>
+                                <input asp-for="FirmName" class="form-control" maxlength="150" />
+                                <span asp-validation-for="FirmName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" asp-for="LegalStatus">Firm ka type</label>
+                                <select asp-for="LegalStatus" class="form-select">
+                                    <option value="">Chunein</option>
+                                    @foreach (var s in ProviderProfileVM.LegalStatuses)
+                                    {
+                                        <option value="@s" selected="@(Model.LegalStatus == s)">@s</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="LegalStatus" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" asp-for="RegistrationNo">Registration number</label>
+                                <input asp-for="RegistrationNo" class="form-control" maxlength="100" placeholder="CIN / LLPIN / firm reg. no." />
+                                <span asp-validation-for="RegistrationNo" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" asp-for="RegistrationAuthority">Registering authority</label>
+                                <input asp-for="RegistrationAuthority" class="form-control" maxlength="200" placeholder="Jaise: Registrar of Companies, Kanpur" />
+                                <span asp-validation-for="RegistrationAuthority" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" asp-for="GSTNo">GSTIN</label>
+                                <input asp-for="GSTNo" class="form-control text-upper" maxlength="15" placeholder="09ABCDE1234F1Z5" />
+                                <span asp-validation-for="GSTNo" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" asp-for="PANNo">PAN</label>
+                                <input asp-for="PANNo" class="form-control text-upper" maxlength="10" placeholder="ABCDE1234F" />
+                                <span asp-validation-for="PANNo" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" asp-for="EPFNo">EPF number</label>
+                                <input asp-for="EPFNo" class="form-control" maxlength="50" />
+                                <span asp-validation-for="EPFNo" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" asp-for="ESINo">ESI number</label>
+                                <input asp-for="ESINo" class="form-control" maxlength="50" />
+                                <span asp-validation-for="ESINo" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" asp-for="MSMENo">MSME / Udyam <span class="text-muted fw-normal">(optional)</span></label>
+                                <input asp-for="MSMENo" class="form-control" maxlength="50" />
+                                <span asp-validation-for="MSMENo" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" asp-for="Address">Registered address</label>
+                                <textarea asp-for="Address" class="form-control" rows="2" maxlength="500"></textarea>
+                                <span asp-validation-for="Address" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTACT -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <i class="fa-solid fa-address-book text-teal"></i>
+                        <span class="card-title">Contact person</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" asp-for="ProviderName">Naam <span class="text-danger">*</span></label>
+                                <input asp-for="ProviderName" class="form-control" maxlength="150" />
+                                <span asp-validation-for="ProviderName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" asp-for="ContactDesignation">Designation</label>
+                                <input asp-for="ContactDesignation" class="form-control" maxlength="100" placeholder="Jaise: Director, Partner" />
+                                <span asp-validation-for="ContactDesignation" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" asp-for="Phone">Mobile <span class="text-danger">*</span></label>
+                                <input asp-for="Phone" class="form-control" maxlength="10" inputmode="numeric" />
+                                <span asp-validation-for="Phone" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Login email</label>
+                                <input class="form-control" value="@Model.Email" readonly disabled />
+                                <div class="stat-sub mt-1">Login ke liye; yahan se nahi badalta.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTRACT MANAGER -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <i class="fa-solid fa-user-tie text-teal"></i>
+                        <span class="card-title">Contract Manager</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="stat-sub mb-3">Contract ke hisaab se 5 saal ka experience zaroori (Article 9). Ye DGMH meetings, Laundry MIS aur monthly invoice ke liye zimmedar hain.</p>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-5">
+                                <label class="form-label" asp-for="ContractManagerName">Naam</label>
+                                <input asp-for="ContractManagerName" class="form-control" maxlength="150" />
+                                <span asp-validation-for="ContractManagerName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" asp-for="ContractManagerPhone">Mobile</label>
+                                <input asp-for="ContractManagerPhone" class="form-control" maxlength="10" inputmode="numeric" />
+                                <span asp-validation-for="ContractManagerPhone" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label" asp-for="ContractManagerExpYears">Experience (saal)</label>
+                                <input asp-for="ContractManagerExpYears" class="form-control" type="number" min="0" max="60" />
+                                <span asp-validation-for="ContractManagerExpYears" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BANK -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <i class="fa-solid fa-building-columns text-teal"></i>
+                        <span class="card-title">Bank account (payment ke liye)</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" asp-for="BankAccountName">Account holder ka naam</label>
+                                <input asp-for="BankAccountName" class="form-control" maxlength="150" />
+                                <span asp-validation-for="BankAccountName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" asp-for="BankAccountNo">Account number</label>
+                                <input asp-for="BankAccountNo" class="form-control" maxlength="18" inputmode="numeric" autocomplete="off" />
+                                <span asp-validation-for="BankAccountNo" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" asp-for="BankIFSC">IFSC</label>
+                                <input asp-for="BankIFSC" class="form-control text-upper" maxlength="11" placeholder="SBIN0001234" />
+                                <span asp-validation-for="BankIFSC" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" asp-for="BankName">Bank</label>
+                                <input asp-for="BankName" class="form-control" maxlength="150" />
+                                <span asp-validation-for="BankName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" asp-for="BankBranch">Branch</label>
+                                <input asp-for="BankBranch" class="form-control" maxlength="150" />
+                                <span asp-validation-for="BankBranch" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!ro)
+                {
+                    <div class="d-flex justify-content-end mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fa-solid fa-floppy-disk"></i> Profile save karein
+                        </button>
+                    </div>
+                }
+            </fieldset>
+        </form>
+    </div>
+
+    <!-- ═══════════ CHECKLIST + DOCUMENTS ═══════════ -->
+    <div class="col-12 col-xl-5">
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fa-solid fa-list-check text-teal"></i>
+                <span class="card-title">Kya bacha hai</span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span>Profile + zaroori documents</span>
+                    <strong>@pct%</strong>
+                </div>
+                <div class="pf-progress mb-3"><div style="width:@pct%"></div></div>
+
+                @foreach (var f in Model.RequiredFields())
+                {
+                    <div class="ck-row">
+                        <div class="ck-ico">
+                            @if (f.Done)
+                            {
+                                <i class="fa-solid fa-circle-check text-success"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-regular fa-circle text-muted"></i>
+                            }
+                        </div>
+                        <div class="ck-name">@f.Label</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card mb-3" id="documents">
+            <div class="card-header">
+                <i class="fa-solid fa-folder-open text-teal"></i>
+                <span class="card-title">Documents</span>
+                @if (missingDocs > 0)
+                {
+                    <span class="badge badge-warn ms-auto">@missingDocs zaroori baaki</span>
+                }
+                else
+                {
+                    <span class="badge badge-ok ms-auto">Sab zaroori jama</span>
+                }
+            </div>
+            <div class="card-body">
+
+                @foreach (var (type, latest) in checklist)
+                {
+                    <div class="ck-row">
+                        <div class="ck-ico">
+                            @if (latest == null)
+                            {
+                                <i class="fa-regular fa-circle @(type.Required ? "text-danger" : "text-muted")"></i>
+                            }
+                            else if (latest.IsExpired)
+                            {
+                                <i class="fa-solid fa-circle-xmark text-danger"></i>
+                            }
+                            else if (latest.ExpiresSoon)
+                            {
+                                <i class="fa-solid fa-clock text-warning"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-circle-check text-success"></i>
+                            }
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="ck-name">
+                                @type.Name
+                                @if (type.Required)
+                                {
+                                    <span class="text-danger">*</span>
+                                }
+                            </div>
+                            @if (latest == null)
+                            {
+                                <div class="ck-hint">@type.Hint</div>
+                            }
+                            else
+                            {
+                                <div class="ck-hint">
+                                    @if (!string.IsNullOrEmpty(latest.DocumentNo))
+                                    {
+                                        <span>No. @latest.DocumentNo &middot; </span>
+                                    }
+                                    @if (latest.ValidTill != null)
+                                    {
+                                        <span class="@(latest.IsExpired ? "text-danger fw-semibold" : latest.ExpiresSoon ? "text-warning fw-semibold" : "")">
+                                            @(latest.IsExpired ? "Expired" : "Valid till") @latest.ValidTill.Value.ToString("dd MMM yyyy")
+                                        </span>
+                                        <span> &middot; </span>
+                                    }
+                                    <span>Uploaded @latest.UploadedOn.ToString("dd MMM yyyy")</span>
+                                </div>
+                            }
+                        </div>
+                        @if (latest != null)
+                        {
+                            <a asp-action="Document" asp-route-id="@latest.Id" target="_blank" rel="noopener"
+                               class="btn btn-sm btn-icon btn-outline-primary" title="Kholein">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (!ro)
+        {
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="fa-solid fa-upload text-teal"></i>
+                    <span class="card-title">Document upload</span>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Upload" method="post" enctype="multipart/form-data" id="uploadForm">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label class="form-label" for="documentType">Document type</label>
+                                <select name="documentType" id="documentType" class="form-select" required>
+                                    @foreach (var t in DocumentTypes.All)
+                                    {
+                                        <option value="@t.Name" data-expiry="@(t.HasExpiry ? "1" : "0")">@t.Name@(t.Required ? " *" : "")</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="documentNo">Document number <span class="text-muted fw-normal">(optional)</span></label>
+                                <input name="documentNo" id="documentNo" class="form-control" maxlength="100" />
+                            </div>
+                            <div class="col-12 col-md-6" id="validTillWrap">
+                                <label class="form-label" for="validTill">Valid till <span class="text-danger" id="validTillStar">*</span></label>
+                                <input name="validTill" id="validTill" type="date" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="file">File (PDF / JPG / PNG, max 10 MB)</label>
+                                <input type="file" name="file" id="file" accept=".pdf,.jpg,.jpeg,.png" class="form-control" required />
+                            </div>
+                            <div class="col-12 d-grid mt-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa-solid fa-upload"></i> Upload
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+
+        @if (Model.Documents.Any())
+        {
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-clock-rotate-left text-teal"></i>
+                    <span class="card-title">Saare uploads</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>File</th>
+                                    <th>Date</th>
+                                    <th class="text-end"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var d in Model.Documents)
+                                {
+                                    <tr>
+                                        <td class="small fw-semibold">@d.DocumentType</td>
+                                        <td class="small doc-name">@(d.OriginalFileName ?? d.FileName)</td>
+                                        <td class="small text-muted nowrap">@d.UploadedOn.ToString("dd MMM yy")</td>
+                                        <td class="text-end nowrap">
+                                            <a asp-action="Document" asp-route-id="@d.Id" target="_blank" rel="noopener"
+                                               class="btn btn-sm btn-icon btn-outline-primary" title="Kholein">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </a>
+                                            @if (!ro)
+                                            {
+                                                <form asp-action="DeleteDocument" method="post" class="d-inline js-confirm-delete">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@d.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Hatayein">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            // Valid-till sirf un documents ke liye jinki expiry hoti hai
+            function syncExpiry() {
+                var needs = $('#documentType option:selected').data('expiry') == 1;
+                $('#validTillStar').toggle(needs);
+                $('#validTill').prop('required', needs);
+            }
+            $('#documentType').on('change', syncExpiry);
+            syncExpiry();
+
+            // Codes type karte hi capital mein
+            $('.text-upper').on('input', function () {
+                var pos = this.selectionStart;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(pos, pos);
+            });
+
+            $('.js-confirm-delete').on('submit', function (e) {
+                var form = this;
+                if (form.dataset.confirmed === 'yes') return;
+                e.preventDefault();
+                LMIS.confirm({
+                    title: 'Document hatayein?',
+                    text: 'Ye document list se hat jayega.',
+                    icon: 'warning',
+                    confirmText: 'Haan, hatao',
+                    danger: true
+                }).then(function (ok) {
+                    if (ok) {
+                        form.dataset.confirmed = 'yes';
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}
