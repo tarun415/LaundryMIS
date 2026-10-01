@@ -199,6 +199,7 @@ namespace LaudaryMis.Controllers
                 monthlyGross = model.MonthlyGrossAmount.ToString("N2"),
                 paymentBand = model.PaymentBandPercent,
                 basePayable = model.BasePayableAmount.ToString("N2"),
+                gstAmount = model.GSTAmount.ToString("N2"),
                 tdsAmount = model.TDSAmount.ToString("N2"),
                 netPayable = model.NetPayableAmount.ToString("N2")
             });

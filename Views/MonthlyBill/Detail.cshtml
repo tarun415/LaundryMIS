@@ -229,7 +229,7 @@
                     <span>₹@Model.AnnualValueInGST.ToString("N2")</span>
                 </div>
                 <div class="calc-row">
-                    <span>Monthly Gross</span>
+                    <span>Monthly Gross (ex-GST)</span>
                     <span>₹@Model.MonthlyGrossAmount.ToString("N2")</span>
                 </div>
                 <div class="calc-row">
@@ -237,8 +237,12 @@
                     <span><span class="badge badge-teal">@Model.PaymentBandPercent%</span></span>
                 </div>
                 <div class="calc-row">
-                    <span>Base Payable</span>
+                    <span>Base Payable (ex-GST)</span>
                     <span>₹@Model.BasePayableAmount.ToString("N2")</span>
+                </div>
+                <div class="calc-row">
+                    <span>GST (@Model.GSTPercent.ToString("0.##")%)</span>
+                    <span>+₹@Model.GSTAmount.ToString("N2")</span>
                 </div>
                 <div class="calc-row">
                     <span>TDS (2%)</span>

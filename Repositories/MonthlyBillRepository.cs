@@ -22,8 +22,8 @@ namespace LaudaryMis.Repositories
 
         // ──────────────────────────────────────────────────────
         // WPR Average Score for a Hospital+Month+Year
-        // WeeklyPerformanceReport.Month nvarchar hai (e.g. "May")
-        // isliye DATENAME se match kar rahe hain
+        // WeeklyPerformanceReport.Month nvarchar hai, lekin WPR form
+        // month NUMBER save karta hai ("5"), naam ("May") nahi
         // ──────────────────────────────────────────────────────
         public async Task<(decimal? AvgScore, int WeeksCount)>
             GetWPRAvgScoreAsync(int hospitalId, int month, int year)
@@ -38,8 +38,7 @@ namespace LaudaryMis.Repositories
                 WHERE a.HospitalId = @hospitalId
                   AND a.IsActive   = 1
                   AND w.Year       = @year
-                  AND w.Month      = DATENAME(MONTH,
-                        DATEFROMPARTS(@year, @month, 1))";
+                  AND w.Month      = CAST(@month AS NVARCHAR(2))";
 
             using var conn = Conn();
             var row = await conn.QuerySingleAsync(sql,
