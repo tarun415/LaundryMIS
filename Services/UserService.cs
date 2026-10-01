@@ -31,5 +31,15 @@ namespace LaudaryMis.Services
         {
             return await _repo.LoginProvider(providerId, password);
         }
+
+        public async Task<LoginResult> RegisterHospital(RegisterVM model)
+        {
+            return await _repo.RegisterHospital(model);
+        }
+
+        public async Task<LoginResult> RegisterProvider(RegisterVM model)
+        {
+            return await _repo.RegisterProvider(model);
+        }
     }
 }
