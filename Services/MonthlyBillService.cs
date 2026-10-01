@@ -8,10 +8,12 @@ namespace LaudaryMis.Services
     public class MonthlyBillService : IMonthlyBillService
     {
         private readonly IMonthlyBillRepository _repo;
+        private readonly LaudaryMis.Helpers.PortalCalendar _calendar;
 
-        public MonthlyBillService(IMonthlyBillRepository repo)
+        public MonthlyBillService(IMonthlyBillRepository repo, LaudaryMis.Helpers.PortalCalendar calendar)
         {
             _repo = repo;
+            _calendar = calendar;
         }
 
         // ──────────────────────────────────────────────────────
@@ -20,6 +22,9 @@ namespace LaudaryMis.Services
         public async Task<MonthlyBillVM> LoadBillFormAsync(
             int hospitalId, int month, int year)
         {
+            if (_calendar.IsBeforeStart(month, year))
+                throw new Exception(_calendar.BeforeStartMessage("Bill"));
+
             // 1. Existing bill check
             var existing = await _repo.GetBillByHospitalMonthAsync(
                 hospitalId, month, year);
@@ -108,6 +113,9 @@ namespace LaudaryMis.Services
         public async Task<(bool Success, string Message, int BillId)>
             SaveDraftAsync(MonthlyBillVM vm, int userId)
         {
+            if (_calendar.IsBeforeStart(vm.BillingMonth, vm.BillingYear))
+                return (false, _calendar.BeforeStartMessage("Bill"), 0);
+
             // Override reason mandatory check
             if (vm.IsScoreOverridden &&
                 string.IsNullOrWhiteSpace(vm.OverrideReason))
@@ -290,6 +298,9 @@ namespace LaudaryMis.Services
         public async Task<MonthlyBillVM> LoadProviderBillFormAsync(
   int providerId, int hospitalId, int month, int year)
         {
+            if (_calendar.IsBeforeStart(month, year))
+                throw new Exception(_calendar.BeforeStartMessage("Bill"));
+
             // 1. Existing bill check karo
             var existing = await _repo.GetBillByProviderHospitalMonthAsync(
                 providerId, hospitalId, month, year);

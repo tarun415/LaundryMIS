@@ -24,9 +24,12 @@ namespace LaudaryMis.Services
             "Warning Letters"
         };
 
-        public WPRService(IWPRRepository repo)
+        private readonly LaudaryMis.Helpers.PortalCalendar _calendar;
+
+        public WPRService(IWPRRepository repo, LaudaryMis.Helpers.PortalCalendar calendar)
         {
             _repo = repo;
+            _calendar = calendar;
         }
 
         public async Task<List<AgreementVM>> GetHospitalAgreements(int hospitalId)
@@ -39,6 +42,11 @@ namespace LaudaryMis.Services
         {
             try
             {
+                // Portal shuru hone se pehle ke mahine offline ho chuke hain
+                if (!int.TryParse(model.Month, out int wprMonth)
+                    || _calendar.IsBeforeStart(wprMonth, model.Year))
+                    return (false, _calendar.BeforeStartMessage("WPR"));
+
                 // ✅ Duplicate check — same week, month, year, staff
                 bool exists = await _repo.WPRExistsAsync(
                     model.Week, model.Month, model.Year, model.StaffName.Trim());

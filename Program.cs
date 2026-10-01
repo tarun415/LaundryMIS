@@ -34,6 +34,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddAuthorization();
 builder.Services.AddAntiforgery(o => o.HeaderName = "RequestVerificationToken");
 builder.Services.AddSingleton<LaudaryMis.Helpers.LoginAttemptTracker>();
+builder.Services.AddSingleton<LaudaryMis.Helpers.PortalCalendar>();
 
 // Cap request bodies (uploads are validated to 10 MB individually).
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>

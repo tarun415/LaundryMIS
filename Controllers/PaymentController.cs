@@ -9,10 +9,12 @@ using Microsoft.AspNetCore.Mvc;
 public class PaymentController : Controller
 {
     private readonly IPaymentService _paymentService;
+    private readonly LaudaryMis.Helpers.PortalCalendar _calendar;
 
-    public PaymentController(IPaymentService paymentService)
+    public PaymentController(IPaymentService paymentService, LaudaryMis.Helpers.PortalCalendar calendar)
     {
         _paymentService = paymentService;
+        _calendar = calendar;
     }
 
     //-------------------------------------------------------
@@ -80,6 +82,10 @@ public class PaymentController : Controller
         var agreement = await _paymentService.GetAgreementDetails(model.AgreementId);
         if (agreement == null || agreement.HospitalId != model.HospitalId)
             return Forbid();
+
+        // Portal shuru hone se pehle ke mahine offline pay ho chuke hain
+        if (_calendar.IsBeforeStart(model.MonthNo, model.YearNo))
+            ModelState.AddModelError("", _calendar.BeforeStartMessage("Payment"));
 
         var calc = await _paymentService.GetPaymentCalculation(
             model.AgreementId, model.HospitalId,
