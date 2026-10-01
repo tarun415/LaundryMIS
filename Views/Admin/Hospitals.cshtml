@@ -3,14 +3,15 @@
 @{
     ViewBag.Title = "Hospital List";
     var total = Model?.Count() ?? 0;
-    var active = Model?.Count(h => h.IsActive) ?? 0;
+    var active = Model?.Count(h => h.IsActive && h.ApprovalStatus == "Approved") ?? 0;
+    var pending = Model?.Count(h => h.ApprovalStatus == "Pending") ?? 0;
 }
 
 <div class="page-header">
     <div class="ph-icon"><i class="fa-solid fa-hospital"></i></div>
     <div class="ph-text">
         <h1>Hospital Management</h1>
-        <p class="ph-sub">@total registered &middot; @active active</p>
+        <p class="ph-sub">@total registered &middot; @active active@(pending > 0 ? " · " + pending + " pending approval" : "")</p>
     </div>
     <div class="ph-actions">
         <a href="/Admin/CreateHospital" class="btn btn-primary">
@@ -41,7 +42,15 @@
                             <td>@h.DistrictName</td>
                             <td class="nowrap">@h.Phone</td>
                             <td>
-                                @if (h.IsActive)
+                                @if (h.ApprovalStatus == "Pending")
+                                {
+                                    <span class="badge badge-warn"><i class="fa-solid fa-hourglass-half"></i> Pending approval</span>
+                                }
+                                else if (h.ApprovalStatus == "Rejected")
+                                {
+                                    <span class="badge badge-danger" title="@h.ApprovalRemarks"><i class="fa-solid fa-ban"></i> Rejected</span>
+                                }
+                                else if (h.IsActive)
                                 {
                                     <span class="badge badge-ok"><i class="fa-solid fa-circle-check"></i> Active</span>
                                 }
@@ -52,6 +61,22 @@
                             </td>
                             <td class="text-end">
                                 <div class="action-group justify-content-end">
+                                    @if (h.ApprovalStatus == "Pending" || h.ApprovalStatus == "Rejected")
+                                    {
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-success"
+                                                data-bs-toggle="tooltip" title="Approve"
+                                                onclick="approveHospital(@h.HospitalId)">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    }
+                                    @if (h.ApprovalStatus == "Pending")
+                                    {
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-warning"
+                                                data-bs-toggle="tooltip" title="Reject"
+                                                onclick="rejectHospital(@h.HospitalId)">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    }
                                     <a href="/Admin/EditHospital/@h.HospitalId"
                                        class="btn btn-sm btn-icon btn-outline-primary"
                                        data-bs-toggle="tooltip" title="Edit">
@@ -78,6 +103,46 @@
         $(function () {
             LMIS.initTable('#hospitalTable', { exportTitle: 'Hospitals' });
         });
+
+
+        function approveHospital(id) {
+            LMIS.confirm({
+                title: 'Approve this hospital?',
+                text: 'They will be able to sign in and be used in agreements.',
+                confirmText: 'Yes, approve'
+            }).then(function (ok) {
+                if (!ok) return;
+                $.post('/Admin/ApproveHospital', { id: id }, function (res) {
+                    if (res.success) { LMIS.toast(res.message); setTimeout(function () { location.reload(); }, 600); }
+                    else LMIS.alert('Approval failed', res.message || 'Please try again.', 'error');
+                }).fail(function () {
+                    LMIS.alert('Approval failed', 'Could not reach the server.', 'error');
+                });
+            });
+        }
+
+        function rejectHospital(id) {
+            Swal.fire({
+                title: 'Reject this hospital?',
+                input: 'textarea',
+                inputLabel: 'Reason (shown to the hospital at login)',
+                inputAttributes: { maxlength: 500 },
+                showCancelButton: true,
+                confirmButtonText: 'Reject',
+                preConfirm: function (v) {
+                    if (!v || !v.trim()) { Swal.showValidationMessage('Please enter a reason'); return false; }
+                    return v.trim();
+                }
+            }).then(function (r) {
+                if (!r.isConfirmed) return;
+                $.post('/Admin/RejectHospital', { id: id, remarks: r.value }, function (res) {
+                    if (res.success) { LMIS.toast(res.message); setTimeout(function () { location.reload(); }, 600); }
+                    else LMIS.alert('Rejection failed', res.message || 'Please try again.', 'error');
+                }).fail(function () {
+                    LMIS.alert('Rejection failed', 'Could not reach the server.', 'error');
+                });
+            });
+        }
 
         function deleteHospital(id, btn) {
             LMIS.confirm({

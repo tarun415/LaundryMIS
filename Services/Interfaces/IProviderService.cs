@@ -12,6 +12,7 @@ namespace LaudaryMis.Services.Interfaces
         Task<IEnumerable<ProvidersVM>> GetProviderAsync();
         Task<ProvidersVM> GetProviderByIdAsync(int id);
         Task<bool> DeleteAsync(int id);
+        Task<bool> SetApprovalStatusAsync(int id, string status, string? remarks, int adminUserId);
       
     }
 }

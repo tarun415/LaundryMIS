@@ -3,14 +3,15 @@
 @{
     ViewBag.Title = "Provider List";
     var total = Model?.Count() ?? 0;
-    var active = Model?.Count(p => p.IsActive) ?? 0;
+    var active = Model?.Count(p => p.IsActive && p.ApprovalStatus == "Approved") ?? 0;
+    var pending = Model?.Count(p => p.ApprovalStatus == "Pending") ?? 0;
 }
 
 <div class="page-header">
     <div class="ph-icon"><i class="fa-solid fa-truck-fast"></i></div>
     <div class="ph-text">
         <h1>Provider Management</h1>
-        <p class="ph-sub">@total registered &middot; @active active</p>
+        <p class="ph-sub">@total registered &middot; @active active@(pending > 0 ? " · " + pending + " pending approval" : "")</p>
     </div>
     <div class="ph-actions">
         <a href="/Admin/CreateProvider" class="btn btn-primary">
@@ -39,7 +40,15 @@
                             <td class="fw-semibold">@p.ProviderName</td>
                             <td class="text-end">@p.RatePerBed</td>
                             <td>
-                                @if (p.IsActive)
+                                @if (p.ApprovalStatus == "Pending")
+                                {
+                                    <span class="badge badge-warn"><i class="fa-solid fa-hourglass-half"></i> Pending approval</span>
+                                }
+                                else if (p.ApprovalStatus == "Rejected")
+                                {
+                                    <span class="badge badge-danger" title="@p.ApprovalRemarks"><i class="fa-solid fa-ban"></i> Rejected</span>
+                                }
+                                else if (p.IsActive)
                                 {
                                     <span class="badge badge-ok"><i class="fa-solid fa-circle-check"></i> Active</span>
                                 }
@@ -55,6 +64,22 @@
                                        data-bs-toggle="tooltip" title="Profile & documents">
                                         <i class="fa-solid fa-id-card"></i>
                                     </a>
+                                    @if (p.ApprovalStatus == "Pending" || p.ApprovalStatus == "Rejected")
+                                    {
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-success"
+                                                data-bs-toggle="tooltip" title="Approve"
+                                                onclick="approveProvider(@p.ProviderId)">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    }
+                                    @if (p.ApprovalStatus == "Pending")
+                                    {
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-warning"
+                                                data-bs-toggle="tooltip" title="Reject"
+                                                onclick="rejectProvider(@p.ProviderId)">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    }
                                     <a href="/Admin/EditProvider/@p.ProviderId"
                                        class="btn btn-sm btn-icon btn-outline-primary"
                                        data-bs-toggle="tooltip" title="Edit">
@@ -81,6 +106,46 @@
         $(function () {
             LMIS.initTable('#providerTable', { exportTitle: 'Providers' });
         });
+
+
+        function approveProvider(id) {
+            LMIS.confirm({
+                title: 'Approve this provider?',
+                text: 'They will be able to sign in and be used in agreements.',
+                confirmText: 'Yes, approve'
+            }).then(function (ok) {
+                if (!ok) return;
+                $.post('/Admin/ApproveProvider', { id: id }, function (res) {
+                    if (res.success) { LMIS.toast(res.message); setTimeout(function () { location.reload(); }, 600); }
+                    else LMIS.alert('Approval failed', res.message || 'Please try again.', 'error');
+                }).fail(function () {
+                    LMIS.alert('Approval failed', 'Could not reach the server.', 'error');
+                });
+            });
+        }
+
+        function rejectProvider(id) {
+            Swal.fire({
+                title: 'Reject this provider?',
+                input: 'textarea',
+                inputLabel: 'Reason (shown to the provider at login)',
+                inputAttributes: { maxlength: 500 },
+                showCancelButton: true,
+                confirmButtonText: 'Reject',
+                preConfirm: function (v) {
+                    if (!v || !v.trim()) { Swal.showValidationMessage('Please enter a reason'); return false; }
+                    return v.trim();
+                }
+            }).then(function (r) {
+                if (!r.isConfirmed) return;
+                $.post('/Admin/RejectProvider', { id: id, remarks: r.value }, function (res) {
+                    if (res.success) { LMIS.toast(res.message); setTimeout(function () { location.reload(); }, 600); }
+                    else LMIS.alert('Rejection failed', res.message || 'Please try again.', 'error');
+                }).fail(function () {
+                    LMIS.alert('Rejection failed', 'Could not reach the server.', 'error');
+                });
+            });
+        }
 
         function deleteProvider(id, btn) {
             LMIS.confirm({

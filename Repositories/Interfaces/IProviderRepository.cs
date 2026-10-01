@@ -6,6 +6,7 @@ namespace LaudaryMis.Repositories.Interfaces
     public interface IProviderRepository
     {
         Task DeleteAsync(int id);
+        Task<bool> SetApprovalStatusAsync(int id, string status, string? remarks, int adminUserId);
         Task<IEnumerable<Provider>> GetAll();
         Task<IEnumerable<ProvidersVM>> GetProviderAsync();
         Task<ProvidersVM> GetProviderByIdAsync(int id);

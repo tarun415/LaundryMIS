@@ -5,5 +5,6 @@
         public int ProviderId { get; set; }
         public string ProviderName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
+        public string ApprovalStatus { get; set; } = "Approved";
     }
 }

@@ -50,5 +50,8 @@ namespace LaudaryMis.ViewModels
         public List<SelectListItem> DistrictList { get; set; } = new();
 
         public bool IsActive { get; set; }=true;
+
+        public string? ApprovalStatus { get; set; }
+        public string? ApprovalRemarks { get; set; }
     }
 }

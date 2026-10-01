@@ -32,6 +32,9 @@ namespace LaudaryMis.ViewModels
 
         public bool IsActive { get; set; } = true;
 
+        public string? ApprovalStatus { get; set; }
+        public string? ApprovalRemarks { get; set; }
+
         // Required only when adding a provider (enforced in AdminController).
         // On edit a blank value means "keep the current password", so the
         // policy below is only applied when a password is actually entered.

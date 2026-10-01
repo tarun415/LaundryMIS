@@ -23,7 +23,7 @@ namespace LaudaryMis.Repositories
         public async Task<IEnumerable<Provider>> GetAll()
         {
             return await _db.QueryAsync<Provider>(
-                "SELECT * FROM tbl_Providers WHERE IsActive = 1"
+                "SELECT * FROM tbl_Providers WHERE IsActive = 1 AND ApprovalStatus = 'Approved'"
             );
         }
      
@@ -35,9 +35,9 @@ namespace LaudaryMis.Repositories
 
             await _db.ExecuteAsync(@"
             INSERT INTO tbl_Providers
-            (ProviderName, RatePerBed, FirmName, Phone, IsActive,CreatedDBY)
+            (ProviderName, RatePerBed, FirmName, Phone, IsActive,CreatedDBY,ApprovalStatus)
             VALUES
-            (@ProviderName, @RatePerBed, @FirmName,@Phone,@IsActive,'Admin')
+            (@ProviderName, @RatePerBed, @FirmName,@Phone,@IsActive,'Admin','Pending')
         ", model);
         }
         public async Task SaveProviderWithLogin(ProvidersVM model)
@@ -52,9 +52,9 @@ namespace LaudaryMis.Repositories
                 //  Insert Provider
                 var providerId = await con.ExecuteScalarAsync<int>(@"
             INSERT INTO tbl_Providers
-            (ProviderName, RatePerBed, FirmName, Phone, IsActive,CreatedDBY)
+            (ProviderName, RatePerBed, FirmName, Phone, IsActive,CreatedDBY,ApprovalStatus)
             VALUES
-            (@ProviderName, @RatePerBed, @FirmName,@Phone,@IsActive,'Admin');
+            (@ProviderName, @RatePerBed, @FirmName,@Phone,@IsActive,'Admin','Pending');
 
             SELECT CAST(SCOPE_IDENTITY() as int);
         ", model, tran);
@@ -168,7 +168,7 @@ namespace LaudaryMis.Repositories
         public async Task<IEnumerable<ProvidersVM>> GetProviderAsync()
         {
             return await _db.QueryAsync<ProvidersVM>(
-                "SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.IsActive,dm.DistrictID, dm.DistrictName,CAST(NULL AS NVARCHAR(1)) as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId  WHERE pr.IsActive = 1"
+                "SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.IsActive,pr.ApprovalStatus,pr.ApprovalRemarks,dm.DistrictID, dm.DistrictName,CAST(NULL AS NVARCHAR(1)) as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId  WHERE pr.IsActive = 1"
             );
         }
 
@@ -182,10 +182,22 @@ namespace LaudaryMis.Repositories
         public async Task<ProvidersVM> GetProviderByIdAsync(int id)
         {
             return await _db.QueryFirstOrDefaultAsync<ProvidersVM>(@"
-        SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.Phone,pr.IsActive,dm.DistrictID, dm.DistrictName,CAST(NULL AS NVARCHAR(1)) as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId
+        SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.Phone,pr.IsActive,pr.ApprovalStatus,pr.ApprovalRemarks,dm.DistrictID, dm.DistrictName,CAST(NULL AS NVARCHAR(1)) as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId
         WHERE pr.ProviderId = @Id
     ", new { Id = id });
         }
+        public async Task<bool> SetApprovalStatusAsync(int id, string status, string? remarks, int adminUserId)
+        {
+            // Approve works from Pending/Rejected; reject only from Pending.
+            var allowedFrom = status == "Approved" ? "ApprovalStatus <> 'Approved'" : "ApprovalStatus = 'Pending'";
+            var rows = await _db.ExecuteAsync($@"
+        UPDATE tbl_Providers
+        SET ApprovalStatus = @status, ApprovalRemarks = @remarks,
+            ApprovedBy = @adminUserId, ApprovedOn = GETDATE()
+        WHERE ProviderId = @id AND {allowedFrom}", new { id, status, remarks, adminUserId });
+            return rows > 0;
+        }
+
         public async Task DeleteAsync(int id)
         {
             if (_db.State == ConnectionState.Closed)

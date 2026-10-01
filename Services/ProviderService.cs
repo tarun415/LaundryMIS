@@ -55,6 +55,9 @@ namespace LaudaryMis.Services
         {
             return await _repo.GetProviderByIdAsync(id);
         }
+        public Task<bool> SetApprovalStatusAsync(int id, string status, string? remarks, int adminUserId)
+            => _repo.SetApprovalStatusAsync(id, status, remarks, adminUserId);
+
         public async Task<bool> DeleteAsync(int id)
         {
             var data = await _repo.GetProviderByIdAsync(id);

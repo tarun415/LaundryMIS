@@ -108,6 +108,12 @@ namespace LaudaryMis.Repositories
                 };
             }
 
+            var hospitalBlock = await ApprovalBlockAsync(con,
+                "SELECT ApprovalStatus, ApprovalRemarks FROM Tbl_Hospitals WHERE HospitalId = @Id",
+                user.HospitalId, "hospital");
+            if (hospitalBlock != null)
+                return hospitalBlock;
+
             if (PasswordHasher.NeedsRehash(user.PasswordHash))
             {
                 await con.ExecuteAsync(
@@ -170,6 +176,12 @@ namespace LaudaryMis.Repositories
                 };
             }
 
+            var providerBlock = await ApprovalBlockAsync(con,
+                "SELECT ApprovalStatus, ApprovalRemarks FROM tbl_Providers WHERE ProviderId = @Id",
+                user.ProviderId, "provider");
+            if (providerBlock != null)
+                return providerBlock;
+
             if (PasswordHasher.NeedsRehash(user.PasswordHash))
             {
                 await con.ExecuteAsync(
@@ -184,9 +196,34 @@ namespace LaudaryMis.Repositories
             };
         }
 
+        private class ApprovalRow
+        {
+            public string? ApprovalStatus { get; set; }
+            public string? ApprovalRemarks { get; set; }
+        }
+
+        // Hospitals and providers can only sign in once an admin has approved them.
+        private static async Task<LoginResult?> ApprovalBlockAsync(
+            SqlConnection con, string sql, int? id, string what)
+        {
+            var row = await con.QueryFirstOrDefaultAsync<ApprovalRow>(sql, new { Id = id });
+
+            if (row == null || row.ApprovalStatus == null || row.ApprovalStatus == "Approved")
+                return null;
+
+            var message = row.ApprovalStatus == "Rejected"
+                ? $"Your {what} registration was rejected."
+                  + (string.IsNullOrWhiteSpace(row.ApprovalRemarks) ? "" : $" Reason: {row.ApprovalRemarks}")
+                  + " Please contact the administrator."
+                : $"Your {what} registration is pending admin approval. You can sign in once it is approved.";
+
+            return new LoginResult { Success = false, Message = message };
+        }
+
         // ──────────────────────────────────────────────────────
         // Self-registration: hospital/provider record + login user,
-        // ek hi transaction mein. Admin approval nahi chahiye.
+        // ek hi transaction mein. Admin approval nahi chahiye — isliye
+        // ApprovalStatus seedha 'Approved' (Admin se bane records 'Pending' se shuru hote hain).
         // ──────────────────────────────────────────────────────
         public async Task<LoginResult> RegisterHospital(RegisterVM model)
         {
@@ -220,9 +257,9 @@ namespace LaudaryMis.Repositories
 
                 var hospitalId = await con.ExecuteScalarAsync<int>(@"
                     INSERT INTO Tbl_Hospitals
-                        (HospitalName, DistrictId, Address, ContactPerson, Phone, Email, IsActive)
+                        (HospitalName, DistrictId, Address, ContactPerson, Phone, Email, IsActive, ApprovalStatus)
                     VALUES
-                        (@HospitalName, @DistrictId, @Address, @ContactPerson, @Phone, @Email, 1);
+                        (@HospitalName, @DistrictId, @Address, @ContactPerson, @Phone, @Email, 1, 'Approved');
                     SELECT CAST(SCOPE_IDENTITY() AS INT);",
                     new
                     {
@@ -286,9 +323,9 @@ namespace LaudaryMis.Repositories
 
                 var providerId = await con.ExecuteScalarAsync<int>(@"
                     INSERT INTO tbl_Providers
-                        (ProviderName, FirmName, Phone, IsActive, CreatedDBY)
+                        (ProviderName, FirmName, Phone, IsActive, CreatedDBY, ApprovalStatus)
                     VALUES
-                        (@ProviderName, @FirmName, @Phone, 1, 'Self-registration');
+                        (@ProviderName, @FirmName, @Phone, 1, 'Self-registration', 'Approved');
                     SELECT CAST(SCOPE_IDENTITY() AS INT);",
                     new
                     {
