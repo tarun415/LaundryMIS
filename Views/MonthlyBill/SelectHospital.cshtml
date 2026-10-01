@@ -1,6 +1,6 @@
 @using LaudaryMis.Models
 @{
-    ViewData["Title"] = "Naya Bill Banao";
+    ViewData["Title"] = "Create New Bill";
     var hospitals = ViewBag.Hospitals as List<Hospital> ?? new List<Hospital>();
     int currentMonth = (int)ViewBag.CurrentMonth;
     int currentYear = (int)ViewBag.CurrentYear;
@@ -44,8 +44,8 @@
 <div class="page-header">
     <div class="ph-icon"><i class="fa-solid fa-file-circle-plus"></i></div>
     <div class="ph-text">
-        <h1>Naya Monthly Bill Banao</h1>
-        <p class="ph-sub">Hospital aur billing period choose karo</p>
+        <h1>Create New Monthly Bill</h1>
+        <p class="ph-sub">Choose the hospital and billing period</p>
     </div>
 </div>
 
@@ -61,7 +61,7 @@
 {
     <div class="alert alert-warning">
         <i class="fa-solid fa-triangle-exclamation"></i>
-        <span>Aapke account se koi hospital linked nahi hai. Admin se contact karein.</span>
+        <span>No hospital is linked to your account. Contact Admin.</span>
     </div>
 }
 else
@@ -71,9 +71,9 @@ else
 
             <!-- Hospital -->
             <div class="mb-4">
-                <div class="section-title">Hospital Choose Karo</div>
+                <div class="section-title">Choose Hospital</div>
                 <select id="ddlHospital" class="form-select">
-                    <option value="">-- Hospital select karo --</option>
+                    <option value="">-- Select hospital --</option>
                     @foreach (var h in hospitals)
                     {
                         <option value="@h.HospitalId">@h.HospitalName@(h.City != null ? " — " + h.City : "")</option>
@@ -99,7 +99,7 @@ else
 
             <!-- Month -->
             <div class="mb-4">
-                <div class="section-title">Month Choose Karo</div>
+                <div class="section-title">Choose Month</div>
                 <div class="month-grid">
                     @{
                         var months = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
@@ -118,13 +118,13 @@ else
 
             <div class="d-grid">
                 <button id="btnGo" class="btn btn-primary btn-lg" disabled>
-                    <i class="fa-solid fa-file-invoice"></i> Bill Form Kholo
+                    <i class="fa-solid fa-file-invoice"></i> Open Bill Form
                 </button>
             </div>
 
             <p class="text-muted small text-center mt-3 mb-0">
                 <i class="fa-solid fa-circle-info"></i>
-                Agar us mahine ka bill pehle se exist karta hai toh wahi edit ho jaayega.
+                If a bill for that month already exists, it will be opened for editing.
             </p>
 
         </div>

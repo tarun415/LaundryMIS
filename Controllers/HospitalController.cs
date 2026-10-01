@@ -47,7 +47,7 @@ namespace LaudaryMis.Controllers
         {
             var val = User.FindFirst("HospitalId")?.Value;
             if (!int.TryParse(val, out int id) || id <= 0)
-                throw new UnauthorizedAccessException("Hospital ID nahi mila.");
+                throw new UnauthorizedAccessException("Hospital ID not found.");
             return id;
         }
 

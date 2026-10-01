@@ -14,7 +14,7 @@
     <div class="ph-icon"><i class="fa-solid fa-clipboard-list"></i></div>
     <div class="ph-text">
         <h1>Bill Verification Queue</h1>
-        <p class="ph-sub">Provider ke submitted bills — approve ya reject karein</p>
+        <p class="ph-sub">Bills submitted by providers — approve or reject</p>
     </div>
     <div class="ph-actions">
         <a asp-controller="Hospital" asp-action="Dashboard" class="btn btn-light">
@@ -92,8 +92,8 @@
         {
             <div class="table-empty">
                 <i class="fa-solid fa-inbox"></i>
-                <p class="fw-semibold mb-1">Koi pending bill nahi hai!</p>
-                <p class="small mb-0">Jab provider bill submit karega, yahan dikhega.</p>
+                <p class="fw-semibold mb-1">No pending bills!</p>
+                <p class="small mb-0">It will appear here when a provider submits a bill.</p>
             </div>
         }
         else
@@ -197,7 +197,7 @@
 
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fa-solid fa-circle-check text-success me-1"></i> Bill Approve Karein
+                    <i class="fa-solid fa-circle-check text-success me-1"></i> Approve Bill
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -209,17 +209,17 @@
 
                 <div class="modal-body">
                     <p class="text-muted mb-3">
-                        Provider: <strong id="approveProvider"></strong> ka bill approve ho jayega.
+                        The bill from <strong id="approveProvider"></strong> will be approved.
                     </p>
                     <label class="form-label" for="approveRemarks">Remarks (Optional)</label>
                     <textarea name="remarks" id="approveRemarks" class="form-control" rows="3"
-                              placeholder="Koi note likhein…"></textarea>
+                              placeholder="Add a note…"></textarea>
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success">
-                        <i class="fa-solid fa-check"></i> Approve Karo
+                        <i class="fa-solid fa-check"></i> Approve
                     </button>
                 </div>
             </form>
@@ -235,7 +235,7 @@
 
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fa-solid fa-circle-xmark text-danger me-1"></i> Bill Reject Karein
+                    <i class="fa-solid fa-circle-xmark text-danger me-1"></i> Reject Bill
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -247,17 +247,17 @@
 
                 <div class="modal-body">
                     <p class="text-muted mb-3">
-                        Provider: <strong id="rejectProvider"></strong> ka bill reject ho jayega.
+                        The bill from <strong id="rejectProvider"></strong> will be rejected.
                     </p>
                     <label class="form-label" for="rejectRemarks">Reason <span class="text-danger">*</span></label>
                     <textarea name="remarks" id="rejectRemarks" class="form-control" rows="3"
-                              placeholder="Rejection ki wajah likhein…" required></textarea>
+                              placeholder="Reason for rejection…" required></textarea>
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger">
-                        <i class="fa-solid fa-xmark"></i> Reject Karo
+                        <i class="fa-solid fa-xmark"></i> Reject
                     </button>
                 </div>
             </form>

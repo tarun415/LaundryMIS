@@ -176,7 +176,7 @@ namespace LaudaryMis.Repositories
 
                 var name = await con.ExecuteScalarAsync<string?>(entitySql, new { entityId }, tran);
                 if (name == null)
-                    return Fail(tran, "Is hospital / firm ka account pehle se bana hua hai. Login karein.");
+                    return Fail(tran, "An account already exists for this hospital / firm. Please sign in.");
 
                 // Lock the code row so two people cannot use it at once
                 var codeId = await con.ExecuteScalarAsync<int?>(@"
@@ -192,15 +192,15 @@ namespace LaudaryMis.Repositories
                     {
                         Success = false,
                         BadCode = true,
-                        Message = "Activation code galat hai, use ho chuka hai ya purana ho gaya hai. " +
-                                  "Naya code DGMH / Admin se maangein."
+                        Message = "The activation code is wrong, has already been used, or has been replaced. " +
+                                  "Ask DGMH / Admin for a new code."
                     };
                 }
 
                 var emailTaken = await con.ExecuteScalarAsync<int>(
                     "SELECT COUNT(*) FROM Tbl_Users WHERE Email = @email", new { email }, tran);
                 if (emailTaken > 0)
-                    return Fail(tran, "Is email se pehle hi account bana hua hai. Login karein.");
+                    return Fail(tran, "An account already exists for this email. Please sign in.");
 
                 var user = new User
                 {
@@ -245,7 +245,7 @@ namespace LaudaryMis.Repositories
             catch (SqlException ex) when (ex.Number is 2601 or 2627)
             {
                 tran.Rollback();
-                return new ClaimResult { Success = false, Message = "Is email se pehle hi account bana hua hai. Login karein." };
+                return new ClaimResult { Success = false, Message = "An account already exists for this email. Please sign in." };
             }
             catch
             {

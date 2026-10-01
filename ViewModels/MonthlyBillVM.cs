@@ -56,7 +56,7 @@ namespace LaudaryMis.ViewModels
         public string StatusDisplay => Status switch
         {
             "Draft" => "✏️ Draft",
-            "HospitalSubmitted" => "📤 Hospital Ko Bheja",
+            "HospitalSubmitted" => "📤 Sent to Hospital",
             "HospitalApproved" => "✅ Hospital Approved",
             "HospitalRejected" => "❌ Hospital Rejected",
             "CMSApproved" => "✅ CMS Approved",

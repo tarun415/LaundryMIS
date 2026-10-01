@@ -50,7 +50,7 @@ namespace LaudaryMis.Controllers
             TryValidateModel(model);
 
             if (model.LegalStatus != null && !ProviderProfileVM.LegalStatuses.Contains(model.LegalStatus))
-                ModelState.AddModelError(nameof(model.LegalStatus), "Firm ka type list mein se chunein.");
+                ModelState.AddModelError(nameof(model.LegalStatus), "Choose the firm type from the list.");
 
             if (!ModelState.IsValid)
             {
@@ -58,13 +58,13 @@ namespace LaudaryMis.Controllers
                 model.Email = current?.Email;
                 model.Documents = current?.Documents ?? new();
                 model.UpdatedOn = current?.UpdatedOn;
-                TempData["Error"] = "Kuch fields sahi nahi hain, neeche dekhein.";
+                TempData["Error"] = "Some fields are not valid; see below.";
                 return View("Index", model);
             }
 
             await _service.SaveProfileAsync(model, GetUserId());
 
-            TempData["Success"] = "Profile save ho gaya.";
+            TempData["Success"] = "Profile saved.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -77,15 +77,15 @@ namespace LaudaryMis.Controllers
 
             var type = DocumentTypes.Find(documentType);
             string? error = type == null
-                ? "Document type list mein se chunein."
+                ? "Choose the document type from the list."
                 : await UploadValidator.ValidateAsync(file, UploadValidator.DocumentExtensions);
 
             if (error == null && type!.HasExpiry && validTill == null)
-                error = $"{type.Name} ki validity (valid till) date daalein.";
+                error = $"Enter the validity (valid till) date for {type.Name}.";
 
             if (error == null && !string.IsNullOrEmpty(documentNo)
                 && !System.Text.RegularExpressions.Regex.IsMatch(documentNo, @"^[A-Za-z0-9 /\-.]{1,100}$"))
-                error = "Document number mein sirf letters, numbers, space, / - . ho sakte hain.";
+                error = "The document number may only contain letters, numbers, spaces and / - .";
 
             if (error != null)
             {
@@ -117,7 +117,7 @@ namespace LaudaryMis.Controllers
                 FileSize = file.Length
             }, GetUserId());
 
-            TempData["Success"] = $"{type.Name} upload ho gaya.";
+            TempData["Success"] = $"{type.Name} uploaded.";
             return RedirectToAction(nameof(Index), null, "documents");
         }
 
@@ -127,8 +127,8 @@ namespace LaudaryMis.Controllers
         {
             var ok = await _service.DeleteDocumentAsync(id, GetProviderId());
 
-            if (ok) TempData["Success"] = "Document hata diya gaya.";
-            else TempData["Error"] = "Document nahi mila.";
+            if (ok) TempData["Success"] = "Document removed.";
+            else TempData["Error"] = "Document not found.";
 
             return RedirectToAction(nameof(Index), null, "documents");
         }
@@ -184,7 +184,7 @@ namespace LaudaryMis.Controllers
         private int GetProviderId()
         {
             var id = GetClaimInt("ProviderId");
-            if (id <= 0) throw new UnauthorizedAccessException("Provider ID nahi mila.");
+            if (id <= 0) throw new UnauthorizedAccessException("Provider ID not found.");
             return id;
         }
 

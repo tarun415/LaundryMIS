@@ -91,7 +91,7 @@ public class PaymentController : Controller
             model.AgreementId, model.HospitalId,
             model.MonthNo, model.YearNo, model.BedOccupancy);
         if (calc == null)
-            ModelState.AddModelError("", "Payment calculate nahi ho saka.");
+            ModelState.AddModelError("", "The payment could not be calculated.");
         else
         {
             model.ProviderId = agreement.ProviderId;
@@ -188,7 +188,7 @@ public class PaymentController : Controller
         if (result)
             TempData["Success"] = "Payment Approved Successfully.";
         else
-            TempData["Error"] = "Sirf 'Pending' payment approve ho sakti hai.";
+            TempData["Error"] = "Only a 'Pending' payment can be approved.";
 
         return RedirectToAction(nameof(PaymentDetails),
             new { paymentId });
@@ -205,7 +205,7 @@ public class PaymentController : Controller
     {
         if (string.IsNullOrWhiteSpace(remarks))
         {
-            TempData["Error"] = "Reject karte waqt reason likhna zaroori hai.";
+            TempData["Error"] = "A reason is required when rejecting.";
             return RedirectToAction(nameof(PaymentDetails), new { paymentId });
         }
 
@@ -215,7 +215,7 @@ public class PaymentController : Controller
         if (result)
             TempData["Success"] = "Payment Rejected Successfully.";
         else
-            TempData["Error"] = "Sirf 'Pending' payment reject ho sakti hai.";
+            TempData["Error"] = "Only a 'Pending' payment can be rejected.";
 
         return RedirectToAction(nameof(PaymentDetails),
             new { paymentId });
@@ -251,7 +251,7 @@ public class PaymentController : Controller
             file, AllowedDocExtensions, MaxDocSize);
 
         if (error == null && string.IsNullOrWhiteSpace(documentType))
-            error = "Document type select karein.";
+            error = "Select a document type.";
 
         if (error != null)
         {
@@ -285,7 +285,7 @@ public class PaymentController : Controller
             UploadedBy = GetUserId()
         });
 
-        TempData["Success"] = "Document upload ho gaya.";
+        TempData["Success"] = "Document uploaded.";
         return RedirectToAction(nameof(PaymentDetails), new { paymentId });
     }
 
@@ -297,7 +297,7 @@ public class PaymentController : Controller
     {
         var val = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (!int.TryParse(val, out int id))
-            throw new UnauthorizedAccessException("User ID claim nahi mila.");
+            throw new UnauthorizedAccessException("User ID claim not found.");
         return id;
     }
 

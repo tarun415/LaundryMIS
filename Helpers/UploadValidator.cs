@@ -13,15 +13,15 @@ namespace LaudaryMis.Helpers
             IFormFile? file, string[] allowedExtensions, long maxBytes = DefaultMaxBytes)
         {
             if (file == null || file.Length == 0)
-                return "Upload karne ke liye file select karein.";
+                return "Select a file to upload.";
 
             if (file.Length > maxBytes)
-                return $"File {maxBytes / (1024 * 1024)} MB se badi nahi honi chahiye.";
+                return $"The file must not be larger than {maxBytes / (1024 * 1024)} MB.";
 
             var ext = Path.GetExtension(file.FileName ?? "").ToLowerInvariant();
             if (!allowedExtensions.Contains(ext))
-                return "Sirf " + string.Join(", ", allowedExtensions).ToUpperInvariant()
-                       + " file upload ho sakti hai.";
+                return "Only " + string.Join(", ", allowedExtensions).ToUpperInvariant()
+                       + " files can be uploaded.";
 
             var header = new byte[8];
             int read;
@@ -29,7 +29,7 @@ namespace LaudaryMis.Helpers
             {
                 read = await s.ReadAsync(header.AsMemory(0, header.Length));
             }
-            if (read < 4) return "File sahi format mein nahi hai.";
+            if (read < 4) return "The file is not in a valid format.";
 
             bool ok = ext switch
             {
@@ -39,7 +39,7 @@ namespace LaudaryMis.Helpers
                 _ => false
             };
 
-            return ok ? null : "File ka content uske extension se match nahi karta.";
+            return ok ? null : "The file content does not match its extension.";
         }
     }
 }

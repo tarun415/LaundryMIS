@@ -213,8 +213,8 @@ namespace LaudaryMis.Controllers
             // AccountController mein NameIdentifier claim ADD karna zaroori hai!
             var val = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(val, out int id))
-                throw new Exception("User ID claim nahi mila. " +
-                    "AccountController mein NameIdentifier claim add karo.");
+                throw new Exception("User ID claim not found. " +
+                    "Add the NameIdentifier claim in AccountController.");
             return id;
         }
 
@@ -222,7 +222,7 @@ namespace LaudaryMis.Controllers
         {
             var val = User.FindFirst("ProviderId")?.Value;
             if (!int.TryParse(val, out int id) || id <= 0)
-                throw new UnauthorizedAccessException("Provider ID nahi mila.");
+                throw new UnauthorizedAccessException("Provider ID not found.");
             return id;
         }
 
@@ -230,7 +230,7 @@ namespace LaudaryMis.Controllers
         {
             var val = User.FindFirst("HospitalId")?.Value;
             if (!int.TryParse(val, out int id) || id <= 0)
-                throw new UnauthorizedAccessException("Hospital ID nahi mila.");
+                throw new UnauthorizedAccessException("Hospital ID not found.");
             return id;
         }
     }

@@ -9,9 +9,9 @@ namespace LaudaryMis.ViewModels
         // Names show up in dropdowns and pages for other users, so HTML
         // special characters are not allowed.
         public const string SafeNamePattern = @"^[^<>""'`&]*$";
-        public const string SafeNameMessage = "Naam mein < > \" ' ` & jaise characters allowed nahi hain.";
+        public const string SafeNameMessage = "The name may not contain characters such as < > \" ' ` &.";
 
-        [Range(2, 3, ErrorMessage = "Hospital ya Vendor chunein.")]
+        [Range(2, 3, ErrorMessage = "Select Hospital or Vendor.")]
         public int RoleId { get; set; } = 2;
 
         // ── Hospital ──────────────────────────────────────────
@@ -39,22 +39,22 @@ namespace LaudaryMis.ViewModels
         public string? FirmName { get; set; }
 
         // ── Common ────────────────────────────────────────────
-        [Required(ErrorMessage = "Mobile number daalein.")]
-        [RegularExpression(@"^[6-9]\d{9}$", ErrorMessage = "10 digit ka sahi mobile number daalein.")]
+        [Required(ErrorMessage = "Enter the mobile number.")]
+        [RegularExpression(@"^[6-9]\d{9}$", ErrorMessage = "Enter a valid 10-digit mobile number.")]
         public string Phone { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email daalein.")]
-        [EmailAddress(ErrorMessage = "Sahi email daalein.")]
+        [Required(ErrorMessage = "Enter the email.")]
+        [EmailAddress(ErrorMessage = "Enter a valid email.")]
         [StringLength(200)]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Password daalein.")]
-        [StringLength(100, MinimumLength = 8, ErrorMessage = "Password kam se kam 8 characters ka hona chahiye.")]
-        [RegularExpression(@"^(?=.*[A-Za-z])(?=.*\d).+$", ErrorMessage = "Password mein kam se kam ek letter aur ek number hona chahiye.")]
+        [Required(ErrorMessage = "Enter a password.")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "The password must be at least 8 characters.")]
+        [RegularExpression(@"^(?=.*[A-Za-z])(?=.*\d).+$", ErrorMessage = "The password must contain at least one letter and one number.")]
         public string Password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Password dobara daalein.")]
-        [Compare(nameof(Password), ErrorMessage = "Dono password match nahi kar rahe.")]
+        [Required(ErrorMessage = "Re-enter the password.")]
+        [Compare(nameof(Password), ErrorMessage = "The two passwords do not match.")]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

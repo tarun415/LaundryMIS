@@ -8,18 +8,18 @@ namespace LaudaryMis.ViewModels
         public int ProviderId { get; set; }
 
         // ── tbl_Providers ─────────────────────────────────────
-        [Required(ErrorMessage = "Firm ka naam daalein.")]
+        [Required(ErrorMessage = "Enter the firm name.")]
         [StringLength(150)]
         [RegularExpression(RegisterVM.SafeNamePattern, ErrorMessage = RegisterVM.SafeNameMessage)]
         public string? FirmName { get; set; }
 
-        [Required(ErrorMessage = "Contact person ka naam daalein.")]
+        [Required(ErrorMessage = "Enter the contact person's name.")]
         [StringLength(150)]
         [RegularExpression(RegisterVM.SafeNamePattern, ErrorMessage = RegisterVM.SafeNameMessage)]
         public string? ProviderName { get; set; }
 
-        [Required(ErrorMessage = "Mobile number daalein.")]
-        [RegularExpression(@"^[6-9]\d{9}$", ErrorMessage = "10 digit ka sahi mobile number daalein.")]
+        [Required(ErrorMessage = "Enter the mobile number.")]
+        [RegularExpression(@"^[6-9]\d{9}$", ErrorMessage = "Enter a valid 10-digit mobile number.")]
         public string? Phone { get; set; }
 
         // Login email — sirf dikhane ke liye
@@ -36,22 +36,22 @@ namespace LaudaryMis.ViewModels
         [RegularExpression(RegisterVM.SafeNamePattern, ErrorMessage = RegisterVM.SafeNameMessage)]
         public string? RegistrationAuthority { get; set; }
 
-        [RegularExpression(@"^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$", ErrorMessage = "Sahi 15 character ka GSTIN daalein (jaise 09ABCDE1234F1Z5).")]
+        [RegularExpression(@"^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$", ErrorMessage = "Enter a valid 15-character GSTIN (for example 09ABCDE1234F1Z5).")]
         public string? GSTNo { get; set; }
 
-        [RegularExpression(@"^[A-Z]{5}\d{4}[A-Z]$", ErrorMessage = "Sahi PAN daalein (jaise ABCDE1234F).")]
+        [RegularExpression(@"^[A-Z]{5}\d{4}[A-Z]$", ErrorMessage = "Enter a valid PAN (for example ABCDE1234F).")]
         public string? PANNo { get; set; }
 
         [StringLength(50)]
-        [RegularExpression(@"^[A-Za-z0-9/\-]*$", ErrorMessage = "EPF number mein sirf letters, numbers, / aur - ho sakte hain.")]
+        [RegularExpression(@"^[A-Za-z0-9/\-]*$", ErrorMessage = "The EPF number may only contain letters, numbers, / and -.")]
         public string? EPFNo { get; set; }
 
         [StringLength(50)]
-        [RegularExpression(@"^[A-Za-z0-9/\-]*$", ErrorMessage = "ESI number mein sirf letters, numbers, / aur - ho sakte hain.")]
+        [RegularExpression(@"^[A-Za-z0-9/\-]*$", ErrorMessage = "The ESI number may only contain letters, numbers, / and -.")]
         public string? ESINo { get; set; }
 
         [StringLength(50)]
-        [RegularExpression(@"^[A-Za-z0-9/\-]*$", ErrorMessage = "MSME/Udyam number mein sirf letters, numbers, / aur - ho sakte hain.")]
+        [RegularExpression(@"^[A-Za-z0-9/\-]*$", ErrorMessage = "The MSME/Udyam number may only contain letters, numbers, / and -.")]
         public string? MSMENo { get; set; }
 
         [StringLength(500)]
@@ -67,10 +67,10 @@ namespace LaudaryMis.ViewModels
         [RegularExpression(RegisterVM.SafeNamePattern, ErrorMessage = RegisterVM.SafeNameMessage)]
         public string? ContractManagerName { get; set; }
 
-        [RegularExpression(@"^[6-9]\d{9}$", ErrorMessage = "10 digit ka sahi mobile number daalein.")]
+        [RegularExpression(@"^[6-9]\d{9}$", ErrorMessage = "Enter a valid 10-digit mobile number.")]
         public string? ContractManagerPhone { get; set; }
 
-        [Range(0, 60, ErrorMessage = "Experience 0 se 60 saal ke beech ho.")]
+        [Range(0, 60, ErrorMessage = "Experience must be between 0 and 60 years.")]
         public int? ContractManagerExpYears { get; set; }
 
         // ── Bank (payment ke liye) ────────────────────────────
@@ -78,10 +78,10 @@ namespace LaudaryMis.ViewModels
         [RegularExpression(RegisterVM.SafeNamePattern, ErrorMessage = RegisterVM.SafeNameMessage)]
         public string? BankAccountName { get; set; }
 
-        [RegularExpression(@"^\d{9,18}$", ErrorMessage = "Account number 9 se 18 digit ka ho.")]
+        [RegularExpression(@"^\d{9,18}$", ErrorMessage = "The account number must be 9 to 18 digits.")]
         public string? BankAccountNo { get; set; }
 
-        [RegularExpression(@"^[A-Z]{4}0[A-Z0-9]{6}$", ErrorMessage = "Sahi IFSC daalein (jaise SBIN0001234).")]
+        [RegularExpression(@"^[A-Z]{4}0[A-Z0-9]{6}$", ErrorMessage = "Enter a valid IFSC (for example SBIN0001234).")]
         public string? BankIFSC { get; set; }
 
         [StringLength(150)]
@@ -108,7 +108,7 @@ namespace LaudaryMis.ViewModels
         // Profile ke zaroori fields (completeness ke liye)
         public IEnumerable<(string Label, bool Done)> RequiredFields() => new[]
         {
-            ("Firm ka type", !string.IsNullOrWhiteSpace(LegalStatus)),
+            ("Firm type", !string.IsNullOrWhiteSpace(LegalStatus)),
             ("Registration number", !string.IsNullOrWhiteSpace(RegistrationNo)),
             ("GSTIN", !string.IsNullOrWhiteSpace(GSTNo)),
             ("PAN", !string.IsNullOrWhiteSpace(PANNo)),
@@ -160,20 +160,20 @@ namespace LaudaryMis.ViewModels
     {
         public static readonly DocumentTypeInfo[] All =
         {
-            new("Registration Certificate", true,  false, "Company / firm registration (Companies Act ya relevant Act)"),
+            new("Registration Certificate", true,  false, "Company / firm registration (Companies Act or the relevant Act)"),
             new("GST Certificate",          true,  false, "GST registration certificate"),
-            new("PAN Card",                 true,  false, "Firm ka PAN"),
+            new("PAN Card",                 true,  false, "The firm's PAN"),
             new("EPF Registration",         true,  false, "EPF registration"),
             new("ESI Registration",         true,  false, "ESI registration"),
-            new("Labour Licence",           true,  true,  "Contract Labour (R&A) Act, 1970 — iske bina payment release nahi hogi"),
-            new("Solvency Certificate",     true,  true,  "Bank se, kam se kam ₹10 lakh per Schedule"),
-            new("Affidavit (Format 3)",     true,  false, "Blacklisting / conviction nahi hone ka notarised affidavit"),
-            new("Power of Attorney (Format 2)", true, false, "Signatory ko authorise karne ka POA / board resolution"),
-            new("Contract Manager Resume",  true,  false, "5 saal ka experience"),
-            new("ITR / Audited Balance Sheet", false, false, "Pichhle 3 saal"),
-            new("Cancelled Cheque",         false, false, "Bank account ki pushti ke liye"),
-            new("MSME / NSIC Certificate",  false, true,  "Agar hai to (EMD chhoot ke liye)"),
-            new("Other",                    false, false, "Koi aur document")
+            new("Labour Licence",           true,  true,  "Contract Labour (R&A) Act, 1970 — no payment is released without it"),
+            new("Solvency Certificate",     true,  true,  "From the bank, at least ₹10 lakh per Schedule"),
+            new("Affidavit (Format 3)",     true,  false, "Notarised affidavit that the firm is not blacklisted or convicted"),
+            new("Power of Attorney (Format 2)", true, false, "POA / board resolution authorising the signatory"),
+            new("Contract Manager Resume",  true,  false, "5 years of experience"),
+            new("ITR / Audited Balance Sheet", false, false, "Last 3 years"),
+            new("Cancelled Cheque",         false, false, "To confirm the bank account"),
+            new("MSME / NSIC Certificate",  false, true,  "If available (for the EMD exemption)"),
+            new("Other",                    false, false, "Any other document")
         };
 
         public static DocumentTypeInfo? Find(string? name) =>

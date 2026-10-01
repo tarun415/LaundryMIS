@@ -26,8 +26,8 @@
     <div class="ph-text">
         <h1>Activation Codes</h1>
         <p class="ph-sub">
-            Tender list ke @(isHospital ? "hospitals" : "vendors") apna account in codes se khud banate hain.
-            Code sirf ek baar chalta hai aur Admin ko bhi dobara nahi dikhta.
+            @(isHospital ? "Hospitals" : "Vendors") on the tender list create their own account with these codes.
+            A code works only once and is never shown to Admin again.
         </p>
     </div>
     <div class="ph-actions">
@@ -39,7 +39,7 @@
                 <input type="hidden" name="type" value="@Model.EntityType" />
                 <input type="hidden" name="allMissing" value="true" />
                 <button type="submit" class="btn btn-primary">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Sabke liye code banayein (@noCode)
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Issue codes for everyone (@noCode)
                 </button>
             </form>
         }
@@ -63,19 +63,19 @@
     <div class="col-4">
         <div class="stat-card is-ok h-100">
             <div class="card-icon"><i class="fa-solid fa-user-check"></i></div>
-            <div class="min-w-0"><div class="stat-val">@registered</div><div class="stat-lbl">Register ho chuke</div></div>
+            <div class="min-w-0"><div class="stat-val">@registered</div><div class="stat-lbl">Registered</div></div>
         </div>
     </div>
     <div class="col-4">
         <div class="stat-card is-warn h-100">
             <div class="card-icon"><i class="fa-solid fa-envelope"></i></div>
-            <div class="min-w-0"><div class="stat-val">@issued</div><div class="stat-lbl">Code diya, register baaki</div></div>
+            <div class="min-w-0"><div class="stat-val">@issued</div><div class="stat-lbl">Code issued, not registered yet</div></div>
         </div>
     </div>
     <div class="col-4">
         <div class="stat-card is-navy h-100">
             <div class="card-icon"><i class="fa-solid fa-circle-question"></i></div>
-            <div class="min-w-0"><div class="stat-val">@noCode</div><div class="stat-lbl">Code nahi bana</div></div>
+            <div class="min-w-0"><div class="stat-val">@noCode</div><div class="stat-lbl">No code yet</div></div>
         </div>
     </div>
 </div>
@@ -97,8 +97,8 @@
                                 <th>District</th>
                             }
                             <th>Status</th>
-                            <th>Code diya</th>
-                            <th>Register hua</th>
+                            <th>Code issued</th>
+                            <th>Registered on</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -123,11 +123,11 @@
                                     }
                                     else if (r.Status == "CodeIssued")
                                     {
-                                        <span class="badge badge-warn"><i class="fa-solid fa-envelope"></i> Code diya</span>
+                                        <span class="badge badge-warn"><i class="fa-solid fa-envelope"></i> Code issued</span>
                                     }
                                     else
                                     {
-                                        <span class="badge badge-navy">Code nahi bana</span>
+                                        <span class="badge badge-navy">No code yet</span>
                                     }
                                 </td>
                                 <td class="nowrap small">@(r.CodeIssuedOn?.ToString("dd MMM yyyy") ?? "—")</td>
@@ -140,11 +140,11 @@
 
             <div class="d-flex flex-wrap gap-2 align-items-center mt-3">
                 <button type="submit" class="btn btn-outline-primary" id="btnIssueSelected" disabled>
-                    <i class="fa-solid fa-key"></i> Chune hue ke liye naya code banayein
+                    <i class="fa-solid fa-key"></i> Issue a new code for the selected rows
                 </button>
                 <span class="small text-muted">
-                    Naya code banane par us hospital / firm ka purana (na use hua) code band ho jata hai.
-                    Jinka account ban chuka hai unke aage koi box nahi hai.
+                    Issuing a new code disables that hospital's / firm's previous unused code.
+                    Rows whose account already exists have no checkbox.
                 </span>
             </div>
         </div>
@@ -172,10 +172,10 @@
                 if (form.dataset.confirmed === 'yes') return;
                 e.preventDefault();
                 LMIS.confirm({
-                    title: 'Code banayein?',
-                    text: form.dataset.count + ' ke liye code ban jayenge. Agle page par ek baar dikhenge, use download / print kar lein.',
+                    title: 'Issue codes?',
+                    text: form.dataset.count + ' codes will be issued. They are shown once on the next page; download or print them.',
                     icon: 'question',
-                    confirmText: 'Haan, banao',
+                    confirmText: 'Yes, issue',
                     danger: false
                 }).then(function (ok) {
                     if (ok) { form.dataset.confirmed = 'yes'; form.submit(); }

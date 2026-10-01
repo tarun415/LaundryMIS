@@ -27,7 +27,7 @@ namespace LaudaryMis.Helpers
             BillingStart.ToString("MMMM yyyy", CultureInfo.InvariantCulture);
 
         public string BeforeStartMessage(string what) =>
-            $"{what} {StartLabel} se pehle ke mahine ke liye nahi ban sakta. " +
-            $"Portal {StartLabel} se shuru hua hai; usse pehle ka hisaab offline ho chuka hai.";
+            $"{what} cannot be created for a month before {StartLabel}. " +
+            $"The portal went live in {StartLabel}; earlier months were handled offline.";
     }
 }

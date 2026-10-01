@@ -17,9 +17,9 @@
 <div class="alert alert-warning no-print">
     <i class="fa-solid fa-triangle-exclamation"></i>
     <span>
-        <strong>Ye codes sirf abhi dikh rahe hain.</strong> Is page ko chhodne ya refresh karne ke baad dobara nahi dikhenge
-        (sirf unka hash save hota hai). Abhi download ya print kar lein.
-        Code kho jaye to Index page se naya code bana lein.
+        <strong>These codes are shown only now.</strong> They will not be shown again after you leave or refresh this page
+        (only a hash of each is saved). Download or print them now.
+        If a code is lost, issue a new one from the Index page.
     </span>
 </div>
 
@@ -32,7 +32,7 @@
     <div class="ph-actions">
         <button type="button" class="btn btn-primary" id="btnCsv"><i class="fa-solid fa-download"></i> CSV download</button>
         <button type="button" class="btn btn-outline-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
-        <a asp-action="Index" asp-route-type="@Model.EntityType" class="btn btn-light"><i class="fa-solid fa-arrow-left"></i> Wapas</a>
+        <a asp-action="Index" asp-route-type="@Model.EntityType" class="btn btn-light"><i class="fa-solid fa-arrow-left"></i> Back</a>
     </div>
 </div>
 
@@ -69,7 +69,7 @@
             </table>
         </div>
         <p class="small text-muted mt-3 mb-0">
-            Hospital / vendor Login page par <strong>"Register karein"</strong> pe jaakar apna naam chunein aur ye code daalein.
+            The hospital / vendor should open <strong>"Register"</strong> on the Login page, choose its name and enter this code.
         </p>
     </div>
 </div>

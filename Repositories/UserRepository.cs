@@ -101,7 +101,7 @@ namespace LaudaryMis.Repositories
                 {
                     Success = false,
                     Message = listed > 0
-                        ? "Is hospital ka account abhi nahi bana hai. Pehle Register karein."
+                        ? "This hospital does not have an account yet. Please register first."
                         : "Invalid District or hospital."
                 };
             }
@@ -175,7 +175,7 @@ namespace LaudaryMis.Repositories
                 {
                     Success = false,
                     Message = listed > 0
-                        ? "Is vendor ka account abhi nahi bana hai. Pehle Register karein."
+                        ? "This vendor does not have an account yet. Please register first."
                         : "Invalid provider."
                 };
             }
@@ -250,14 +250,14 @@ namespace LaudaryMis.Repositories
                 var email = model.Email.Trim();
 
                 if (await EmailExists(con, tran, email))
-                    return Fail(tran, "Is email se pehle hi account bana hua hai. Login karein.");
+                    return Fail(tran, "An account already exists for this email. Please sign in.");
 
                 var districtOk = await con.ExecuteScalarAsync<int>(
                     "SELECT COUNT(*) FROM DistrictMaster WHERE DistrictID = @DistrictId",
                     new { model.DistrictId }, tran);
 
                 if (districtOk == 0)
-                    return Fail(tran, "Sahi district chunein.");
+                    return Fail(tran, "Select a valid district.");
 
                 var duplicate = await con.ExecuteScalarAsync<int>(@"
                     SELECT COUNT(*) FROM Tbl_Hospitals
@@ -266,7 +266,7 @@ namespace LaudaryMis.Repositories
                     new { model.DistrictId, HospitalName = model.HospitalName!.Trim() }, tran);
 
                 if (duplicate > 0)
-                    return Fail(tran, "Is district mein is naam ka hospital tender list mein pehle se hai. Naya account mat banayein: Login page se 'Register karein' kholkar apna hospital chunein aur DGMH ka diya activation code daalein.");
+                    return Fail(tran, "A hospital with this name is already on the tender list for this district. Do not create a new account: open 'Register' from the Login page, choose your hospital and enter the activation code DGMH gave you.");
 
                 var hospitalId = await con.ExecuteScalarAsync<int>(@"
                     INSERT INTO Tbl_Hospitals
@@ -303,7 +303,7 @@ namespace LaudaryMis.Repositories
             {
                 // Unique index on Tbl_Users.Email (do log ek saath register karein)
                 tran.Rollback();
-                return new LoginResult { Success = false, Message = "Is email se pehle hi account bana hua hai. Login karein." };
+                return new LoginResult { Success = false, Message = "An account already exists for this email. Please sign in." };
             }
             catch
             {
@@ -324,7 +324,7 @@ namespace LaudaryMis.Repositories
                 var email = model.Email.Trim();
 
                 if (await EmailExists(con, tran, email))
-                    return Fail(tran, "Is email se pehle hi account bana hua hai. Login karein.");
+                    return Fail(tran, "An account already exists for this email. Please sign in.");
 
                 var duplicate = await con.ExecuteScalarAsync<int>(@"
                     SELECT COUNT(*) FROM tbl_Providers
@@ -332,7 +332,7 @@ namespace LaudaryMis.Repositories
                     new { FirmName = model.FirmName!.Trim() }, tran);
 
                 if (duplicate > 0)
-                    return Fail(tran, "Is naam ki firm tender list mein pehle se hai. Naya account mat banayein: Login page se 'Register karein' kholkar apni firm chunein aur DGMH ka diya activation code daalein.");
+                    return Fail(tran, "A firm with this name is already on the tender list. Do not create a new account: open 'Register' from the Login page, choose your firm and enter the activation code DGMH gave you.");
 
                 var providerId = await con.ExecuteScalarAsync<int>(@"
                     INSERT INTO tbl_Providers
@@ -366,7 +366,7 @@ namespace LaudaryMis.Repositories
             catch (SqlException ex) when (ex.Number is 2601 or 2627)
             {
                 tran.Rollback();
-                return new LoginResult { Success = false, Message = "Is email se pehle hi account bana hua hai. Login karein." };
+                return new LoginResult { Success = false, Message = "An account already exists for this email. Please sign in." };
             }
             catch
             {
