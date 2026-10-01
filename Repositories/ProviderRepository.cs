@@ -168,7 +168,7 @@ namespace LaudaryMis.Repositories
         public async Task<IEnumerable<ProvidersVM>> GetProviderAsync()
         {
             return await _db.QueryAsync<ProvidersVM>(
-                "SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.IsActive,pr.ApprovalStatus,pr.ApprovalRemarks,dm.DistrictID, dm.DistrictName,CAST(NULL AS NVARCHAR(1)) as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId  WHERE pr.IsActive = 1"
+                "SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.IsActive,pr.ApprovalStatus,pr.ApprovalRemarks,CAST(NULL AS NVARCHAR(1)) as [Password],us.Email  FROM tbl_Providers as pr OUTER APPLY (SELECT TOP 1 u.Email FROM Tbl_Users u WHERE u.ProviderId = pr.ProviderId AND u.RoleId = 3 ORDER BY u.IsActive DESC, u.UserId) us  WHERE pr.IsActive = 1"
             );
         }
 
@@ -182,7 +182,7 @@ namespace LaudaryMis.Repositories
         public async Task<ProvidersVM> GetProviderByIdAsync(int id)
         {
             return await _db.QueryFirstOrDefaultAsync<ProvidersVM>(@"
-        SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.Phone,pr.IsActive,pr.ApprovalStatus,pr.ApprovalRemarks,dm.DistrictID, dm.DistrictName,CAST(NULL AS NVARCHAR(1)) as [Password],us.Email  FROM tbl_Providers as pr left join DistrictMaster as dm on pr.ProviderId=dm.DistrictID left join Tbl_Users us on us.ProviderId=pr.ProviderId
+        SELECT pr.ProviderId ,pr.ProviderName,pr.FirmName,pr.NoOfBeds,pr.RatePerBed,pr.Phone,pr.IsActive,pr.ApprovalStatus,pr.ApprovalRemarks,CAST(NULL AS NVARCHAR(1)) as [Password],us.Email  FROM tbl_Providers as pr OUTER APPLY (SELECT TOP 1 u.Email FROM Tbl_Users u WHERE u.ProviderId = pr.ProviderId AND u.RoleId = 3 ORDER BY u.IsActive DESC, u.UserId) us
         WHERE pr.ProviderId = @Id
     ", new { Id = id });
         }
