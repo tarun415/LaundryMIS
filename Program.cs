@@ -80,6 +80,8 @@ builder.Services.AddScoped<IWarningLetterRepository, WarningLetterRepository>();
 builder.Services.AddScoped<IWarningLetterService, WarningLetterService>();
 builder.Services.AddScoped<IProviderProfileRepository, ProviderProfileRepository>();
 builder.Services.AddScoped<IProviderProfileService, ProviderProfileService>();
+builder.Services.AddScoped<IActivationCodeRepository, ActivationCodeRepository>();
+builder.Services.AddScoped<IActivationCodeService, ActivationCodeService>();
 // 🔥 FIX (IMPORTANT)
 builder.Services.AddScoped<IDbConnection>(sp =>
 {

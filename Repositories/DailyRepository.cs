@@ -145,7 +145,7 @@ SELECT CAST(SCOPE_IDENTITY() as int);
         SELECT h.HospitalId, h.HospitalName
         FROM ProviderHospitalAgreements ph
         JOIN tbl_Hospitals h ON ph.HospitalId = h.HospitalId
-        WHERE ph.ProviderId = @ProviderId";
+        WHERE ph.ProviderId = @ProviderId AND ph.IsActive = 1";
 
             return (await _db.QueryAsync<Hospital>(sql, new { ProviderId = providerId })).ToList();
         }

@@ -1,0 +1,186 @@
+@model LaudaryMis.ViewModels.ActivationIndexVM
+@{
+    var isHospital = Model.EntityType == "Hospital";
+    ViewData["Title"] = "Activation Codes";
+
+    int registered = Model.Rows.Count(r => r.Status == "Registered");
+    int issued = Model.Rows.Count(r => r.Status == "CodeIssued");
+    int noCode = Model.Rows.Count(r => r.Status == "NoCode");
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" data-auto-dismiss>
+        <i class="fa-solid fa-circle-check"></i><span>@TempData["Success"]</span>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i><span>@TempData["Error"]</span>
+    </div>
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-key"></i></div>
+    <div class="ph-text">
+        <h1>Activation Codes</h1>
+        <p class="ph-sub">
+            Tender list ke @(isHospital ? "hospitals" : "vendors") apna account in codes se khud banate hain.
+            Code sirf ek baar chalta hai aur Admin ko bhi dobara nahi dikhta.
+        </p>
+    </div>
+    <div class="ph-actions">
+        @if (noCode > 0)
+        {
+            <form asp-action="Issue" method="post" class="d-inline js-confirm-issue"
+                  data-count="@noCode">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="type" value="@Model.EntityType" />
+                <input type="hidden" name="allMissing" value="true" />
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Sabke liye code banayein (@noCode)
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item">
+        <a class="nav-link @(isHospital ? "active" : "")" asp-action="Index" asp-route-type="Hospital">
+            <i class="fa-solid fa-hospital"></i> Hospitals
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(!isHospital ? "active" : "")" asp-action="Index" asp-route-type="Provider">
+            <i class="fa-solid fa-truck-fast"></i> Vendors
+        </a>
+    </li>
+</ul>
+
+<div class="row g-3 mb-3">
+    <div class="col-4">
+        <div class="stat-card is-ok h-100">
+            <div class="card-icon"><i class="fa-solid fa-user-check"></i></div>
+            <div class="min-w-0"><div class="stat-val">@registered</div><div class="stat-lbl">Register ho chuke</div></div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="stat-card is-warn h-100">
+            <div class="card-icon"><i class="fa-solid fa-envelope"></i></div>
+            <div class="min-w-0"><div class="stat-val">@issued</div><div class="stat-lbl">Code diya, register baaki</div></div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="stat-card is-navy h-100">
+            <div class="card-icon"><i class="fa-solid fa-circle-question"></i></div>
+            <div class="min-w-0"><div class="stat-val">@noCode</div><div class="stat-lbl">Code nahi bana</div></div>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Issue" method="post" id="issueForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="type" value="@Model.EntityType" />
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tblCodes" class="table table-hover align-middle w-100">
+                    <thead>
+                        <tr>
+                            <th class="no-sort" style="width:36px"></th>
+                            <th>@(isHospital ? "Hospital" : "Vendor")</th>
+                            @if (isHospital)
+                            {
+                                <th>District</th>
+                            }
+                            <th>Status</th>
+                            <th>Code diya</th>
+                            <th>Register hua</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Rows)
+                        {
+                            <tr>
+                                <td>
+                                    @if (r.Status != "Registered")
+                                    {
+                                        <input type="checkbox" class="form-check-input row-check" name="ids" value="@r.EntityId" />
+                                    }
+                                </td>
+                                <td class="fw-semibold">@r.Name</td>
+                                @if (isHospital)
+                                {
+                                    <td>@r.District</td>
+                                }
+                                <td>
+                                    @if (r.Status == "Registered")
+                                    {
+                                        <span class="badge badge-ok"><i class="fa-solid fa-circle-check"></i> Registered</span>
+                                    }
+                                    else if (r.Status == "CodeIssued")
+                                    {
+                                        <span class="badge badge-warn"><i class="fa-solid fa-envelope"></i> Code diya</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-navy">Code nahi bana</span>
+                                    }
+                                </td>
+                                <td class="nowrap small">@(r.CodeIssuedOn?.ToString("dd MMM yyyy") ?? "—")</td>
+                                <td class="nowrap small">@(r.RegisteredOn?.ToString("dd MMM yyyy") ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 align-items-center mt-3">
+                <button type="submit" class="btn btn-outline-primary" id="btnIssueSelected" disabled>
+                    <i class="fa-solid fa-key"></i> Chune hue ke liye naya code banayein
+                </button>
+                <span class="small text-muted">
+                    Naya code banane par us hospital / firm ka purana (na use hua) code band ho jata hai.
+                    Jinka account ban chuka hai unke aage koi box nahi hai.
+                </span>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(function () {
+            LMIS.initTable('#tblCodes', {
+                exportTitle: 'Activation status',
+                order: [[1, 'asc']],
+                columnDefs: [{ targets: 'no-sort', orderable: false }],
+                pageLength: 25
+            });
+
+            function syncBtn() {
+                $('#btnIssueSelected').prop('disabled', $('.row-check:checked').length === 0);
+            }
+            $(document).on('change', '.row-check', syncBtn);
+            syncBtn();
+
+            $('.js-confirm-issue').on('submit', function (e) {
+                var form = this;
+                if (form.dataset.confirmed === 'yes') return;
+                e.preventDefault();
+                LMIS.confirm({
+                    title: 'Code banayein?',
+                    text: form.dataset.count + ' ke liye code ban jayenge. Agle page par ek baar dikhenge, use download / print kar lein.',
+                    icon: 'question',
+                    confirmText: 'Haan, banao',
+                    danger: false
+                }).then(function (ok) {
+                    if (ok) { form.dataset.confirmed = 'yes'; form.submit(); }
+                });
+            });
+        });
+    </script>
+}

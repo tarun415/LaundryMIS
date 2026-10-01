@@ -1,4 +1,4 @@
-@model LaudaryMis.ViewModels.RegisterVM
+@model LaudaryMis.ViewModels.ClaimVM
 @{
     Layout = null;
     var isHospital = Model.RoleId != 3;
@@ -28,6 +28,8 @@
         .field-err { color: var(--danger, #b42318); font-size: .74rem; margin-top: 4px; }
         .field-err:empty { display: none; }
 
+        .code-input { font-family: Consolas, 'Courier New', monospace; font-size: 1.15rem; letter-spacing: .12em; text-transform: uppercase; text-align: center; }
+
         .pwd-wrap { position: relative; }
         .pwd-wrap input { padding-right: 42px; }
         .pwd-toggle {
@@ -41,6 +43,12 @@
         .login-switch { margin-top: 14px; text-align: center; font-size: .85rem; color: var(--ink-3); }
         .login-switch a { font-weight: 600; color: var(--teal-700); text-decoration: none; }
         .login-switch a:hover { text-decoration: underline; }
+
+        .claim-note {
+            margin: 0 0 14px; padding: 10px 12px; font-size: .8rem; line-height: 1.45;
+            color: var(--ink-2, #344054); background: var(--surface-2, #f6f7f9);
+            border: 1px solid var(--line); border-radius: var(--r-sm);
+        }
 
         .login-foot {
             margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line);
@@ -56,12 +64,12 @@
         <div class="login-box">
 
             <div class="login-logo">
-                <div class="emblem"><i class="fa-solid fa-user-plus"></i></div>
+                <div class="emblem"><i class="fa-solid fa-key"></i></div>
                 <h1>Register &middot; Laundry MIS</h1>
-                <p>Hospital ya Vendor account banayein</p>
+                <p>Activation code se apna account banayein</p>
             </div>
 
-            <form method="post" asp-action="Register" id="regForm" novalidate>
+            <form method="post" asp-action="Claim" id="claimForm" novalidate>
 
                 @Html.AntiForgeryToken()
 
@@ -75,6 +83,11 @@
                         @string.Join(" ", formErrors.Select(e => e.ErrorMessage))
                     </div>
                 }
+
+                <div class="claim-note">
+                    Aapka hospital / firm tender list mein pehle se hai. DGMH ne aapko ek <strong>activation code</strong> bheja hoga.
+                    Apna naam chunein, code daalein aur email / password set karein.
+                </div>
 
                 <!-- ROLE SELECTOR -->
                 <div class="role-selector" role="radiogroup" aria-label="Register as" style="grid-template-columns: 1fr 1fr;">
@@ -99,51 +112,40 @@
 
                 <!-- HOSPITAL -->
                 <div id="hospitalFields" style="@(isHospital ? "" : "display:none;")">
-                    <div class="login-field">
-                        <label asp-for="HospitalName">Hospital ka naam</label>
-                        <input asp-for="HospitalName" maxlength="200" placeholder="Jaise: District Hospital (Male), Agra" />
-                        <span class="field-err d-block" asp-validation-for="HospitalName"></span>
-                    </div>
-
                     <div class="reg-row">
                         <div class="login-field">
                             <label asp-for="DistrictId">District</label>
-                            <select asp-for="DistrictId" id="DistrictId" data-selected="@Model.DistrictId">
+                            <select asp-for="DistrictId" id="DistrictId" data-selected="@Model.DistrictId" onchange="loadHospitals(this.value)">
                                 <option value="">Select District</option>
                             </select>
-                            <span class="field-err d-block" asp-validation-for="DistrictId"></span>
                         </div>
 
                         <div class="login-field">
-                            <label asp-for="ContactPerson">Contact person</label>
-                            <input asp-for="ContactPerson" maxlength="100" placeholder="CMS / nodal officer ka naam" />
-                            <span class="field-err d-block" asp-validation-for="ContactPerson"></span>
+                            <label asp-for="HospitalId">Hospital</label>
+                            <select asp-for="HospitalId" id="HospitalId" data-selected="@Model.HospitalId">
+                                <option value="">Select Hospital</option>
+                            </select>
                         </div>
                     </div>
-
-                    <div class="login-field">
-                        <label asp-for="Address">Address <span class="text-muted fw-normal">(optional)</span></label>
-                        <input asp-for="Address" maxlength="250" placeholder="Hospital ka pata" />
-                        <span class="field-err d-block" asp-validation-for="Address"></span>
-                    </div>
+                    <div class="login-hint" style="margin-top:-6px;margin-bottom:10px;">Sirf wahi hospitals dikhte hain jinka account abhi bana nahi hai.</div>
                 </div>
 
                 <!-- VENDOR -->
                 <div id="providerFields" style="@(!isHospital ? "" : "display:none;")">
                     <div class="login-field">
-                        <label asp-for="FirmName">Firm / company ka naam</label>
-                        <input asp-for="FirmName" maxlength="150" placeholder="Jaise: M/s ABC Laundry Services" />
-                        <span class="field-err d-block" asp-validation-for="FirmName"></span>
-                    </div>
-
-                    <div class="login-field">
-                        <label asp-for="ProviderName">Contact person</label>
-                        <input asp-for="ProviderName" maxlength="150" placeholder="Owner / manager ka naam" />
-                        <span class="field-err d-block" asp-validation-for="ProviderName"></span>
+                        <label asp-for="ProviderId">Firm / Vendor</label>
+                        <select asp-for="ProviderId" id="ProviderId" data-selected="@Model.ProviderId">
+                            <option value="">Select Firm</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- COMMON -->
+                <div class="login-field">
+                    <label asp-for="Code">Activation code</label>
+                    <input asp-for="Code" class="code-input" maxlength="14" autocomplete="off" spellcheck="false" placeholder="XXXXX-XXXXX" />
+                    <span class="field-err d-block" asp-validation-for="Code"></span>
+                </div>
+
                 <div class="reg-row">
                     <div class="login-field">
                         <label asp-for="Phone">Mobile number</label>
@@ -183,8 +185,8 @@
                 </div>
                 <div class="login-hint" style="margin-top:-6px;">Password mein kam se kam ek letter aur ek number ho.</div>
 
-                <button type="submit" class="btn-login mt-3" id="regBtn">
-                    <i class="fa-solid fa-user-plus me-1"></i> Register &amp; Sign In
+                <button type="submit" class="btn-login mt-3" id="claimBtn">
+                    <i class="fa-solid fa-user-check me-1"></i> Register &amp; Sign In
                 </button>
 
             </form>
@@ -193,7 +195,7 @@
                 Pehle se account hai? <a asp-action="Login">Sign in karein</a>
             </div>
             <div class="login-switch" style="margin-top:6px;">
-                Hospital / firm tender list mein hai? <a asp-action="Claim" asp-route-roleId="@Model.RoleId">Activation code se register karein</a>
+                Hospital / firm list mein nahi hai? <a asp-action="Register" asp-route-roleId="@Model.RoleId">Naya account banayein</a>
             </div>
 
             <div class="login-foot">
@@ -206,6 +208,18 @@
 
     <script>
         let districtLoaded = false;
+        let providerLoaded = false;
+
+        // Names come from the database, so options are built with text (never innerHTML).
+        function fill(ddl, items, selected, emptyText) {
+            ddl.length = 1;
+            items.forEach(i => {
+                const opt = new Option(i.name, i.id);
+                if (String(i.id) === String(selected)) opt.selected = true;
+                ddl.add(opt);
+            });
+            if (items.length === 0 && emptyText) ddl.options[0].text = emptyText;
+        }
 
         function setRole(roleId, el) {
             document.getElementById("RoleId").value = roleId;
@@ -220,40 +234,55 @@
             document.getElementById("hospitalFields").style.display = roleId == 2 ? "" : "none";
             document.getElementById("providerFields").style.display = roleId == 3 ? "" : "none";
 
-            if (roleId == 2) loadDistricts();
+            if (roleId == 2) loadDistricts(); else loadProviders();
         }
 
         document.querySelectorAll(".role-btn").forEach(btn => {
             btn.addEventListener("keydown", e => {
-                if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    btn.click();
-                }
+                if (e.key === "Enter" || e.key === " ") { e.preventDefault(); btn.click(); }
             });
         });
 
-        // Names come from the database, so options are built with
-        // textContent (never innerHTML).
         function loadDistricts() {
             if (districtLoaded) return;
-
             const ddl = document.getElementById("DistrictId");
             const selected = ddl.dataset.selected;
 
             fetch('/User/GetDistricts')
                 .then(res => res.json())
                 .then(data => {
-                    ddl.length = 1;
-                    data.forEach(d => {
-                        const opt = new Option(d.districtName, d.districtId);
-                        if (String(d.districtId) === selected) opt.selected = true;
-                        ddl.add(opt);
-                    });
+                    fill(ddl, data.map(d => ({ id: d.districtId, name: d.districtName })), selected);
                     districtLoaded = true;
+                    if (selected) loadHospitals(selected);
                 });
         }
 
-        if (document.getElementById("RoleId").value == "2") loadDistricts();
+        function loadHospitals(districtId) {
+            const ddl = document.getElementById("HospitalId");
+            ddl.length = 1;
+            if (!districtId) return;
+            const selected = ddl.dataset.selected;
+
+            fetch('/Account/UnclaimedHospitals?districtId=' + encodeURIComponent(districtId))
+                .then(res => res.json())
+                .then(data => fill(ddl, data.map(h => ({ id: h.id, name: h.name })), selected,
+                                   'Is district mein koi hospital baaki nahi'));
+        }
+
+        function loadProviders() {
+            if (providerLoaded) return;
+            const ddl = document.getElementById("ProviderId");
+
+            fetch('/Account/UnclaimedProviders')
+                .then(res => res.json())
+                .then(data => {
+                    fill(ddl, data.map(p => ({ id: p.id, name: p.name })), ddl.dataset.selected,
+                         'Koi firm baaki nahi');
+                    providerLoaded = true;
+                });
+        }
+
+        if (document.getElementById("RoleId").value == "2") loadDistricts(); else loadProviders();
 
         document.querySelectorAll(".pwd-toggle").forEach(btn => {
             btn.addEventListener("click", function () {
@@ -266,8 +295,8 @@
             });
         });
 
-        document.getElementById("regForm").addEventListener("submit", function () {
-            const btn = document.getElementById("regBtn");
+        document.getElementById("claimForm").addEventListener("submit", function () {
+            const btn = document.getElementById("claimBtn");
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Registering…';
         });
