@@ -58,7 +58,7 @@
             <div class="login-logo">
                 <div class="emblem"><i class="fa-solid fa-user-plus"></i></div>
                 <h1>Register &middot; Laundry MIS</h1>
-                <p>Hospital ya Vendor account banayein</p>
+                <p>Create a Hospital or Vendor account</p>
             </div>
 
             <form method="post" asp-action="Register" id="regForm" novalidate>
@@ -100,8 +100,8 @@
                 <!-- HOSPITAL -->
                 <div id="hospitalFields" style="@(isHospital ? "" : "display:none;")">
                     <div class="login-field">
-                        <label asp-for="HospitalName">Hospital ka naam</label>
-                        <input asp-for="HospitalName" maxlength="200" placeholder="Jaise: District Hospital (Male), Agra" />
+                        <label asp-for="HospitalName">Hospital name</label>
+                        <input asp-for="HospitalName" maxlength="200" placeholder="For example: District Hospital (Male), Agra" />
                         <span class="field-err d-block" asp-validation-for="HospitalName"></span>
                     </div>
 
@@ -116,14 +116,14 @@
 
                         <div class="login-field">
                             <label asp-for="ContactPerson">Contact person</label>
-                            <input asp-for="ContactPerson" maxlength="100" placeholder="CMS / nodal officer ka naam" />
+                            <input asp-for="ContactPerson" maxlength="100" placeholder="Name of the CMS / nodal officer" />
                             <span class="field-err d-block" asp-validation-for="ContactPerson"></span>
                         </div>
                     </div>
 
                     <div class="login-field">
                         <label asp-for="Address">Address <span class="text-muted fw-normal">(optional)</span></label>
-                        <input asp-for="Address" maxlength="250" placeholder="Hospital ka pata" />
+                        <input asp-for="Address" maxlength="250" placeholder="Hospital address" />
                         <span class="field-err d-block" asp-validation-for="Address"></span>
                     </div>
                 </div>
@@ -131,14 +131,14 @@
                 <!-- VENDOR -->
                 <div id="providerFields" style="@(!isHospital ? "" : "display:none;")">
                     <div class="login-field">
-                        <label asp-for="FirmName">Firm / company ka naam</label>
-                        <input asp-for="FirmName" maxlength="150" placeholder="Jaise: M/s ABC Laundry Services" />
+                        <label asp-for="FirmName">Firm / company name</label>
+                        <input asp-for="FirmName" maxlength="150" placeholder="For example: M/s ABC Laundry Services" />
                         <span class="field-err d-block" asp-validation-for="FirmName"></span>
                     </div>
 
                     <div class="login-field">
                         <label asp-for="ProviderName">Contact person</label>
-                        <input asp-for="ProviderName" maxlength="150" placeholder="Owner / manager ka naam" />
+                        <input asp-for="ProviderName" maxlength="150" placeholder="Owner / manager name" />
                         <span class="field-err d-block" asp-validation-for="ProviderName"></span>
                     </div>
                 </div>
@@ -162,7 +162,7 @@
                     <div class="login-field">
                         <label asp-for="Password">Password</label>
                         <div class="pwd-wrap">
-                            <input asp-for="Password" type="password" autocomplete="new-password" placeholder="Kam se kam 8 characters" />
+                            <input asp-for="Password" type="password" autocomplete="new-password" placeholder="At least 8 characters" />
                             <button type="button" class="pwd-toggle" data-target="Password" aria-label="Show password">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
@@ -171,9 +171,9 @@
                     </div>
 
                     <div class="login-field">
-                        <label asp-for="ConfirmPassword">Password dobara</label>
+                        <label asp-for="ConfirmPassword">Confirm password</label>
                         <div class="pwd-wrap">
-                            <input asp-for="ConfirmPassword" type="password" autocomplete="new-password" placeholder="Wahi password" />
+                            <input asp-for="ConfirmPassword" type="password" autocomplete="new-password" placeholder="Same password" />
                             <button type="button" class="pwd-toggle" data-target="ConfirmPassword" aria-label="Show password">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
@@ -181,7 +181,7 @@
                         <span class="field-err d-block" asp-validation-for="ConfirmPassword"></span>
                     </div>
                 </div>
-                <div class="login-hint" style="margin-top:-6px;">Password mein kam se kam ek letter aur ek number ho.</div>
+                <div class="login-hint" style="margin-top:-6px;">Password must contain at least one letter and one number.</div>
 
                 <button type="submit" class="btn-login mt-3" id="regBtn">
                     <i class="fa-solid fa-user-plus me-1"></i> Register &amp; Sign In
@@ -190,10 +190,10 @@
             </form>
 
             <div class="login-switch">
-                Pehle se account hai? <a asp-action="Login">Sign in karein</a>
+                Already have an account? <a asp-action="Login">Sign in</a>
             </div>
             <div class="login-switch" style="margin-top:6px;">
-                Hospital / firm tender list mein hai? <a asp-action="Claim" asp-route-roleId="@Model.RoleId">Activation code se register karein</a>
+                Is your hospital / firm on the tender list? <a asp-action="Claim" asp-route-roleId="@Model.RoleId">Register with an activation code</a>
             </div>
 
             <div class="login-foot">

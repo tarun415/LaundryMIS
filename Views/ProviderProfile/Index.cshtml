@@ -71,8 +71,8 @@
     <div class="alert alert-warning">
         <i class="fa-solid fa-scale-balanced"></i>
         <span>
-            <strong>Labour Licence @(labour == null ? "upload nahi hua" : "expire ho gaya") hai.</strong>
-            Contract ke hisaab se (Part III, General Terms 9) labour licence jama hone tak payment release nahi hoti.
+            <strong>Labour Licence @(labour == null ? "has not been uploaded" : "has expired").</strong>
+            Under the contract (Part III, General Terms 9), no payment is released until the labour licence is submitted.
         </span>
     </div>
 }
@@ -89,19 +89,19 @@
                 <div class="card mb-3">
                     <div class="card-header">
                         <i class="fa-solid fa-building text-teal"></i>
-                        <span class="card-title">Firm ki jaankari</span>
+                        <span class="card-title">Firm details</span>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
-                                <label class="form-label" asp-for="FirmName">Firm / company ka naam <span class="text-danger">*</span></label>
+                                <label class="form-label" asp-for="FirmName">Firm / company name <span class="text-danger">*</span></label>
                                 <input asp-for="FirmName" class="form-control" maxlength="150" />
                                 <span asp-validation-for="FirmName" class="text-danger small"></span>
                             </div>
                             <div class="col-12 col-md-6">
-                                <label class="form-label" asp-for="LegalStatus">Firm ka type</label>
+                                <label class="form-label" asp-for="LegalStatus">Firm type</label>
                                 <select asp-for="LegalStatus" class="form-select">
-                                    <option value="">Chunein</option>
+                                    <option value="">Select</option>
                                     @foreach (var s in ProviderProfileVM.LegalStatuses)
                                     {
                                         <option value="@s" selected="@(Model.LegalStatus == s)">@s</option>
@@ -179,7 +179,7 @@
                             <div class="col-12 col-md-6">
                                 <label class="form-label">Login email</label>
                                 <input class="form-control" value="@Model.Email" readonly disabled />
-                                <div class="stat-sub mt-1">Login ke liye; yahan se nahi badalta.</div>
+                                <div class="stat-sub mt-1">Used for sign-in; it cannot be changed here.</div>
                             </div>
                         </div>
                     </div>
@@ -192,7 +192,7 @@
                         <span class="card-title">Contract Manager</span>
                     </div>
                     <div class="card-body">
-                        <p class="stat-sub mb-3">Contract ke hisaab se 5 saal ka experience zaroori (Article 9). Ye DGMH meetings, Laundry MIS aur monthly invoice ke liye zimmedar hain.</p>
+                        <p class="stat-sub mb-3">The contract requires 5 years of experience (Article 9). The Contract Manager attends DGMH meetings and is responsible for the Laundry MIS and monthly invoices.</p>
                         <div class="row g-3">
                             <div class="col-12 col-md-5">
                                 <label class="form-label" asp-for="ContractManagerName">Naam</label>
@@ -205,7 +205,7 @@
                                 <span asp-validation-for="ContractManagerPhone" class="text-danger small"></span>
                             </div>
                             <div class="col-12 col-md-3">
-                                <label class="form-label" asp-for="ContractManagerExpYears">Experience (saal)</label>
+                                <label class="form-label" asp-for="ContractManagerExpYears">Experience (years)</label>
                                 <input asp-for="ContractManagerExpYears" class="form-control" type="number" min="0" max="60" />
                                 <span asp-validation-for="ContractManagerExpYears" class="text-danger small"></span>
                             </div>
@@ -217,12 +217,12 @@
                 <div class="card mb-3">
                     <div class="card-header">
                         <i class="fa-solid fa-building-columns text-teal"></i>
-                        <span class="card-title">Bank account (payment ke liye)</span>
+                        <span class="card-title">Bank account (for payments)</span>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
-                                <label class="form-label" asp-for="BankAccountName">Account holder ka naam</label>
+                                <label class="form-label" asp-for="BankAccountName">Account holder name</label>
                                 <input asp-for="BankAccountName" class="form-control" maxlength="150" />
                                 <span asp-validation-for="BankAccountName" class="text-danger small"></span>
                             </div>
@@ -254,7 +254,7 @@
                 {
                     <div class="d-flex justify-content-end mb-3">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fa-solid fa-floppy-disk"></i> Profile save karein
+                            <i class="fa-solid fa-floppy-disk"></i> Save profile
                         </button>
                     </div>
                 }
@@ -268,11 +268,11 @@
         <div class="card mb-3">
             <div class="card-header">
                 <i class="fa-solid fa-list-check text-teal"></i>
-                <span class="card-title">Kya bacha hai</span>
+                <span class="card-title">What is left</span>
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between small mb-1">
-                    <span>Profile + zaroori documents</span>
+                    <span>Profile + required documents</span>
                     <strong>@pct%</strong>
                 </div>
                 <div class="pf-progress mb-3"><div style="width:@pct%"></div></div>
@@ -302,11 +302,11 @@
                 <span class="card-title">Documents</span>
                 @if (missingDocs > 0)
                 {
-                    <span class="badge badge-warn ms-auto">@missingDocs zaroori baaki</span>
+                    <span class="badge badge-warn ms-auto">@missingDocs required pending</span>
                 }
                 else
                 {
-                    <span class="badge badge-ok ms-auto">Sab zaroori jama</span>
+                    <span class="badge badge-ok ms-auto">All required submitted</span>
                 }
             </div>
             <div class="card-body">
@@ -365,7 +365,7 @@
                         @if (latest != null)
                         {
                             <a asp-action="Document" asp-route-id="@latest.Id" target="_blank" rel="noopener"
-                               class="btn btn-sm btn-icon btn-outline-primary" title="Kholein">
+                               class="btn btn-sm btn-icon btn-outline-primary" title="Open">
                                 <i class="fa-solid fa-eye"></i>
                             </a>
                         }
@@ -422,7 +422,7 @@
             <div class="card">
                 <div class="card-header">
                     <i class="fa-solid fa-clock-rotate-left text-teal"></i>
-                    <span class="card-title">Saare uploads</span>
+                    <span class="card-title">All uploads</span>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -447,7 +447,7 @@
                                         <td class="small text-muted nowrap">@d.UploadedOn.ToString("dd MMM yy")</td>
                                         <td class="text-end nowrap">
                                             <a asp-action="Document" asp-route-id="@d.Id" target="_blank" rel="noopener"
-                                               class="btn btn-sm btn-icon btn-outline-primary" title="Kholein">
+                                               class="btn btn-sm btn-icon btn-outline-primary" title="Open">
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>
                                             @if (!ro)
@@ -455,7 +455,7 @@
                                                 <form asp-action="DeleteDocument" method="post" class="d-inline js-confirm-delete">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@d.Id" />
-                                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Hatayein">
+                                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Remove">
                                                         <i class="fa-solid fa-trash"></i>
                                                     </button>
                                                 </form>
@@ -497,10 +497,10 @@
                 if (form.dataset.confirmed === 'yes') return;
                 e.preventDefault();
                 LMIS.confirm({
-                    title: 'Document hatayein?',
-                    text: 'Ye document list se hat jayega.',
+                    title: 'Remove the document?',
+                    text: 'This document will be removed from the list.',
                     icon: 'warning',
-                    confirmText: 'Haan, hatao',
+                    confirmText: 'Yes, remove',
                     danger: true
                 }).then(function (ok) {
                     if (ok) {

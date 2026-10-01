@@ -56,7 +56,7 @@ namespace LaudaryMis.Controllers
 
             if (model.Status != "Approved")
             {
-                TempData["Error"] = "Invoice sirf approved payment ke liye generate ho sakta hai.";
+                TempData["Error"] = "An invoice can only be generated for an approved payment.";
                 return RedirectToAction("PaymentList", "Payment");
             }
 
@@ -79,7 +79,7 @@ namespace LaudaryMis.Controllers
 
             if (payment.Status != "Approved")
             {
-                TempData["Error"] = "Invoice sirf approved payment ke liye generate ho sakta hai.";
+                TempData["Error"] = "An invoice can only be generated for an approved payment.";
                 return RedirectToAction("PaymentList", "Payment");
             }
 

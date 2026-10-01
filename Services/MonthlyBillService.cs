@@ -30,12 +30,12 @@ namespace LaudaryMis.Services
                 hospitalId, month, year);
             if (existing != null)
                 return await GetBillDetailAsync(existing.Id)
-                       ?? throw new Exception("Bill load nahi hua.");
+                       ?? throw new Exception("The bill could not be loaded.");
 
             // 2. Agreement info
             var agr = await _repo.GetAgreementInfoAsync(hospitalId)
                       ?? throw new Exception(
-                             "Koi active agreement nahi mila is hospital ke liye.");
+                             "No active agreement found for this hospital.");
 
             // 3. WPR auto-calculate
             var (avgScore, weeksCount) = await _repo.GetWPRAvgScoreAsync(
@@ -120,7 +120,7 @@ namespace LaudaryMis.Services
             if (vm.IsScoreOverridden &&
                 string.IsNullOrWhiteSpace(vm.OverrideReason))
                 return (false,
-                    "Score override karne ka reason daalna zaroori hai.", 0);
+                    "A reason is required to override the score.", 0);
 
             // Duplicate check
             var existing = await _repo.GetBillByHospitalMonthAsync(
@@ -129,22 +129,22 @@ namespace LaudaryMis.Services
             if (existing != null &&
                 existing.Status is not ("Draft" or "HospitalRejected" or "CMSRejected"))
                 return (false,
-                    $"Is month ka bill already '{existing.Status}' " +
-                    $"status mein hai.", 0);
+                    $"A bill for this month is already in '{existing.Status}' " +
+                    $"status.", 0);
 
             // Agreement, beds and rate come from the database, never from the form.
             var agr = await _repo.GetAgreementInfoByProviderHospitalAsync(
                 vm.ProviderId, vm.HospitalId);
             if (agr == null)
                 return (false,
-                    "Is Provider-Hospital ke beech koi active agreement nahi hai.", 0);
+                    "There is no active agreement between this provider and hospital.", 0);
             vm.AgreementId = agr.AgreementId;
             vm.SanctionedBeds = agr.SanctionedBeds;
             vm.RatePerBedPerYear = agr.RatePerBedPerYear;
             vm.GSTPercent = 18m;
 
             if (existing != null && existing.ProviderId != vm.ProviderId)
-                return (false, "Yeh bill aapka nahi hai.", 0);
+                return (false, "This bill is not yours.", 0);
 
             ComputeAmounts(vm);
 
@@ -188,7 +188,7 @@ namespace LaudaryMis.Services
                     ToStatus = "Draft",
                     ActionBy = userId,
                     ActionAt = DateTime.Now,
-                    Remarks = "Bill create kiya"
+                    Remarks = "Bill created"
                 });
             }
             else
@@ -198,7 +198,7 @@ namespace LaudaryMis.Services
                 billId = existing.Id;
             }
 
-            return (true, "Draft save ho gaya.", billId);
+            return (true, "Draft saved.", billId);
         }
 
         // ──────────────────────────────────────────────────────
@@ -210,19 +210,19 @@ namespace LaudaryMis.Services
         {
             var bill = await _repo.GetBillByIdAsync(billId);
             if (bill == null)
-                return (false, "Bill nahi mila.");
+                return (false, "Bill not found.");
             if (bill.Status != "HospitalApproved")
                 return (false,
-                    "Sirf 'HospitalApproved' status ke bills pe CMS action ho sakta hai.");
+                    "CMS can only act on bills in 'HospitalApproved' status.");
             if (!approve && string.IsNullOrWhiteSpace(remarks))
                 return (false,
-                    "Reject karte waqt reason likhna zaroori hai.");
+                    "A reason is required when rejecting.");
 
             string newStatus = approve ? "CMSApproved" : "CMSRejected";
             string logRemark = approve
-                ? $"CMS ne approve kiya. Net Payable: " +
+                ? $"CMS approved. Net Payable: " +
                   $"₹{bill.NetPayableAmount:N2}"
-                : $"CMS ne reject kiya. Reason: {remarks}";
+                : $"CMS rejected. Reason: {remarks}";
 
             await _repo.UpdateBillStatusAsync(
                 billId, newStatus, cmsUserId, remarks,
@@ -239,9 +239,9 @@ namespace LaudaryMis.Services
             });
 
             return (true, approve
-                ? $"✅ Bill approve ho gaya. Net Payable: " +
+                ? $"✅ Bill approved. Net Payable: " +
                   $"₹{bill.NetPayableAmount:N2}"
-                : "❌ Bill reject kar diya gaya.");
+                : "❌ Bill rejected.");
         }
 
         // ──────────────────────────────────────────────────────
@@ -306,14 +306,14 @@ namespace LaudaryMis.Services
                 providerId, hospitalId, month, year);
             if (existing != null)
                 return await GetBillDetailAsync(existing.Id)
-                       ?? throw new Exception("Bill load nahi hua.");
+                       ?? throw new Exception("The bill could not be loaded.");
 
             // 2. Agreement info (Provider + Hospital dono se)
             var agr = await _repo.GetAgreementInfoByProviderHospitalAsync(
                           providerId, hospitalId)
                       ?? throw new Exception(
-                             "Koi active agreement nahi mila is " +
-                             "Provider-Hospital ke beech mein.");
+                             "No active agreement found between this " +
+                             "provider and hospital.");
 
             // 3. WPR auto-calculate
             var (avgScore, weeksCount) = await _repo.GetWPRAvgScoreAsync(
@@ -351,15 +351,15 @@ namespace LaudaryMis.Services
         {
             var bill = await _repo.GetBillByIdAsync(billId);
             if (bill == null)
-                return (false, "Bill nahi mila.");
+                return (false, "Bill not found.");
             if (bill.ProviderId != providerId)
-                return (false, "Yeh bill aapka nahi hai.");
+                return (false, "This bill is not yours.");
             if (bill.Status is not ("Draft" or "HospitalRejected" or "CMSRejected"))
                 return (false,
-                    $"Bill '{bill.Status}' status mein hai — submit nahi ho sakta.");
+                    $"Bill is in '{bill.Status}' status — it cannot be submitted.");
             if (bill.WPRAvgScore <= 0)
                 return (false,
-                    "WPR Score 0 hai. Submit karne se pehle score check karein.");
+                    "The WPR score is 0. Check the score before submitting.");
 
             await _repo.UpdateBillStatusAsync(
                 billId, "HospitalSubmitted", userId, null);
@@ -371,10 +371,10 @@ namespace LaudaryMis.Services
                 ToStatus = "HospitalSubmitted",
                 ActionBy = userId,
                 ActionAt = DateTime.Now,
-                Remarks = "Provider ne Hospital ko submit kiya"
+                Remarks = "Provider submitted to Hospital"
             });
 
-            return (true, "Bill Hospital ko bhej diya gaya. ✅");
+            return (true, "Bill sent to the hospital. ✅");
         }
 
         // ──────────────────────────────────────────────────────
@@ -386,15 +386,15 @@ namespace LaudaryMis.Services
         {
             var bill = await _repo.GetBillByIdAsync(billId);
             if (bill == null)
-                return (false, "Bill nahi mila.");
+                return (false, "Bill not found.");
             if (bill.HospitalId != hospitalId)
-                return (false, "Yeh bill aapke hospital ka nahi hai.");
+                return (false, "This bill does not belong to your hospital.");
             if (bill.Status != "HospitalSubmitted")
                 return (false,
-                    "Sirf 'HospitalSubmitted' status ke bills verify ho sakte hain.");
+                    "Only bills in 'HospitalSubmitted' status can be verified.");
             if (!approve && string.IsNullOrWhiteSpace(remarks))
                 return (false,
-                    "Reject karte waqt reason likhna zaroori hai.");
+                    "A reason is required when rejecting.");
 
             // Hospital approve → CMS ke paas bhejo
             string newStatus = approve ? "HospitalApproved" : "HospitalRejected";
@@ -410,13 +410,13 @@ namespace LaudaryMis.Services
                 ActionBy = hospitalUserId,
                 ActionAt = DateTime.Now,
                 Remarks = approve
-                    ? $"Hospital ne verify kiya. Net: ₹{bill.NetPayableAmount:N2}"
-                    : $"Hospital ne reject kiya. Reason: {remarks}"
+                    ? $"Hospital verified. Net: ₹{bill.NetPayableAmount:N2}"
+                    : $"Hospital rejected. Reason: {remarks}"
             });
 
             return (true, approve
-                ? "✅ Bill verify ho gaya — Ab CMS approve karega."
-                : "❌ Bill reject kar diya — Provider ko wapas bhej diya.");
+                ? "✅ Bill verified — CMS will approve it next."
+                : "❌ Bill rejected — sent back to the provider.");
         }
 
         // Provider ke bills

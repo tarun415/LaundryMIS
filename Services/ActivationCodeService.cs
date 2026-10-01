@@ -33,10 +33,10 @@ namespace LaudaryMis.Services
             int? entityId = isHospital ? model.HospitalId : model.ProviderId;
 
             if (entityId is null or <= 0)
-                return new ClaimResult { Message = isHospital ? "Apna hospital chunein." : "Apni firm chunein." };
+                return new ClaimResult { Message = isHospital ? "Select your hospital." : "Select your firm." };
 
             if (!ActivationCodeHelper.LooksValid(model.Code))
-                return new ClaimResult { BadCode = true, Message = "Activation code 10 characters ka hota hai (jaise K7M49-QXD2P)." };
+                return new ClaimResult { BadCode = true, Message = "An activation code has 10 characters (for example K7M49-QXD2P)." };
 
             return await _repo.ClaimAsync(
                 isHospital ? "Hospital" : "Provider",

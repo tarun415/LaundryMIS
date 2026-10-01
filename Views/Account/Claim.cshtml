@@ -66,7 +66,7 @@
             <div class="login-logo">
                 <div class="emblem"><i class="fa-solid fa-key"></i></div>
                 <h1>Register &middot; Laundry MIS</h1>
-                <p>Activation code se apna account banayein</p>
+                <p>Create your account with an activation code</p>
             </div>
 
             <form method="post" asp-action="Claim" id="claimForm" novalidate>
@@ -85,8 +85,8 @@
                 }
 
                 <div class="claim-note">
-                    Aapka hospital / firm tender list mein pehle se hai. DGMH ne aapko ek <strong>activation code</strong> bheja hoga.
-                    Apna naam chunein, code daalein aur email / password set karein.
+                    Your hospital / firm is already on the tender list. DGMH should have sent you an <strong>activation code</strong>.
+                    Choose your name, enter the code and set your email / password.
                 </div>
 
                 <!-- ROLE SELECTOR -->
@@ -127,7 +127,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="login-hint" style="margin-top:-6px;margin-bottom:10px;">Sirf wahi hospitals dikhte hain jinka account abhi bana nahi hai.</div>
+                    <div class="login-hint" style="margin-top:-6px;margin-bottom:10px;">Only hospitals that do not have an account yet are listed.</div>
                 </div>
 
                 <!-- VENDOR -->
@@ -164,7 +164,7 @@
                     <div class="login-field">
                         <label asp-for="Password">Password</label>
                         <div class="pwd-wrap">
-                            <input asp-for="Password" type="password" autocomplete="new-password" placeholder="Kam se kam 8 characters" />
+                            <input asp-for="Password" type="password" autocomplete="new-password" placeholder="At least 8 characters" />
                             <button type="button" class="pwd-toggle" data-target="Password" aria-label="Show password">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
@@ -173,9 +173,9 @@
                     </div>
 
                     <div class="login-field">
-                        <label asp-for="ConfirmPassword">Password dobara</label>
+                        <label asp-for="ConfirmPassword">Confirm password</label>
                         <div class="pwd-wrap">
-                            <input asp-for="ConfirmPassword" type="password" autocomplete="new-password" placeholder="Wahi password" />
+                            <input asp-for="ConfirmPassword" type="password" autocomplete="new-password" placeholder="Same password" />
                             <button type="button" class="pwd-toggle" data-target="ConfirmPassword" aria-label="Show password">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
@@ -183,7 +183,7 @@
                         <span class="field-err d-block" asp-validation-for="ConfirmPassword"></span>
                     </div>
                 </div>
-                <div class="login-hint" style="margin-top:-6px;">Password mein kam se kam ek letter aur ek number ho.</div>
+                <div class="login-hint" style="margin-top:-6px;">Password must contain at least one letter and one number.</div>
 
                 <button type="submit" class="btn-login mt-3" id="claimBtn">
                     <i class="fa-solid fa-user-check me-1"></i> Register &amp; Sign In
@@ -192,10 +192,10 @@
             </form>
 
             <div class="login-switch">
-                Pehle se account hai? <a asp-action="Login">Sign in karein</a>
+                Already have an account? <a asp-action="Login">Sign in</a>
             </div>
             <div class="login-switch" style="margin-top:6px;">
-                Hospital / firm list mein nahi hai? <a asp-action="Register" asp-route-roleId="@Model.RoleId">Naya account banayein</a>
+                Hospital / firm not on the list? <a asp-action="Register" asp-route-roleId="@Model.RoleId">Create a new account</a>
             </div>
 
             <div class="login-foot">
@@ -266,7 +266,7 @@
             fetch('/Account/UnclaimedHospitals?districtId=' + encodeURIComponent(districtId))
                 .then(res => res.json())
                 .then(data => fill(ddl, data.map(h => ({ id: h.id, name: h.name })), selected,
-                                   'Is district mein koi hospital baaki nahi'));
+                                   'No hospital left in this district'));
         }
 
         function loadProviders() {
@@ -277,7 +277,7 @@
                 .then(res => res.json())
                 .then(data => {
                     fill(ddl, data.map(p => ({ id: p.id, name: p.name })), ddl.dataset.selected,
-                         'Koi firm baaki nahi');
+                         'No firm left');
                     providerLoaded = true;
                 });
         }

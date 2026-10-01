@@ -48,8 +48,8 @@ namespace LaudaryMis.Controllers
 
             if (codes.Count == 0)
             {
-                TempData["Error"] = "Code banane ke liye koi hospital / firm nahi mili " +
-                                    "(jinka account pehle se hai unke liye code nahi banta).";
+                TempData["Error"] = "No hospital / firm found to issue codes for " +
+                                    "(codes are not issued to those that already have an account).";
                 return RedirectToAction(nameof(Index), new { type });
             }
 

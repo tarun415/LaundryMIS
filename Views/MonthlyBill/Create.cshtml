@@ -130,7 +130,7 @@
                         <div class="alert alert-info">
                             <i class="fa-solid fa-circle-check"></i>
                             <span>
-                                <strong>@Model.WPRWeeksFound weeks</strong> ka WPR mila —
+                                WPR found for <strong>@Model.WPRWeeksFound weeks</strong> —
                                 auto average: <strong>@Model.AutoCalculatedScore?.ToString("N2")</strong>
                             </span>
                         </div>
@@ -139,7 +139,7 @@
                     {
                         <div class="alert alert-warning">
                             <i class="fa-solid fa-triangle-exclamation"></i>
-                            <span>Is month ka WPR data nahi mila. Score manually daalo.</span>
+                            <span>No WPR data found for this month. Enter the score manually.</span>
                         </div>
                     }
 
@@ -170,7 +170,7 @@
                                 Override Reason <span class="text-danger">*</span>
                             </label>
                             <textarea asp-for="OverrideReason" class="form-control" rows="2"
-                                      placeholder="Reason batao…"></textarea>
+                                      placeholder="Enter the reason…"></textarea>
                             <span asp-validation-for="OverrideReason" class="text-danger small"></span>
                         </div>
 

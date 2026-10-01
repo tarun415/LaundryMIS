@@ -47,7 +47,7 @@ namespace LaudaryMis.Controllers
             if (_attempts.IsLocked(account, ip, out var remaining))
             {
                 ModelState.AddModelError("",
-                    $"Bahut zyada galat koshishein. {Math.Ceiling(remaining.TotalMinutes)} minute baad dobara try karein.");
+                    $"Too many wrong attempts. Please try again in {Math.Ceiling(remaining.TotalMinutes)} minutes.");
                 return View(model);
             }
 
@@ -118,7 +118,7 @@ namespace LaudaryMis.Controllers
             if (_attempts.IsLocked(account, "claim-" + ip, out var remaining))
             {
                 ModelState.AddModelError("",
-                    $"Bahut zyada galat koshishein. {Math.Ceiling(remaining.TotalMinutes)} minute baad dobara try karein.");
+                    $"Too many wrong attempts. Please try again in {Math.Ceiling(remaining.TotalMinutes)} minutes.");
                 return View(model);
             }
 
@@ -138,7 +138,7 @@ namespace LaudaryMis.Controllers
 
             var roleName = await SignInUser(result.User, model.RoleId);
 
-            TempData["Success"] = "Registration ho gaya. Laundry MIS mein aapka swagat hai!";
+            TempData["Success"] = "Registration complete. Welcome to Laundry MIS!";
             return RedirectToAction("Dashboard", roleName);
         }
 
@@ -177,18 +177,18 @@ namespace LaudaryMis.Controllers
             if (model.RoleId == 2)
             {
                 if (string.IsNullOrWhiteSpace(model.HospitalName))
-                    ModelState.AddModelError(nameof(model.HospitalName), "Hospital ka naam daalein.");
+                    ModelState.AddModelError(nameof(model.HospitalName), "Enter the hospital name.");
                 if (model.DistrictId is null or <= 0)
-                    ModelState.AddModelError(nameof(model.DistrictId), "District chunein.");
+                    ModelState.AddModelError(nameof(model.DistrictId), "Select a district.");
                 if (string.IsNullOrWhiteSpace(model.ContactPerson))
-                    ModelState.AddModelError(nameof(model.ContactPerson), "Contact person ka naam daalein.");
+                    ModelState.AddModelError(nameof(model.ContactPerson), "Enter the contact person's name.");
             }
             else if (model.RoleId == 3)
             {
                 if (string.IsNullOrWhiteSpace(model.FirmName))
-                    ModelState.AddModelError(nameof(model.FirmName), "Firm / company ka naam daalein.");
+                    ModelState.AddModelError(nameof(model.FirmName), "Enter the firm / company name.");
                 if (string.IsNullOrWhiteSpace(model.ProviderName))
-                    ModelState.AddModelError(nameof(model.ProviderName), "Contact person ka naam daalein.");
+                    ModelState.AddModelError(nameof(model.ProviderName), "Enter the contact person's name.");
             }
 
             if (!ModelState.IsValid)
@@ -201,7 +201,7 @@ namespace LaudaryMis.Controllers
             if (_attempts.IsLocked(throttleKey, "register-" + ip, out var remaining))
             {
                 ModelState.AddModelError("",
-                    $"Bahut zyada registration. {Math.Ceiling(remaining.TotalMinutes)} minute baad dobara try karein.");
+                    $"Too many registrations. Please try again in {Math.Ceiling(remaining.TotalMinutes)} minutes.");
                 return View(model);
             }
 
@@ -219,7 +219,7 @@ namespace LaudaryMis.Controllers
 
             var roleName = await SignInUser(result.User, model.RoleId);
 
-            TempData["Success"] = "Registration ho gaya. Laundry MIS mein aapka swagat hai!";
+            TempData["Success"] = "Registration complete. Welcome to Laundry MIS!";
             return RedirectToAction("Dashboard", roleName);
         }
 
