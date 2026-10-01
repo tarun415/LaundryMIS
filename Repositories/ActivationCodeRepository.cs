@@ -17,10 +17,12 @@ namespace LaudaryMis.Repositories
                               "Connection string 'DefaultConnection' not found.");
         }
 
+        // Only an active login counts. A disabled (for example old test) login must not stop
+        // the real hospital / vendor from registering with its activation code.
         private const string HospitalHasLogin =
-            "EXISTS (SELECT 1 FROM Tbl_Users u WHERE u.HospitalId = h.HospitalId AND u.RoleId = 2)";
+            "EXISTS (SELECT 1 FROM Tbl_Users u WHERE u.HospitalId = h.HospitalId AND u.RoleId = 2 AND u.IsActive = 1)";
         private const string ProviderHasLogin =
-            "EXISTS (SELECT 1 FROM Tbl_Users u WHERE u.ProviderId = p.ProviderId AND u.RoleId = 3)";
+            "EXISTS (SELECT 1 FROM Tbl_Users u WHERE u.ProviderId = p.ProviderId AND u.RoleId = 3 AND u.IsActive = 1)";
 
         // ──────────────────────────────────────────────────────
         // Admin: who has registered, who has a code, who has neither

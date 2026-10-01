@@ -81,6 +81,7 @@ namespace LaudaryMis.Repositories
                 INNER JOIN Tbl_Roles r
                     ON u.RoleId = r.RoleId
                 WHERE u.HospitalId = @HospitalId
+                  AND u.RoleId = 2
                   AND u.IsActive = 1";
 
             var user = await con.QueryFirstOrDefaultAsync<User>(
@@ -156,6 +157,7 @@ namespace LaudaryMis.Repositories
                 INNER JOIN Tbl_Roles r
                     ON u.RoleId = r.RoleId
                 WHERE u.ProviderId = @ProviderId
+                  AND u.RoleId = 3
                   AND u.IsActive = 1";
 
             var user = await con.QueryFirstOrDefaultAsync<User>(
