@@ -25,15 +25,15 @@ namespace LaudaryMis.Repositories
 
         public async Task<IEnumerable<HospitalVM>> GetAllAsync()
         {
-            return await _db.QueryAsync<HospitalVM>("SELECT hs.HospitalId ,hs.HospitalName,hs.Address,hs.ContactPerson,hs.Phone,hs.Email,hs.IsActive,dm.DistrictID, dm.DistrictName FROM Tbl_Hospitals as hs left join DistrictMaster as dm on hs.DistrictId=dm.DistrictID WHERE hs.IsActive = 1");
+            return await _db.QueryAsync<HospitalVM>("SELECT hs.HospitalId ,hs.HospitalName,hs.Address,hs.ContactPerson,hs.Phone,hs.Email,hs.IsActive,hs.ApprovalStatus,hs.ApprovalRemarks,dm.DistrictID, dm.DistrictName FROM Tbl_Hospitals as hs left join DistrictMaster as dm on hs.DistrictId=dm.DistrictID WHERE hs.IsActive = 1");
         }
 
         public async Task InsertAsync(HospitalVM model)
         {
             var sql = @"INSERT INTO Tbl_Hospitals
-                        (HospitalName, DistrictId, Address, ContactPerson, Phone, Email, IsActive)
+                        (HospitalName, DistrictId, Address, ContactPerson, Phone, Email, IsActive, ApprovalStatus)
                         VALUES
-                        (@HospitalName, @DistrictId, @Address, @ContactPerson, @Phone, @Email, 1)";
+                        (@HospitalName, @DistrictId, @Address, @ContactPerson, @Phone, @Email, 1, 'Pending')";
 
             await _db.ExecuteAsync(sql, model);
         }
@@ -49,9 +49,9 @@ namespace LaudaryMis.Repositories
                 // 1️⃣ Insert Hospital
                 var hospitalId = await con.ExecuteScalarAsync<int>(@"
             INSERT INTO Tbl_Hospitals
-            (HospitalName, DistrictId, Address, ContactPerson, Phone, Email, IsActive)
+            (HospitalName, DistrictId, Address, ContactPerson, Phone, Email, IsActive, ApprovalStatus)
             VALUES
-            (@HospitalName, @DistrictId, @Address, @ContactPerson, @Phone, @Email, 1);
+            (@HospitalName, @DistrictId, @Address, @ContactPerson, @Phone, @Email, 1, 'Pending');
 
             SELECT CAST(SCOPE_IDENTITY() as int);
         ", model, tran);
@@ -157,7 +157,7 @@ namespace LaudaryMis.Repositories
         public async Task<HospitalVM?> GetHospitalByIdAsync(int id)
         {
             return await _db.QueryFirstOrDefaultAsync<HospitalVM>(
-                "SELECT hs.HospitalId ,hs.HospitalName,hs.Address,hs.ContactPerson,hs.Phone,hs.Email,hs.IsActive,dm.DistrictID, dm.DistrictName,CAST(NULL AS NVARCHAR(1)) as [Password] FROM Tbl_Hospitals as hs left join DistrictMaster as dm on hs.DistrictId=dm.DistrictID left join Tbl_Users us on us.HospitalId=hs.HospitalId  WHERE hs.HospitalId=@id",
+                "SELECT hs.HospitalId ,hs.HospitalName,hs.Address,hs.ContactPerson,hs.Phone,hs.Email,hs.IsActive,hs.ApprovalStatus,hs.ApprovalRemarks,dm.DistrictID, dm.DistrictName,CAST(NULL AS NVARCHAR(1)) as [Password] FROM Tbl_Hospitals as hs left join DistrictMaster as dm on hs.DistrictId=dm.DistrictID left join Tbl_Users us on us.HospitalId=hs.HospitalId  WHERE hs.HospitalId=@id",
                 new { id });
         }
 
@@ -178,6 +178,18 @@ namespace LaudaryMis.Repositories
             return data.ToList();
         }
 
+        public async Task<bool> SetApprovalStatusAsync(int id, string status, string? remarks, int adminUserId)
+        {
+            // Approve works from Pending/Rejected; reject only from Pending.
+            var allowedFrom = status == "Approved" ? "ApprovalStatus <> 'Approved'" : "ApprovalStatus = 'Pending'";
+            var rows = await _db.ExecuteAsync($@"
+        UPDATE Tbl_Hospitals
+        SET ApprovalStatus = @status, ApprovalRemarks = @remarks,
+            ApprovedBy = @adminUserId, ApprovedOn = GETDATE()
+        WHERE HospitalId = @id AND {allowedFrom}", new { id, status, remarks, adminUserId });
+            return rows > 0;
+        }
+
         public async Task DeleteAsync(int id)
         {
             await _db.ExecuteAsync(
@@ -187,7 +199,7 @@ namespace LaudaryMis.Repositories
         public async Task<List<GetHospital>> GetHospitalNamesAsync()
         {
             var data = await _db.QueryAsync<GetHospital>(
-                "SELECT DISTINCT HospitalId as Id, HospitalName as Name FROM Tbl_Hospitals WHERE IsActive = 1 ORDER BY HospitalName"
+                "SELECT DISTINCT HospitalId as Id, HospitalName as Name FROM Tbl_Hospitals WHERE IsActive = 1 AND ApprovalStatus = 'Approved' ORDER BY HospitalName"
             );
 
             return data.ToList();

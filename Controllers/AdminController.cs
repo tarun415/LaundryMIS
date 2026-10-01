@@ -129,6 +129,25 @@ namespace LaudaryMis.Controllers
         }
        
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> ApproveHospital(int id)
+        {
+            var ok = await _service.SetApprovalStatusAsync(id, "Approved", null, GetAdminUserId());
+            return Json(new { success = ok, message = ok ? "Hospital approved." : "Hospital is already approved or was not found." });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> RejectHospital(int id, string? remarks)
+        {
+            if (string.IsNullOrWhiteSpace(remarks))
+                return Json(new { success = false, message = "Please enter a reason for rejection." });
+
+            var ok = await _service.SetApprovalStatusAsync(id, "Rejected", remarks.Trim(), GetAdminUserId());
+            return Json(new { success = ok, message = ok ? "Hospital rejected." : "Only pending hospitals can be rejected." });
+        }
+
         #endregion
 
         #region Provider
@@ -244,6 +263,30 @@ namespace LaudaryMis.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> ApproveProvider(int id)
+        {
+            var ok = await _providerService.SetApprovalStatusAsync(id, "Approved", null, GetAdminUserId());
+            return Json(new { success = ok, message = ok ? "Provider approved." : "Provider is already approved or was not found." });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> RejectProvider(int id, string? remarks)
+        {
+            if (string.IsNullOrWhiteSpace(remarks))
+                return Json(new { success = false, message = "Please enter a reason for rejection." });
+
+            var ok = await _providerService.SetApprovalStatusAsync(id, "Rejected", remarks.Trim(), GetAdminUserId());
+            return Json(new { success = ok, message = ok ? "Provider rejected." : "Only pending providers can be rejected." });
+        }
+
+        private int GetAdminUserId()
+        {
+            return int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
+        }
+
         // LIST of Provider
         public async Task<IActionResult> Providers()
         {
@@ -260,7 +303,7 @@ namespace LaudaryMis.Controllers
             var vm = new AgreementVM();
 
             vm.Providers = (await _providerService.GetAll()).ToList();
-            vm.Hospitals = (await _service.GetAllAsync()).ToList();
+            vm.Hospitals = (await _service.GetAllAsync()).Where(h => h.ApprovalStatus == "Approved").ToList();
 
             vm.StartDate = DateTime.Now;
 
@@ -271,6 +314,17 @@ namespace LaudaryMis.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAgreement(AgreementVM model)
         {
+            // Agreements can only be made between approved parties.
+            var agrProvider = await _providerService.GetProviderByIdAsync(model.ProviderId);
+            var agrHospital = await _service.GetHospitalByIdAsync(model.HospitalId);
+            if (agrProvider?.ApprovalStatus != "Approved" || agrHospital?.ApprovalStatus != "Approved")
+            {
+                TempData["Error"] = "Both the provider and the hospital must be approved before creating an agreement.";
+                return model.Id > 0
+                    ? RedirectToAction("EditAgreement", new { id = model.Id })
+                    : RedirectToAction("CreateAgreement");
+            }
+
             string? filePath = model.FilePath; //  OLD FILE HOLD
 
             if (model.AgreementFile != null)
@@ -312,7 +366,7 @@ namespace LaudaryMis.Controllers
             var data = await _agreementService.GetAgreementByIdAsync(id);
 
             data.Providers = (await _providerService.GetAll()).ToList();
-            data.Hospitals = (await _service.GetAllAsync()).ToList();
+            data.Hospitals = (await _service.GetAllAsync()).Where(h => h.ApprovalStatus == "Approved").ToList();
 
             return View("CreateAgreement", data);
         }

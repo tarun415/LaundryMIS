@@ -108,6 +108,12 @@ namespace LaudaryMis.Repositories
                 };
             }
 
+            var hospitalBlock = await ApprovalBlockAsync(con,
+                "SELECT ApprovalStatus, ApprovalRemarks FROM Tbl_Hospitals WHERE HospitalId = @Id",
+                user.HospitalId, "hospital");
+            if (hospitalBlock != null)
+                return hospitalBlock;
+
             if (PasswordHasher.NeedsRehash(user.PasswordHash))
             {
                 await con.ExecuteAsync(
@@ -170,6 +176,12 @@ namespace LaudaryMis.Repositories
                 };
             }
 
+            var providerBlock = await ApprovalBlockAsync(con,
+                "SELECT ApprovalStatus, ApprovalRemarks FROM tbl_Providers WHERE ProviderId = @Id",
+                user.ProviderId, "provider");
+            if (providerBlock != null)
+                return providerBlock;
+
             if (PasswordHasher.NeedsRehash(user.PasswordHash))
             {
                 await con.ExecuteAsync(
@@ -184,6 +196,28 @@ namespace LaudaryMis.Repositories
             };
         }
 
+        private class ApprovalRow
+        {
+            public string? ApprovalStatus { get; set; }
+            public string? ApprovalRemarks { get; set; }
+        }
 
+        // Hospitals and providers can only sign in once an admin has approved them.
+        private static async Task<LoginResult?> ApprovalBlockAsync(
+            SqlConnection con, string sql, int? id, string what)
+        {
+            var row = await con.QueryFirstOrDefaultAsync<ApprovalRow>(sql, new { Id = id });
+
+            if (row == null || row.ApprovalStatus == null || row.ApprovalStatus == "Approved")
+                return null;
+
+            var message = row.ApprovalStatus == "Rejected"
+                ? $"Your {what} registration was rejected."
+                  + (string.IsNullOrWhiteSpace(row.ApprovalRemarks) ? "" : $" Reason: {row.ApprovalRemarks}")
+                  + " Please contact the administrator."
+                : $"Your {what} registration is pending admin approval. You can sign in once it is approved.";
+
+            return new LoginResult { Success = false, Message = message };
+        }
     }
 }
