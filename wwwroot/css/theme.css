@@ -1494,3 +1494,7 @@ tr.critical-row > td { background: rgba(253, 236, 235, .6) !important; }
     .table { font-size: 12px; }
     .table > thead > tr > th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* Auto-added serial number column (see LMIS.initTable) */
+.lmis-serial { width: 52px; white-space: nowrap; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+th.lmis-serial { color: inherit; }

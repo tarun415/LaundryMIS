@@ -429,6 +429,7 @@
                         <table class="table table-sm align-middle mb-0">
                             <thead>
                                 <tr>
+                                    <th class="text-center">S.No.</th>
                                     <th>Type</th>
                                     <th>File</th>
                                     <th>Date</th>
@@ -436,9 +437,11 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @{ int upNo = 0; }
                                 @foreach (var d in Model.Documents)
                                 {
                                     <tr>
+                                        <td class="text-center text-muted small">@(++upNo)</td>
                                         <td class="small fw-semibold">@d.DocumentType</td>
                                         <td class="small doc-name">@(d.OriginalFileName ?? d.FileName)</td>
                                         <td class="small text-muted nowrap">@d.UploadedOn.ToString("dd MMM yy")</td>
