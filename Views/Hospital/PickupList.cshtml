@@ -245,7 +245,7 @@
             $.get('/Common/GetWards', function (data) {
                 var html = '<option value="">All</option>';
                 data.forEach(function (x) {
-                    html += '<option value="' + x.id + '">' + x.name + '</option>';
+                    html += '<option value="' + LMIS.esc(x.id) + '">' + LMIS.esc(x.name) + '</option>';
                 });
                 $('#filterWard').html(html);
             });
@@ -327,9 +327,9 @@
                             item.rowNum,
                             '<span class="fw-semibold text-teal">' + item.pickupNo + '</span>',
                             formatDate(item.pickupDateTime),
-                            item.hospitalName,
-                            item.wardName,
-                            item.shiftName,
+                            LMIS.esc(item.hospitalName),
+                            LMIS.esc(item.wardName),
+                            LMIS.esc(item.shiftName),
                                     '<td>' +
             (item.isInfected
                 ? '<span class="badge bg-danger"><i class="fa-solid fa-triangle-exclamation"></i> Infected</span>'

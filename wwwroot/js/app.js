@@ -261,6 +261,14 @@ window.LMIS = (function () {
         });
     });
 
+    /* Escape text before putting it into HTML (names come from
+       self-registration, so never trust them). */
+    function esc(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
     return {
         initTable: initTable,
         exportButtons: exportButtons,
@@ -272,7 +280,8 @@ window.LMIS = (function () {
         confirm: confirm,
         num: num,
         money: money,
-        debounce: debounce
+        debounce: debounce,
+        esc: esc
     };
 
 })();

@@ -50,6 +50,11 @@
                             </td>
                             <td class="text-end">
                                 <div class="action-group justify-content-end">
+                                    <a asp-controller="ProviderProfile" asp-action="Details" asp-route-id="@p.ProviderId"
+                                       class="btn btn-sm btn-icon btn-outline-secondary"
+                                       data-bs-toggle="tooltip" title="Profile & documents">
+                                        <i class="fa-solid fa-id-card"></i>
+                                    </a>
                                     <a href="/Admin/EditProvider/@p.ProviderId"
                                        class="btn btn-sm btn-icon btn-outline-primary"
                                        data-bs-toggle="tooltip" title="Edit">

@@ -77,6 +77,8 @@ builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IWarningLetterRepository, WarningLetterRepository>();
 builder.Services.AddScoped<IWarningLetterService, WarningLetterService>();
+builder.Services.AddScoped<IProviderProfileRepository, ProviderProfileRepository>();
+builder.Services.AddScoped<IProviderProfileService, ProviderProfileService>();
 // 🔥 FIX (IMPORTANT)
 builder.Services.AddScoped<IDbConnection>(sp =>
 {

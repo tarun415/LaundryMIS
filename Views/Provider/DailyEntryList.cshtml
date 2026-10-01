@@ -183,13 +183,13 @@
             // Filter options
             $.get('/Provider/GetHospitals', function (data) {
                 var html = '<option value="">All</option>';
-                data.forEach(function (x) { html += '<option value="' + x.id + '">' + x.name + '</option>'; });
+                data.forEach(function (x) { html += '<option value="' + LMIS.esc(x.id) + '">' + LMIS.esc(x.name) + '</option>'; });
                 $('#filterHospital').html(html);
             });
 
             $.get('/Provider/GetWards', function (data) {
                 var html = '<option value="">All</option>';
-                data.forEach(function (x) { html += '<option value="' + x.id + '">' + x.name + '</option>'; });
+                data.forEach(function (x) { html += '<option value="' + LMIS.esc(x.id) + '">' + LMIS.esc(x.name) + '</option>'; });
                 $('#filterWard').html(html);
             });
 
@@ -243,8 +243,8 @@
                                 '<td class="details-control" data-id="' + item.entryId + '"></td>' +
                                 '<td>' + item.rowNum + '</td>' +
                                 '<td class="nowrap">' + formatDate(item.entryDate) + '</td>' +
-                                '<td class="fw-semibold">' + item.hospitalName + '</td>' +
-                                '<td>' + item.wardName + '</td>' +
+                                '<td class="fw-semibold">' + LMIS.esc(item.hospitalName) + '</td>' +
+                                '<td>' + LMIS.esc(item.wardName) + '</td>' +
                                 '<td>' + $('<div>').text(item.linenTypeName || '').html() + '</td>' +
                                 '<td class="text-end fw-bold text-teal">' + item.totalPickupQty + '</td>' +
                                 '<td class="text-end fw-bold text-success">' + item.cleanDeliveredQty + '</td>' +
