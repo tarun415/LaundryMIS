@@ -9,7 +9,6 @@
     var pctClass = pct >= 100 ? "badge-ok" : pct >= 60 ? "badge-warn" : "badge-danger";
     var checklist = Model.DocumentChecklist().ToList();
     var missingDocs = checklist.Count(c => c.Type.Required && (c.Latest == null || c.Latest.IsExpired));
-    var labour = checklist.First(c => c.Type.Name == "Labour Licence").Latest;
 }
 
 @section Styles {
@@ -65,17 +64,6 @@
         }
     </div>
 </div>
-
-@if (labour == null || labour.IsExpired)
-{
-    <div class="alert alert-warning">
-        <i class="fa-solid fa-scale-balanced"></i>
-        <span>
-            <strong>Labour Licence @(labour == null ? "has not been uploaded" : "has expired").</strong>
-            Under the contract (Part III, General Terms 9), no payment is released until the labour licence is submitted.
-        </span>
-    </div>
-}
 
 <div class="row g-3">
 

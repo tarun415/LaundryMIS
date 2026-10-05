@@ -165,7 +165,7 @@ namespace LaudaryMis.ViewModels
             new("PAN Card",                 true,  false, "The firm's PAN"),
             new("EPF Registration",         true,  false, "EPF registration"),
             new("ESI Registration",         true,  false, "ESI registration"),
-            new("Labour Licence",           true,  true,  "Contract Labour (R&A) Act, 1970 — no payment is released without it"),
+            new("Labour Licence",           false, false, "Contract Labour (R&A) Act, 1970 — optional (used in tender evaluation)"),
             new("Solvency Certificate",     true,  true,  "From the bank, at least ₹10 lakh per Schedule"),
             new("Affidavit (Format 3)",     true,  false, "Notarised affidavit that the firm is not blacklisted or convicted"),
             new("Power of Attorney (Format 2)", true, false, "POA / board resolution authorising the signatory"),
