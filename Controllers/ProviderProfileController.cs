@@ -110,7 +110,7 @@ namespace LaudaryMis.Controllers
                 ProviderId = providerId,
                 DocumentType = type!.Name,
                 DocumentNo = string.IsNullOrWhiteSpace(documentNo) ? null : documentNo.Trim(),
-                ValidTill = validTill?.Date,
+                ValidTill = type.HasExpiry ? validTill?.Date : null,
                 FileName = storedName,
                 OriginalFileName = Path.GetFileName(file.FileName),
                 ContentType = ext == ".pdf" ? "application/pdf" : ext == ".png" ? "image/png" : "image/jpeg",

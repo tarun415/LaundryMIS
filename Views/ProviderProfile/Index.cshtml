@@ -464,11 +464,12 @@
 @section Scripts {
     <script>
         $(function () {
-            // Valid-till sirf un documents ke liye jinki expiry hoti hai
+            // Valid-till sirf un documents ke liye jinki expiry hoti hai; baaki ke liye field chhupa rehta hai
             function syncExpiry() {
                 var needs = $('#documentType option:selected').data('expiry') == 1;
-                $('#validTillStar').toggle(needs);
+                $('#validTillWrap').toggle(needs);
                 $('#validTill').prop('required', needs);
+                if (!needs) $('#validTill').val('');
             }
             $('#documentType').on('change', syncExpiry);
             syncExpiry();
