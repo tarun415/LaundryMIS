@@ -9,6 +9,10 @@
     var isAdmin = User.IsInRole("Admin");
     var isPending = p.Status == "Pending";
 
+    // Approval is blocked until the provider has a valid Labour Licence (contract rule)
+    var licence = Model.LabourLicence;
+    var licenceBlocks = isPending && !licence.IsValid;
+
     var statusBadge = p.Status switch
     {
         "Approved" => "badge-ok",
@@ -54,6 +58,25 @@
     <div class="alert alert-danger">
         <i class="fa-solid fa-triangle-exclamation"></i>
         <span>@TempData["Error"]</span>
+    </div>
+}
+
+@if (licenceBlocks)
+{
+    <div class="alert alert-warning">
+        <i class="fa-solid fa-scale-balanced"></i>
+        <span>
+            <strong>The provider's Labour Licence @licence.Problem.</strong>
+            Under the contract no payment is released until a valid licence is submitted, so this payment cannot be approved yet.
+            @if (User.IsInRole("Provider"))
+            {
+                <a asp-controller="ProviderProfile" asp-action="Index" asp-fragment="documents">Upload the licence</a>
+            }
+            else if (isAdmin)
+            {
+                <a asp-controller="ProviderProfile" asp-action="Details" asp-route-id="@p.ProviderId" asp-fragment="documents">View the provider's documents</a>
+            }
+        </span>
     </div>
 }
 
@@ -148,7 +171,9 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex gap-2 flex-wrap">
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalApprove">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalApprove"
+                                disabled="@licenceBlocks"
+                                title="@(licenceBlocks ? "Blocked: the provider's Labour Licence " + licence.Problem : null)">
                             <i class="fa-solid fa-check"></i> Approve
                         </button>
                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalReject">

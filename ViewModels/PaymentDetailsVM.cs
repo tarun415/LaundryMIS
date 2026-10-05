@@ -11,5 +11,8 @@ namespace LaudaryMis.ViewModels
 
         public List<PaymentApprovalLog> History { get; set; }
             = new();
+
+        // Provider's labour licence — approval is blocked while it is missing or expired
+        public LabourLicenceStatus LabourLicence { get; set; } = new(true, null);
     }
 }

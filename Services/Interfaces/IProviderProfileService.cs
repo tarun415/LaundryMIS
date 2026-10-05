@@ -8,6 +8,7 @@ namespace LaudaryMis.Services.Interfaces
         Task SaveProfileAsync(ProviderProfileVM model, int userId);
 
         Task<ProviderDocumentVM?> GetDocumentAsync(int documentId);
+        Task<LabourLicenceStatus> GetLabourLicenceStatusAsync(int providerId);
         Task<int> AddDocumentAsync(ProviderDocumentVM document, int userId);
         Task<bool> DeleteDocumentAsync(int documentId, int providerId);
     }

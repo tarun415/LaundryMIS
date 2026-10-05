@@ -35,6 +35,10 @@ namespace LaudaryMis.Services
         public Task<ProviderDocumentVM?> GetDocumentAsync(int documentId) =>
             _repo.GetDocumentAsync(documentId);
 
+        public async Task<LabourLicenceStatus> GetLabourLicenceStatusAsync(int providerId) =>
+            LabourLicenceStatus.From(
+                await _repo.GetLatestDocumentAsync(providerId, DocumentTypes.LabourLicence));
+
         public Task<int> AddDocumentAsync(ProviderDocumentVM document, int userId) =>
             _repo.AddDocumentAsync(document, userId);
 

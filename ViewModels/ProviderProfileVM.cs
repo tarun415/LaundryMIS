@@ -155,9 +155,26 @@ namespace LaudaryMis.ViewModels
 
     public record DocumentTypeInfo(string Name, bool Required, bool HasExpiry, string Hint);
 
+    // Contract (Part III, General Terms 9): no payment is released until the Contract Labour
+    // (R&A) Act licence is submitted. A licence that has expired counts as not submitted.
+    // Problem is null when the licence is valid, otherwise the reason (for the screen text).
+    public record LabourLicenceStatus(bool IsValid, string? Problem)
+    {
+        public static LabourLicenceStatus From(ProviderDocumentVM? latest)
+        {
+            if (latest == null)
+                return new(false, "has not been uploaded");
+            if (latest.IsExpired)
+                return new(false, $"expired on {latest.ValidTill!.Value:dd MMM yyyy}");
+            return new(true, null);
+        }
+    }
+
     // RFP Part I 2.3 / Format 9 Compliance Matrix aur Part III General Terms (9)
     public static class DocumentTypes
     {
+        public const string LabourLicence = "Labour Licence";
+
         public static readonly DocumentTypeInfo[] All =
         {
             new("Registration Certificate", true,  false, "Company / firm registration (Companies Act or the relevant Act)"),
@@ -165,7 +182,7 @@ namespace LaudaryMis.ViewModels
             new("PAN Card",                 true,  false, "The firm's PAN"),
             new("EPF Registration",         true,  false, "EPF registration"),
             new("ESI Registration",         true,  false, "ESI registration"),
-            new("Labour Licence",           true,  true,  "Contract Labour (R&A) Act, 1970 — no payment is released without it"),
+            new(LabourLicence,              true,  true,  "Contract Labour (R&A) Act, 1970 — no payment is released without it"),
             new("Solvency Certificate",     true,  true,  "From the bank, at least ₹10 lakh per Schedule"),
             new("Affidavit (Format 3)",     true,  false, "Notarised affidavit that the firm is not blacklisted or convicted"),
             new("Power of Attorney (Format 2)", true, false, "POA / board resolution authorising the signatory"),

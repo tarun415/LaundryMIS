@@ -123,6 +123,20 @@ namespace LaudaryMis.Repositories
             return await conn.QuerySingleOrDefaultAsync<ProviderDocumentVM>(sql, new { documentId });
         }
 
+        // Latest upload of one type — same "latest wins" rule as the profile checklist
+        public async Task<ProviderDocumentVM?> GetLatestDocumentAsync(int providerId, string documentType)
+        {
+            const string sql = @"
+                SELECT TOP 1 Id, ProviderId, DocumentType, DocumentNo, ValidTill, FileName,
+                       OriginalFileName, ContentType, FileSize, UploadedOn
+                FROM ProviderDocuments
+                WHERE ProviderId = @providerId AND DocumentType = @documentType AND IsDeleted = 0
+                ORDER BY UploadedOn DESC, Id DESC";
+
+            using var conn = Conn();
+            return await conn.QueryFirstOrDefaultAsync<ProviderDocumentVM>(sql, new { providerId, documentType });
+        }
+
         public async Task<int> AddDocumentAsync(ProviderDocumentVM d, int userId)
         {
             const string sql = @"

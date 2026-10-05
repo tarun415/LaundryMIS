@@ -9,11 +9,16 @@ using Microsoft.AspNetCore.Mvc;
 public class PaymentController : Controller
 {
     private readonly IPaymentService _paymentService;
+    private readonly IProviderProfileService _profileService;
     private readonly LaudaryMis.Helpers.PortalCalendar _calendar;
 
-    public PaymentController(IPaymentService paymentService, LaudaryMis.Helpers.PortalCalendar calendar)
+    public PaymentController(
+        IPaymentService paymentService,
+        IProviderProfileService profileService,
+        LaudaryMis.Helpers.PortalCalendar calendar)
     {
         _paymentService = paymentService;
+        _profileService = profileService;
         _calendar = calendar;
     }
 
@@ -163,7 +168,8 @@ public class PaymentController : Controller
         {
             Payment = payment,
             Documents = await _paymentService.GetDocuments(paymentId),
-            History = await _paymentService.GetApprovalHistory(paymentId)
+            History = await _paymentService.GetApprovalHistory(paymentId),
+            LabourLicence = await _profileService.GetLabourLicenceStatusAsync(payment.ProviderId)
         };
 
         return View(vm);
@@ -180,6 +186,20 @@ public class PaymentController : Controller
      int paymentId,
      string? remarks)
     {
+        var payment = await _paymentService.GetPaymentById(paymentId);
+        if (payment == null)
+            return NotFound();
+
+        // Contract: no payment is released until the provider's labour licence is submitted
+        var licence = await _profileService.GetLabourLicenceStatusAsync(payment.ProviderId);
+        if (!licence.IsValid)
+        {
+            TempData["Error"] =
+                $"This payment cannot be approved: the provider's Labour Licence {licence.Problem}. " +
+                "Under the contract no payment is released until a valid licence is submitted.";
+            return RedirectToAction(nameof(PaymentDetails), new { paymentId });
+        }
+
         bool result = await _paymentService.ApprovePayment(
             paymentId,
             GetUserId(),
