@@ -8,7 +8,6 @@
     var pct = Model.CompletionPercent;
     var pctClass = pct >= 100 ? "badge-ok" : pct >= 60 ? "badge-warn" : "badge-danger";
     var checklist = Model.DocumentChecklist().ToList();
-    var missingDocs = checklist.Count(c => c.Type.Required && (c.Latest == null || c.Latest.IsExpired));
 }
 
 @section Styles {
@@ -260,7 +259,7 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between small mb-1">
-                    <span>Profile + required documents</span>
+                    <span>Profile details</span>
                     <strong>@pct%</strong>
                 </div>
                 <div class="pf-progress mb-3"><div style="width:@pct%"></div></div>
@@ -288,14 +287,7 @@
             <div class="card-header">
                 <i class="fa-solid fa-folder-open text-teal"></i>
                 <span class="card-title">Documents</span>
-                @if (missingDocs > 0)
-                {
-                    <span class="badge badge-warn ms-auto">@missingDocs required pending</span>
-                }
-                else
-                {
-                    <span class="badge badge-ok ms-auto">All required submitted</span>
-                }
+                <span class="badge badge-navy ms-auto">Optional</span>
             </div>
             <div class="card-body">
 
@@ -305,7 +297,7 @@
                         <div class="ck-ico">
                             @if (latest == null)
                             {
-                                <i class="fa-regular fa-circle @(type.Required ? "text-danger" : "text-muted")"></i>
+                                <i class="fa-regular fa-circle text-muted"></i>
                             }
                             else if (latest.IsExpired)
                             {
@@ -321,13 +313,7 @@
                             }
                         </div>
                         <div class="flex-grow-1 min-w-0">
-                            <div class="ck-name">
-                                @type.Name
-                                @if (type.Required)
-                                {
-                                    <span class="text-danger">*</span>
-                                }
-                            </div>
+                            <div class="ck-name">@type.Name</div>
                             @if (latest == null)
                             {
                                 <div class="ck-hint">@type.Hint</div>
@@ -378,7 +364,7 @@
                                 <select name="documentType" id="documentType" class="form-select" required>
                                     @foreach (var t in DocumentTypes.All)
                                     {
-                                        <option value="@t.Name" data-expiry="@(t.HasExpiry ? "1" : "0")">@t.Name@(t.Required ? " *" : "")</option>
+                                        <option value="@t.Name" data-expiry="@(t.HasExpiry ? "1" : "0")">@t.Name</option>
                                     }
                                 </select>
                             </div>
