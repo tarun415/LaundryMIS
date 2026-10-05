@@ -132,15 +132,13 @@ namespace LaudaryMis.ViewModels
             return latest;
         }
 
+        // Profile details only; no document is required in the portal
         public int CompletionPercent
         {
             get
             {
                 var fields = RequiredFields().ToList();
-                var docs = DocumentChecklist().Where(c => c.Type.Required).ToList();
-                int total = fields.Count + docs.Count;
-                int done = fields.Count(f => f.Done) + docs.Count(d => d.Latest != null && !d.Latest.IsExpired);
-                return total == 0 ? 0 : (int)Math.Round(done * 100.0 / total);
+                return fields.Count == 0 ? 0 : (int)Math.Round(fields.Count(f => f.Done) * 100.0 / fields.Count);
             }
         }
     }
@@ -162,27 +160,28 @@ namespace LaudaryMis.ViewModels
         public bool ExpiresSoon => ValidTill.HasValue && !IsExpired && ValidTill.Value.Date <= DateTime.Today.AddDays(30);
     }
 
-    public record DocumentTypeInfo(string Name, bool Required, bool HasExpiry, string Hint);
+    public record DocumentTypeInfo(string Name, bool HasExpiry, string Hint);
 
-    // RFP Part I 2.3 / Format 9 Compliance Matrix aur Part III General Terms (9)
+    // Reference documents a vendor may upload. None is required in the portal: they were needed
+    // for the tender evaluation (RFP Part I 2.3 / Format 9), not for running the contract.
     public static class DocumentTypes
     {
         public static readonly DocumentTypeInfo[] All =
         {
-            new("Registration Certificate", true,  false, "Company / firm registration (Companies Act or the relevant Act)"),
-            new("GST Certificate",          true,  false, "GST registration certificate"),
-            new("PAN Card",                 true,  false, "The firm's PAN"),
-            new("EPF Registration",         true,  false, "EPF registration"),
-            new("ESI Registration",         true,  false, "ESI registration"),
-            new("Labour Licence",           false, false, "Contract Labour (R&A) Act, 1970 — optional (used in tender evaluation)"),
-            new("Solvency Certificate",     true,  true,  "From the bank, at least ₹10 lakh per Schedule"),
-            new("Affidavit (Format 3)",     true,  false, "Notarised affidavit that the firm is not blacklisted or convicted"),
-            new("Power of Attorney (Format 2)", true, false, "POA / board resolution authorising the signatory"),
-            new("Contract Manager Resume",  true,  false, "5 years of experience"),
-            new("ITR / Audited Balance Sheet", false, false, "Last 3 years"),
-            new("Cancelled Cheque",         false, false, "To confirm the bank account"),
-            new("MSME / NSIC Certificate",  false, true,  "If available (for the EMD exemption)"),
-            new("Other",                    false, false, "Any other document")
+            new("Registration Certificate", false, "Company / firm registration (Companies Act or the relevant Act)"),
+            new("GST Certificate",          false, "GST registration certificate"),
+            new("PAN Card",                 false, "The firm's PAN"),
+            new("EPF Registration",         false, "EPF registration"),
+            new("ESI Registration",         false, "ESI registration"),
+            new("Labour Licence",           false, "Contract Labour (R&A) Act, 1970"),
+            new("Solvency Certificate",     true,  "From the bank, at least ₹10 lakh per Schedule"),
+            new("Affidavit (Format 3)",     false, "Notarised affidavit that the firm is not blacklisted or convicted"),
+            new("Power of Attorney (Format 2)", false, "POA / board resolution authorising the signatory"),
+            new("Contract Manager Resume",  false, "5 years of experience"),
+            new("ITR / Audited Balance Sheet", false, "Last 3 years"),
+            new("Cancelled Cheque",         false, "To confirm the bank account"),
+            new("MSME / NSIC Certificate",  true,  "If available (for the EMD exemption)"),
+            new("Other",                    false, "Any other document")
         };
 
         public static DocumentTypeInfo? Find(string? name) =>
