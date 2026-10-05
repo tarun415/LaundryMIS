@@ -118,10 +118,19 @@ namespace LaudaryMis.ViewModels
         };
 
         public IEnumerable<(DocumentTypeInfo Type, ProviderDocumentVM? Latest)> DocumentChecklist() =>
-            DocumentTypes.All.Select(t => (t, Documents
-                .Where(d => d.DocumentType == t.Name)
+            DocumentTypes.All.Select(t => (t, LatestOf(t)));
+
+        // Documents that do not expire never show a validity date, even if one was stored
+        private ProviderDocumentVM? LatestOf(DocumentTypeInfo type)
+        {
+            var latest = Documents
+                .Where(d => d.DocumentType == type.Name)
                 .OrderByDescending(d => d.UploadedOn)
-                .FirstOrDefault()));
+                .FirstOrDefault();
+            if (latest != null && !type.HasExpiry)
+                latest.ValidTill = null;
+            return latest;
+        }
 
         public int CompletionPercent
         {
