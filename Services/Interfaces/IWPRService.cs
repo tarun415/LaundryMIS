@@ -8,7 +8,7 @@ namespace LaudaryMis.Services.Interfaces
         Task<List<AgreementVM>> GetHospitalAgreements(int hospitalId);
         Task<(bool Success, string Message)> SubmitWPRAsync(WPRVM model);
 
-        Task<bool> CheckWeeklyVerification(int weekNo, int month, int year);
+        Task<bool> CheckWeeklyVerification(int hospitalId, int weekNo, int month, int year);
         Task<List<WeeklyPerformanceVM>>  GetWeeklyPerformanceData(int agreementId, int hospitalId,int weekNo, int month, int year);
     }
 }

@@ -1,4 +1,5 @@
-﻿using LaudaryMis.Models;
+﻿using LaudaryMis.Helpers;
+using LaudaryMis.Models;
 using LaudaryMis.Repositories.Interfaces;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
@@ -12,9 +13,11 @@ namespace LaudaryMis.Controllers
     {
         private readonly IWPRService _wprService;
         private readonly IAgreementRepository _agreementRepository;  // ← ADD THIS
+        private readonly IAccessGuard _guard;
 
-        public WPRController(IWPRService wprService, IAgreementRepository agreementRepository)
+        public WPRController(IWPRService wprService, IAgreementRepository agreementRepository, IAccessGuard guard)
         {
+            _guard = guard;
             _wprService = wprService;
             _agreementRepository = agreementRepository;
 
@@ -30,9 +33,20 @@ namespace LaudaryMis.Controllers
 
         // POST: /WPR/WPREntry
         [HttpPost("WPR/WPREntry")]
+        [Authorize(Roles = "Hospital")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> WPREntry(WPRVM model)
         {
+            // The hospital comes from the login and the agreement must be its own; the vendor is
+            // taken from that agreement, so none of the posted ids can point at another hospital.
+            model.HospitalId = GetHospitalId();
+
+            var agreement = await _guard.GetAgreementOwnerAsync(model.AgreementId);
+            if (agreement == null || agreement.HospitalId != model.HospitalId)
+                return Forbid();
+
+            model.ProviderId = agreement.ProviderId;
+
             if (!ModelState.IsValid)
                 return View(model);
 
@@ -57,6 +71,11 @@ namespace LaudaryMis.Controllers
 
                 if (agreement == null)
                     return NotFound(new { message = "Agreement not found" });
+
+                // Only the hospital / vendor party to the agreement (or admin) may read it
+                if (!User.CanSee(agreement.HospitalId, agreement.ProviderId))
+                    return Forbid();
+
                 ViewBag.HospitalId = agreement.HospitalId;
                 ViewBag.ProviderId = agreement.ProviderId;
                 return Ok(new
@@ -75,6 +94,7 @@ namespace LaudaryMis.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Hospital")]
         public async Task<JsonResult> CheckWeeklyVerification(
      int weekNo,
      int month,
@@ -82,6 +102,7 @@ namespace LaudaryMis.Controllers
         {
             bool isVerified =
                 await _wprService.CheckWeeklyVerification(
+                    GetHospitalId(),
                     weekNo,
                     month,
                     year);
@@ -93,6 +114,7 @@ namespace LaudaryMis.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Hospital")]
         public async Task<IActionResult> GetWeeklyPerformanceData(
       int agreementId,
       int hospitalId,
@@ -102,6 +124,12 @@ namespace LaudaryMis.Controllers
         {
             try
             {
+                // Always this hospital's own data, whatever hospitalId the query string carries
+                hospitalId = GetHospitalId();
+
+                if (!await _guard.CanAccessAgreementAsync(User, agreementId))
+                    return Json(new { success = false, message = "Agreement not found." });
+
                 var data =
                     await _wprService.GetWeeklyPerformanceData(
                         agreementId,

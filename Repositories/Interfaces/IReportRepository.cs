@@ -10,14 +10,19 @@ namespace LaudaryMis.Repositories.Interfaces
         Task<List<DeliveryHistoryVM>>
             GetDeliveryHistory(int pickupId);
 
+        // hospitalId / providerId limit the totals to one hospital or one vendor (null = everything)
         Task<List<WeeklyDeliveryReport>> WeeklyDeliveryReport(
     DateTime fromDate,
-    DateTime toDate);
+    DateTime toDate,
+    int? hospitalId = null,
+    int? providerId = null);
 
         Task<List<MonthlyReportVM>>
 GetMonthlyReport(
 int year,
-int month);
+int month,
+int? hospitalId = null,
+int? providerId = null);
         Task<List<MonthlyPickupDetailVM>>
 GetMonthlyPickupDetails(
 int month,

@@ -23,9 +23,11 @@ namespace LaudaryMis.Controllers
         private readonly IDailyService _dservice;
         private readonly ICommonService _comservice;
         private readonly IDeliveryChallanService _deliverychanService;
+        private readonly IAccessGuard _guard;
 
-        public HospitalController(IDailyService service, IWPRService wprService, IWebHostEnvironment env, IDeliveryService delservice,IHospitalService hosservice ,IWardService wardservice, IProviderService ProviderService, IDailyService dailyService, IPickUpService pkservice, ICommonService comservice, IDeliveryChallanService deliverychanService)
+        public HospitalController(IDailyService service, IWPRService wprService, IWebHostEnvironment env, IDeliveryService delservice,IHospitalService hosservice ,IWardService wardservice, IProviderService ProviderService, IDailyService dailyService, IPickUpService pkservice, ICommonService comservice, IDeliveryChallanService deliverychanService, IAccessGuard guard)
                 {
+                    _guard = guard;
                     _service = service;
                     _wprService = wprService;
                     _env = env;
@@ -131,6 +133,24 @@ namespace LaudaryMis.Controllers
         {
             try
             {
+                // The hospital comes from the login, and the entries must be this hospital's own
+                model.HospitalId = GetHospitalId();
+
+                var entryIds = (model.EntryIds ?? "")
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(x => int.TryParse(x, out var n) ? n : 0)
+                    .ToList();
+
+                if (entryIds.Contains(0)
+                    || !await _guard.DailyEntriesBelongToHospitalAsync(model.HospitalId, entryIds))
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "These entries do not belong to your hospital."
+                    });
+                }
+
                 int result =
                     await _delservice
                     .SaveWeeklyVerificationLogAsync(model);
@@ -265,6 +285,20 @@ namespace LaudaryMis.Controllers
                     Convert.ToInt32(
                         User.FindFirst("UserId")?.Value);
 
+                // Hospital comes from the login; the agreement must be this hospital's own and
+                // it decides the vendor, so none of these can be swapped in the posted form.
+                model.HospitalId = GetHospitalId();
+
+                var agreement = await _guard.GetAgreementOwnerAsync(model.AgreementId);
+                if (agreement == null || agreement.HospitalId != model.HospitalId)
+                    return Json(new { success = false, message = "This agreement does not belong to your hospital." });
+
+                model.ProviderId = agreement.ProviderId;
+
+                // Editing an existing pickup: it must be this hospital's own
+                if (model.PickupId > 0 && !await _guard.CanAccessPickupAsync(User, model.PickupId))
+                    return Json(new { success = false, message = "You are not allowed to change this pickup." });
+
                 var pickupId =
                     await _pkservice.SavePickup(model);
 
@@ -287,7 +321,11 @@ namespace LaudaryMis.Controllers
         // LIST
         public async Task<IActionResult> PickupList()
         {
-            var data = await _pkservice.GetPickupList();
+            var hospitalId = GetHospitalId();
+
+            var data = (await _pkservice.GetPickupList())
+                .Where(x => x.HospitalId == hospitalId)
+                .ToList();
             return View(data);
         }
 
@@ -295,6 +333,8 @@ namespace LaudaryMis.Controllers
         [HttpGet]
         public async Task<IActionResult> PickupItems(int id)
         {
+            if (!await _guard.CanAccessPickupAsync(User, id)) return Forbid();
+
             var data = await _pkservice.GetPickupItems(id);
             return Json(data);
         }
@@ -302,6 +342,9 @@ namespace LaudaryMis.Controllers
         [HttpPost]
         public async Task<IActionResult> DeletePickup(int id)
         {
+            if (!await _guard.CanAccessPickupAsync(User, id))
+                return Json(new { success = false, message = "You are not allowed to delete this pickup." });
+
             var result = await _pkservice.DeletePickup(id);
 
             return Json(new
@@ -318,11 +361,16 @@ namespace LaudaryMis.Controllers
             int? wardId,
             DateTime? date)
         {
-            var data = await _pkservice.SearchPickupList(
+            // A hospital only ever searches its own pickups, whatever the query string says
+            hospitalId = GetHospitalId();
+
+            var data = (await _pkservice.SearchPickupList(
                 status,
                 hospitalId,
                 wardId,
-                date);
+                date))
+                .Where(x => x.HospitalId == hospitalId)
+                .ToList();
 
             return Json(data);
         }
@@ -330,6 +378,8 @@ namespace LaudaryMis.Controllers
         [HttpGet]
         public async Task<IActionResult> EditPickup(int id)
         {
+            if (!await _guard.CanAccessPickupAsync(User, id)) return Forbid();
+
             var model = await _pkservice.GetPickupById(id);
 
             if (model == null)
@@ -352,6 +402,8 @@ namespace LaudaryMis.Controllers
         [HttpGet]
         public async Task<IActionResult> PrintPickup(int id)
         {
+            if (!await _guard.CanAccessPickupAsync(User, id)) return Forbid();
+
             var model = await _pkservice.GetPickupById(id);
 
             if (model == null)
@@ -445,6 +497,9 @@ namespace LaudaryMis.Controllers
         {
             try
             {
+                if (!await _guard.CanAccessDeliveryAsync(User, DeliveryId))
+                    return Json(new { success = false, message = "You are not allowed to accept this delivery." });
+
                 int userId =
                     Convert.ToInt32(
                         User.FindFirst(
@@ -473,6 +528,8 @@ namespace LaudaryMis.Controllers
         [HttpGet]
         public async Task<IActionResult>GetPickupDeliveryHistory(int id)
         {
+            if (!await _guard.CanAccessPickupAsync(User, id)) return Forbid();
+
             var result =await _pkservice.GetPickupDeliveryHistory(id);
             return Json(result);
         }
@@ -486,6 +543,23 @@ VerifyDeliveries(
         {
             try
             {
+                // The pickup must be this hospital's own, and every delivery id must belong to it
+                var deliveryIds = (DeliveryIds ?? "")
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(x => int.TryParse(x, out var n) ? n : 0)
+                    .ToList();
+
+                if (!await _guard.CanAccessPickupAsync(User, PickupId)
+                    || deliveryIds.Contains(0)
+                    || !await _guard.DeliveriesBelongToPickupAsync(PickupId, deliveryIds))
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "You are not allowed to verify these deliveries."
+                    });
+                }
+
                 int userId =
                     Convert.ToInt32(
                         User.FindFirst(
@@ -517,6 +591,9 @@ VerifyDeliveries(
         public async Task<JsonResult>
 GetDeliveryItems(int deliveryId)
         {
+            if (!await _guard.CanAccessDeliveryAsync(User, deliveryId))
+                return Json(new List<object>());
+
             var result =
                 await _deliverychanService
                 .GetDeliveryItems(deliveryId);

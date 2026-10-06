@@ -9,12 +9,14 @@ namespace LaudaryMis.Services.Interfaces
 
         Task<List<DeliveryHistoryVM>> GetDeliveryHistory(int pickupId);
 
-        Task<List<WeeklyDeliveryReport>> WeeklyDeliveryReport(DateTime fromDate,  DateTime toDate);
+        Task<List<WeeklyDeliveryReport>> WeeklyDeliveryReport(DateTime fromDate,  DateTime toDate, int? hospitalId = null, int? providerId = null);
 
         Task<List<MonthlyReportVM>>
 GetMonthlyReport(
 int year,
-int month);
+int month,
+int? hospitalId = null,
+int? providerId = null);
         Task<List<MonthlyPickupDetailVM>>
 GetMonthlyPickupDetails(
 int month,
@@ -22,7 +24,7 @@ int year);
         Task<List<PendingLinenReportVM>>
 GetPendingLinenReport();
         Task<DeliveryAgingReportPageVM>
-               GetDeliveryAgingReport();
+               GetDeliveryAgingReport(ISet<int>? visiblePickupIds = null);
 
         Task<List<DeliveryAgingItemVM>>
             GetDeliveryAgingDetailItems(int pickupId);

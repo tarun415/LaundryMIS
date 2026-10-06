@@ -1,4 +1,5 @@
-﻿using LaudaryMis.Models;
+﻿using LaudaryMis.Helpers;
+using LaudaryMis.Models;
 using LaudaryMis.Services;
 using LaudaryMis.Services.Interfaces;
 using LaudaryMis.ViewModels;
@@ -14,13 +15,19 @@ namespace LaudaryMis.Controllers
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IHospitalService _hospitalService;
         private readonly IAgreementService _agreementService;
+        private readonly IPaymentService _paymentService;
+        private readonly IAccessGuard _guard;
 
         public WarningLetterController(
             IWarningLetterService warningLetterService,
             IWebHostEnvironment webHostEnvironment,
             IHospitalService hospitalService,
-            IAgreementService agreementService)
+            IAgreementService agreementService,
+            IPaymentService paymentService,
+            IAccessGuard guard)
         {
+            _guard = guard;
+            _paymentService = paymentService;
             _warningLetterService = warningLetterService;
             _webHostEnvironment = webHostEnvironment;
             _hospitalService = hospitalService;
@@ -33,24 +40,47 @@ namespace LaudaryMis.Controllers
     int? yearNo,
     string? status)
         {
-            var result = await _warningLetterService.GetWarningLetterList(
+            // A hospital only lists its own letters, whatever the query string says
+            if (User.IsInRole("Hospital"))
+                hospitalId = User.HospitalId() ?? -1;
+
+            // The list rows carry only the agreement, so they are limited by the user's own agreements
+            var ownAgreements = await _guard.VisibleAgreementIdsAsync(User);
+
+            var result = (await _warningLetterService.GetWarningLetterList(
                 agreementId,
                 hospitalId,
                 monthNo,
                 yearNo,
-                status);
+                status))
+                .Where(x => ownAgreements == null || ownAgreements.Contains(x.AgreementId))
+                .ToList();
 
             // The Agreement and Hospital filters used to be free-text ID boxes.
             // Typing a name bound to null, so the filter was silently dropped
             // and the full list came back unfiltered.
-            ViewBag.Hospitals = await _hospitalService.GetAllAsync();
-            ViewBag.Agreements = await _agreementService.GetAllAsync();
+            var hospitals = await _hospitalService.GetAllAsync();
+            var agreements = await _agreementService.GetAllAsync();
+
+            // The filter lists only offer the signed-in hospital's / vendor's own contracts
+            if (!User.IsAdmin())
+            {
+                agreements = agreements.Where(a => User.CanSee(a.HospitalId, a.ProviderId)).ToList();
+                var ownHospitals = agreements.Select(a => a.HospitalId).ToHashSet();
+                hospitals = hospitals.Where(h => h.HospitalId is int id && ownHospitals.Contains(id)).ToList();
+            }
+
+            ViewBag.Hospitals = hospitals;
+            ViewBag.Agreements = agreements;
 
             return View(result);
         }
+        [Authorize(Roles = "Hospital,Admin")]
         public async Task<IActionResult> GenerateWarningLetter(
     int paymentId)
         {
+            if (!await CanSeePayment(paymentId)) return Forbid();
+
             var model = await _warningLetterService
                 .GetGenerateWarningLetterData(paymentId);
 
@@ -60,10 +90,13 @@ namespace LaudaryMis.Controllers
             return View(model);
         }
         [HttpPost]
+        [Authorize(Roles = "Hospital,Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GenerateWarningLetter(
      GenerateWarningLetterVM model)
         {
+            if (!await CanSeePayment(model.PaymentId)) return Forbid();
+
             if (!ModelState.IsValid)
             {
                 var vm = await _warningLetterService
@@ -116,11 +149,16 @@ namespace LaudaryMis.Controllers
             if (warning == null)
                 return NotFound();
 
+            if (!User.CanSee(warning.HospitalId, warning.ProviderId))
+                return Forbid();
+
             return View(warning);
         }
         public async Task<IActionResult> PrintWarningLetter(
     int warningId)
         {
+            if (!await CanSeeLetter(warningId)) return Forbid();
+
             var (document, filePath) = await ResolveDocument(warningId);
 
             if (filePath == null)
@@ -133,6 +171,8 @@ namespace LaudaryMis.Controllers
         }
         public async Task<IActionResult> PreviewWarningLetter(int warningId)
         {
+            if (!await CanSeeLetter(warningId)) return Forbid();
+
             var (document, filePath) = await ResolveDocument(warningId);
 
             if (filePath == null)
@@ -148,6 +188,8 @@ namespace LaudaryMis.Controllers
         public async Task<IActionResult> DownloadWarningLetter(
     int warningId)
         {
+            if (!await CanSeeLetter(warningId)) return Forbid();
+
             var (document, filePath) = await ResolveDocument(warningId);
 
             if (filePath == null)
@@ -198,6 +240,22 @@ namespace LaudaryMis.Controllers
                 document.FilePath.TrimStart('/', '\\'));
 
             return System.IO.File.Exists(path) ? path : null;
+        }
+
+        // A letter may be opened only by the hospital / vendor it is addressed to (admin: any)
+        private async Task<bool> CanSeeLetter(int warningId)
+        {
+            var warning = await _warningLetterService.GetWarningLetterDetails(warningId);
+
+            return warning != null && User.CanSee(warning.HospitalId, warning.ProviderId);
+        }
+
+        // A letter is generated from a payment, which must be the signed-in hospital's own
+        private async Task<bool> CanSeePayment(int paymentId)
+        {
+            var payment = await _paymentService.GetPaymentById(paymentId);
+
+            return payment != null && User.CanSee(payment.HospitalId, payment.ProviderId);
         }
 
         private int CurrentUserId()

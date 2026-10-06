@@ -34,19 +34,20 @@ namespace LaudaryMis.Repositories
             return await conn.QueryAsync<AgreementVM>(sql, new { hospitalId });
         }
 
-        // ✅ Duplicate check
-        public async Task<bool> WPRExistsAsync(int week, string month, int year, string staffName)
+        // ✅ Duplicate check (per hospital: another hospital's report for the same vendor must not block this one)
+        public async Task<bool> WPRExistsAsync(int hospitalId, int week, string month, int year, string staffName)
         {
             const string sql = @"
                 SELECT COUNT(1)
                 FROM WeeklyPerformanceReport
-                WHERE Week      = @week
+                WHERE HospitalId = @hospitalId
+                  AND Week      = @week
                   AND Month     = @month
                   AND Year      = @year
                   AND StaffName = @staffName";
 
             using var conn = CreateConnection();
-            int count = await conn.QuerySingleAsync<int>(sql, new { week, month, year, staffName });
+            int count = await conn.QuerySingleAsync<int>(sql, new { hospitalId, week, month, year, staffName });
             return count > 0;
         }
 
@@ -77,7 +78,7 @@ namespace LaudaryMis.Repositories
             await conn.ExecuteAsync(sql, details);
         }
 
-        public async Task<bool> CheckWeeklyVerification(int weekNo, int month, int year)
+        public async Task<bool> CheckWeeklyVerification(int hospitalId, int weekNo, int month, int year)
         {
             DateTime fromDate;
             DateTime toDate;
@@ -124,6 +125,8 @@ SELECT COUNT(1)
 FROM WeeklyVerificationLog
 WHERE Status = 'Verified'
 
+AND HospitalId = @hospitalId
+
 AND CAST(FromDate AS DATE)
     BETWEEN CAST(@fromDate AS DATE)
         AND CAST(@toDate AS DATE)
@@ -138,6 +141,7 @@ AND CAST(ToDate AS DATE)
                 sql,
                 new
                 {
+                    hospitalId,
                     fromDate,
                     toDate
                 });

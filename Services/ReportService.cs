@@ -28,21 +28,29 @@ GetDeliverySummaryReport()
         }
         public async Task<List<WeeklyDeliveryReport>> WeeklyDeliveryReport(
     DateTime fromDate,
-    DateTime toDate)
+    DateTime toDate,
+    int? hospitalId = null,
+    int? providerId = null)
         {
             return await _repo.WeeklyDeliveryReport(
                 fromDate,
-                toDate);
+                toDate,
+                hospitalId,
+                providerId);
         }
         public async Task<List<MonthlyReportVM>>
 GetMonthlyReport(
 int year,
-int month)
+int month,
+int? hospitalId = null,
+int? providerId = null)
         {
             return await
                 _repo.GetMonthlyReport(
                     year,
-                    month);
+                    month,
+                    hospitalId,
+                    providerId);
         }
         public async Task<List<MonthlyPickupDetailVM>>
 GetMonthlyPickupDetails(
@@ -60,13 +68,18 @@ GetPendingLinenReport()
             return await _repo.GetPendingLinenReport();
         }
         public async Task<DeliveryAgingReportPageVM>
-    GetDeliveryAgingReport()
+    GetDeliveryAgingReport(ISet<int>? visiblePickupIds = null)
         {
             var summary =
                 await _repo.GetDeliveryAgingSummary();
 
             var details =
                 await _repo.GetDeliveryAgingReport();
+
+            // A hospital / vendor only sees its own pickups; the summary tiles below are
+            // rebuilt from the rows that are left, not taken from the all-hospitals totals.
+            if (visiblePickupIds != null)
+                details = details.Where(x => visiblePickupIds.Contains(x.PickupId)).ToList();
 
             // If there is no outstanding linen (Pending <= 0), the pickup is
             // fully returned and should never be flagged as Critical/Warning

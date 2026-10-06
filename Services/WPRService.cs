@@ -49,7 +49,7 @@ namespace LaudaryMis.Services
 
                 // ✅ Duplicate check — same week, month, year, staff
                 bool exists = await _repo.WPRExistsAsync(
-                    model.Week, model.Month, model.Year, model.StaffName.Trim());
+                    model.HospitalId, model.Week, model.Month, model.Year, model.StaffName.Trim());
 
                 if (exists)
                     return (false, $"WPR for Week {model.Week} - {model.Month} {model.Year} is already submitted for {model.StaffName}.");
@@ -171,9 +171,9 @@ namespace LaudaryMis.Services
                 _ => 100
             };
 
-        public async Task<bool> CheckWeeklyVerification(int weekNo, int month, int year)
+        public async Task<bool> CheckWeeklyVerification(int hospitalId, int weekNo, int month, int year)
         {
-            return await _repo.CheckWeeklyVerification(weekNo, month, year);
+            return await _repo.CheckWeeklyVerification(hospitalId, weekNo, month, year);
         }
         public async Task<List<WeeklyPerformanceVM>>
        GetWeeklyPerformanceData(
