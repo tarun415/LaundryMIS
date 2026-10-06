@@ -194,7 +194,8 @@
                                 @if (isHospital)
                                 {
                                     <td class="text-end">
-                                        @if (item.AverageScore < 80)
+                                        @* Contract: a warning letter is issued when the monthly score is below 60 *@
+                                        @if (item.AverageScore < 60)
                                         {
                                             if (item.WarningGenerated == false)
                                             {
