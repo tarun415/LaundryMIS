@@ -100,6 +100,11 @@
                                            data-bs-toggle="tooltip" title="Preview">
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
+                                        <a asp-action="InvoiceDetails" asp-route-invoiceId="@item.InvoiceId"
+                                           class="btn btn-sm btn-icon btn-outline-secondary"
+                                           data-bs-toggle="tooltip" title="Details">
+                                            <i class="fa-solid fa-file-lines"></i>
+                                        </a>
                                         <a asp-action="DownloadInvoice" asp-route-invoiceId="@item.InvoiceId"
                                            class="btn btn-sm btn-icon btn-outline-success"
                                            data-bs-toggle="tooltip" title="Download">

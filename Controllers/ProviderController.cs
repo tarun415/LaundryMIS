@@ -228,6 +228,29 @@ namespace LaudaryMis.Controllers
 
             //return View(model);
         }
+        // The Accept Pickup page expands a row and searches through these two (the Hospital ones
+        // are for hospitals only), always limited to this vendor's own pickups.
+        [HttpGet]
+        public async Task<IActionResult> PickupItems(int id)
+        {
+            if (!await _guard.CanAccessPickupAsync(User, id)) return Forbid();
+
+            var data = await _pkservice.GetPickupItems(id);
+            return Json(data);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchPickupList(string status, int? wardId, DateTime? date)
+        {
+            var providerId = GetProviderId();
+
+            var data = (await _pkservice.SearchPickupList(status, null, wardId, date))
+                .Where(x => x.ProviderId == providerId)
+                .ToList();
+
+            return Json(data);
+        }
+
         [HttpPost]
         public async Task<IActionResult> AcceptPickup(PickupVM model)
         {
