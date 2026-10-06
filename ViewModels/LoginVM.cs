@@ -6,11 +6,11 @@ namespace LaudaryMis.ViewModels
     {
         public int RoleId { get; set; }
 
+        // Admin signs in with a username
         public string? Username { get; set; }
 
-        public int? DistrictId { get; set; }
-        public int? HospitalId { get; set; }
-        public int? ProviderId { get; set; }
+        // Hospital and vendor sign in with the mobile number or the email they registered with
+        public string? LoginId { get; set; }
 
         public string Password { get; set; } = string.Empty;
     }

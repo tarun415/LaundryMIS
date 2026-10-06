@@ -71,50 +71,56 @@ namespace LaudaryMis.Repositories
             };
         }
     
-        public async Task<LoginResult> LoginHospital(int? hospitalId, string password)
+        // ── Hospital / vendor sign-in with a mobile number or an email ──────────
+
+        private const string ContactLoginFailed = "Incorrect mobile number / email or password.";
+
+        private const string ContactLoginAmbiguous =
+            "More than one account uses this mobile number and password. Please sign in with your email instead.";
+
+        // A bcrypt hash that no password matches: an unknown account takes as long to refuse as a wrong password
+        private static readonly string UnknownAccountHash = PasswordHasher.Hash("no-account-has-this-password");
+
+        // Of the accounts found for the mobile number / email, the one this password belongs to
+        // (an email is unique; a mobile number can be on more than one old record).
+        private static (User? User, LoginResult? Refusal) PickByPassword(List<User> candidates, string password)
+        {
+            if (candidates.Count == 0)
+            {
+                PasswordHasher.Verify(password, UnknownAccountHash);
+                return (null, new LoginResult { Success = false, Message = ContactLoginFailed });
+            }
+
+            var matches = candidates.Where(u => PasswordHasher.Verify(password, u.PasswordHash)).ToList();
+            if (matches.Count == 0)
+                return (null, new LoginResult { Success = false, Message = ContactLoginFailed });
+            if (matches.Count > 1)
+                return (null, new LoginResult { Success = false, Message = ContactLoginAmbiguous });
+
+            return (matches[0], null);
+        }
+
+        public async Task<LoginResult> LoginHospital(string loginId, string password)
         {
             using var con = new SqlConnection(
                 _config.GetConnectionString("DefaultConnection"));
 
-            var sql = @"SELECT u.*, r.RoleName
-                FROM Tbl_Users u
-                INNER JOIN Tbl_Roles r
-                    ON u.RoleId = r.RoleId
-                WHERE u.HospitalId = @HospitalId
-                  AND u.RoleId = 2
-                  AND u.IsActive = 1";
+            // loginId is an email or a mobile number; the mobile number lives on the hospital record
+            var sql = loginId.Contains('@')
+                ? @"SELECT u.*, r.RoleName
+                    FROM Tbl_Users u
+                    INNER JOIN Tbl_Roles r ON u.RoleId = r.RoleId
+                    WHERE u.RoleId = 2 AND u.IsActive = 1 AND u.Email = @LoginId"
+                : @"SELECT u.*, r.RoleName
+                    FROM Tbl_Users u
+                    INNER JOIN Tbl_Roles r ON u.RoleId = r.RoleId
+                    INNER JOIN Tbl_Hospitals h ON h.HospitalId = u.HospitalId
+                    WHERE u.RoleId = 2 AND u.IsActive = 1 AND h.Phone = @LoginId";
 
-            var user = await con.QueryFirstOrDefaultAsync<User>(
-                sql,
-                new
-                {
-                    HospitalId = hospitalId
-                });
-
+            var candidates = (await con.QueryAsync<User>(sql, new { LoginId = loginId })).ToList();
+            var (user, refusal) = PickByPassword(candidates, password);
             if (user == null)
-            {
-                // Hospital loaded from the tender list but nobody has registered yet
-                var listed = await con.ExecuteScalarAsync<int>(
-                    "SELECT COUNT(*) FROM Tbl_Hospitals WHERE HospitalId = @HospitalId",
-                    new { HospitalId = hospitalId });
-
-                return new LoginResult
-                {
-                    Success = false,
-                    Message = listed > 0
-                        ? "This hospital does not have an account yet. Please register first."
-                        : "Invalid District or hospital."
-                };
-            }
-
-            if (!PasswordHasher.Verify(password, user.PasswordHash))
-            {
-                return new LoginResult
-                {
-                    Success = false,
-                    Message = "Incorrect password."
-                };
-            }
+                return refusal!;
 
             var hospitalBlock = await ApprovalBlockAsync(con,
                 "SELECT ApprovalStatus, ApprovalRemarks FROM Tbl_Hospitals WHERE HospitalId = @Id",
@@ -147,49 +153,28 @@ namespace LaudaryMis.Repositories
                 User = user
             };
         }
-        public async Task<LoginResult> LoginProvider(int? providerId, string password)
+
+        public async Task<LoginResult> LoginProvider(string loginId, string password)
         {
             using var con = new SqlConnection(
                 _config.GetConnectionString("DefaultConnection"));
 
-            var sql = @"SELECT u.*, r.RoleName
-                FROM Tbl_Users u
-                INNER JOIN Tbl_Roles r
-                    ON u.RoleId = r.RoleId
-                WHERE u.ProviderId = @ProviderId
-                  AND u.RoleId = 3
-                  AND u.IsActive = 1";
+            // loginId is an email or a mobile number; the mobile number lives on the vendor record
+            var sql = loginId.Contains('@')
+                ? @"SELECT u.*, r.RoleName
+                    FROM Tbl_Users u
+                    INNER JOIN Tbl_Roles r ON u.RoleId = r.RoleId
+                    WHERE u.RoleId = 3 AND u.IsActive = 1 AND u.Email = @LoginId"
+                : @"SELECT u.*, r.RoleName
+                    FROM Tbl_Users u
+                    INNER JOIN Tbl_Roles r ON u.RoleId = r.RoleId
+                    INNER JOIN tbl_Providers p ON p.ProviderId = u.ProviderId
+                    WHERE u.RoleId = 3 AND u.IsActive = 1 AND p.Phone = @LoginId";
 
-            var user = await con.QueryFirstOrDefaultAsync<User>(
-                sql,
-                new
-                {
-                    ProviderId = providerId
-                });
-
+            var candidates = (await con.QueryAsync<User>(sql, new { LoginId = loginId })).ToList();
+            var (user, refusal) = PickByPassword(candidates, password);
             if (user == null)
-            {
-                var listed = await con.ExecuteScalarAsync<int>(
-                    "SELECT COUNT(*) FROM tbl_Providers WHERE ProviderId = @ProviderId",
-                    new { ProviderId = providerId });
-
-                return new LoginResult
-                {
-                    Success = false,
-                    Message = listed > 0
-                        ? "This vendor does not have an account yet. Please register first."
-                        : "Invalid provider."
-                };
-            }
-
-            if (!PasswordHasher.Verify(password, user.PasswordHash))
-            {
-                return new LoginResult
-                {
-                    Success = false,
-                    Message = "Incorrect password."
-                };
-            }
+                return refusal!;
 
             var providerBlock = await ApprovalBlockAsync(con,
                 "SELECT ApprovalStatus, ApprovalRemarks FROM tbl_Providers WHERE ProviderId = @Id",

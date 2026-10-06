@@ -148,17 +148,19 @@
 
                 <div class="reg-row">
                     <div class="login-field">
-                        <label asp-for="Phone">Mobile number</label>
-                        <input asp-for="Phone" maxlength="10" inputmode="numeric" autocomplete="tel" placeholder="10 digit mobile" />
+                        <label asp-for="Phone">Mobile number <span class="text-danger">*</span></label>
+                        <input asp-for="Phone" maxlength="10" inputmode="numeric" autocomplete="tel" placeholder="10 digit mobile"
+                               required pattern="[6-9][0-9]{9}" title="Enter a 10-digit mobile number starting with 6, 7, 8 or 9" />
                         <span class="field-err d-block" asp-validation-for="Phone"></span>
                     </div>
 
                     <div class="login-field">
-                        <label asp-for="Email">Email</label>
-                        <input asp-for="Email" type="email" maxlength="200" autocomplete="email" placeholder="name@example.com" />
+                        <label asp-for="Email">Email <span class="text-danger">*</span></label>
+                        <input asp-for="Email" type="email" maxlength="200" autocomplete="email" placeholder="name@example.com" required />
                         <span class="field-err d-block" asp-validation-for="Email"></span>
                     </div>
                 </div>
+                <div class="login-hint" style="margin-top:-6px;margin-bottom:10px;">Both are required. Use your own mobile number and email; you can sign in with either one. Made-up numbers or emails are not accepted.</div>
 
                 <div class="reg-row">
                     <div class="login-field">

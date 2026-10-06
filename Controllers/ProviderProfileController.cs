@@ -14,11 +14,13 @@ namespace LaudaryMis.Controllers
     {
         private readonly IProviderProfileService _service;
         private readonly IWebHostEnvironment _env;
+        private readonly IContactService _contact;
 
-        public ProviderProfileController(IProviderProfileService service, IWebHostEnvironment env)
+        public ProviderProfileController(IProviderProfileService service, IWebHostEnvironment env, IContactService contact)
         {
             _service = service;
             _env = env;
+            _contact = contact;
         }
 
         // ──────────────────────────────────────────────────────
@@ -51,6 +53,14 @@ namespace LaudaryMis.Controllers
 
             if (model.LegalStatus != null && !ProviderProfileVM.LegalStatuses.Contains(model.LegalStatus))
                 ModelState.AddModelError(nameof(model.LegalStatus), "Choose the firm type from the list.");
+
+            // The mobile number is also used to sign in, so it must look real and be this vendor's own
+            if (ModelState.GetValidationState(nameof(model.Phone)) != Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
+            {
+                var phoneError = await _contact.CheckMobileAsync(model.Phone, ownProviderId: model.ProviderId);
+                if (phoneError != null)
+                    ModelState.AddModelError(nameof(model.Phone), phoneError);
+            }
 
             if (!ModelState.IsValid)
             {

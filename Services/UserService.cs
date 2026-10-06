@@ -22,14 +22,14 @@ namespace LaudaryMis.Services
         //    return await _repo.Login(username, password, roleId);
         //}
 
-        public async Task<LoginResult?> LoginHospital(int? hospitalId, string password)
+        public async Task<LoginResult?> LoginHospital(string loginId, string password)
         {
-            return await _repo.LoginHospital(hospitalId, password);
+            return await _repo.LoginHospital(loginId, password);
         }
 
-        public async Task<LoginResult?> LoginProvider(int? providerId, string password)
+        public async Task<LoginResult?> LoginProvider(string loginId, string password)
         {
-            return await _repo.LoginProvider(providerId, password);
+            return await _repo.LoginProvider(loginId, password);
         }
 
         public async Task<LoginResult> RegisterHospital(RegisterVM model)

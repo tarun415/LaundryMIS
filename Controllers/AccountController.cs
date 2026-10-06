@@ -15,12 +15,15 @@ namespace LaudaryMis.Controllers
         private readonly IUserService _service;
         private readonly LoginAttemptTracker _attempts;
         private readonly IActivationCodeService _activation;
+        private readonly IContactService _contact;
 
-        public AccountController(IUserService service, LoginAttemptTracker attempts, IActivationCodeService activation)
+        public AccountController(IUserService service, LoginAttemptTracker attempts,
+            IActivationCodeService activation, IContactService contact)
         {
             _service = service;
             _attempts = attempts;
             _activation = activation;
+            _contact = contact;
         }
 
         [HttpGet]
@@ -35,12 +38,24 @@ namespace LaudaryMis.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
+            // Hospital and vendor sign in with the mobile number or the email they registered with
+            string? loginId = null;
+            if (model.RoleId is 2 or 3)
+            {
+                loginId = ContactRules.NormalizeLoginId(model.LoginId, out _);
+                if (loginId == null)
+                {
+                    ModelState.AddModelError("", "Enter the mobile number or the email you registered with.");
+                    return View(model);
+                }
+            }
+
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var account = model.RoleId switch
             {
                 1 => "admin:" + (model.Username ?? "").Trim().ToLowerInvariant(),
-                2 => "hospital:" + model.HospitalId,
-                3 => "provider:" + model.ProviderId,
+                2 => "hospital:" + loginId,
+                3 => "provider:" + loginId,
                 _ => "other"
             };
 
@@ -55,8 +70,8 @@ namespace LaudaryMis.Controllers
             LoginResult? result = model.RoleId switch
             {
                 1 => await _service.Login(model.Username ?? "", model.Password, model.RoleId),
-                2 => await _service.LoginHospital(model.HospitalId, model.Password),
-                3 => await _service.LoginProvider(model.ProviderId, model.Password),
+                2 => await _service.LoginHospital(loginId!, model.Password),
+                3 => await _service.LoginProvider(loginId!, model.Password),
                 _ => null
             };
 
@@ -119,6 +134,17 @@ namespace LaudaryMis.Controllers
             {
                 ModelState.AddModelError("",
                     $"Too many wrong attempts. Please try again in {Math.Ceiling(remaining.TotalMinutes)} minutes.");
+                return View(model);
+            }
+
+            // Mobile and email must look real, and the mobile must not belong to another hospital / firm
+            var contact = await _contact.CheckAsync(model.Phone, model.Email,
+                ownHospitalId: model.RoleId == 2 ? entityId : null,
+                ownProviderId: model.RoleId == 3 ? entityId : null);
+            if (!contact.Ok)
+            {
+                if (contact.PhoneError != null) ModelState.AddModelError(nameof(model.Phone), contact.PhoneError);
+                if (contact.EmailError != null) ModelState.AddModelError(nameof(model.Email), contact.EmailError);
                 return View(model);
             }
 
@@ -202,6 +228,15 @@ namespace LaudaryMis.Controllers
             {
                 ModelState.AddModelError("",
                     $"Too many registrations. Please try again in {Math.Ceiling(remaining.TotalMinutes)} minutes.");
+                return View(model);
+            }
+
+            // Mobile and email must look real, and the mobile must not belong to another hospital / firm
+            var contact = await _contact.CheckAsync(model.Phone, model.Email);
+            if (!contact.Ok)
+            {
+                if (contact.PhoneError != null) ModelState.AddModelError(nameof(model.Phone), contact.PhoneError);
+                if (contact.EmailError != null) ModelState.AddModelError(nameof(model.Email), contact.EmailError);
                 return View(model);
             }
 
