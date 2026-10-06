@@ -192,7 +192,7 @@
                     return;
                 }
 
-                $.get('/Hospital/PickupItems/' + id, function (data) {
+                $.get('/Provider/PickupItems/' + id, function (data) {
                     row.child(formatItems(data)).show();
                     tr.addClass('shown');
                 });
@@ -201,7 +201,7 @@
             // Search
             $('#btnSearch').on('click', function () {
 
-                $.get('/Hospital/SearchPickupList', {
+                $.get('/Provider/SearchPickupList', {
                     status: $('#filterStatus').val(),
                     wardId: $('#filterWard').val(),
                     date: $('#filterDate').val()
