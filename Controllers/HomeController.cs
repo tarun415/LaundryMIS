@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Claims;
 using LaudaryMis.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,8 +14,17 @@ namespace LaudaryMis.Controllers
             _logger = logger;
         }
 
+        // The welcome page for visitors; someone who is already signed in goes straight to their dashboard
         public IActionResult Index()
         {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+                if (role is "Admin" or "Hospital" or "Provider")
+                    return RedirectToAction("Dashboard", role);
+            }
+
             return View();
         }
 
