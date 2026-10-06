@@ -1,22 +1,350 @@
 @{
-    ViewData["Title"] = "Home";
+    Layout = null;
 }
 
-<div class="page-header">
-    <div class="ph-icon"><i class="fa-solid fa-shirt"></i></div>
-    <div class="ph-text">
-        <h1>Laundry MIS</h1>
-        <p class="ph-sub">Mechanized Laundry Services &middot; DGMH Uttar Pradesh</p>
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b1f3a" />
+    <title>DGMH UP &middot; Laundry MIS</title>
 
-<div class="card">
-    <div class="card-body text-center p-4">
-        <p class="text-muted mb-4">
-            Use the navigation menu to reach your dashboard and daily workflows.
-        </p>
-        <a href="/Account/Login" class="btn btn-primary">
-            <i class="fa-solid fa-right-to-bracket"></i> Go to Sign In
-        </a>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+</head>
+
+<body>
+
+    <a class="hp-skip" href="#main">Skip to main content</a>
+
+    <!-- UTILITY STRIP -->
+    <div class="hp-util">
+        <div class="hp-wrap">
+            <div class="hp-textsize" role="group" aria-label="Text size">
+                <span>Text size</span>
+                <button type="button" data-size="90" aria-label="Smaller text">A<sup>-</sup></button>
+                <button type="button" data-size="100" aria-label="Normal text" class="on">A</button>
+                <button type="button" data-size="115" aria-label="Larger text">A<sup>+</sup></button>
+            </div>
+            <div class="hp-util-right">
+                <a href="#main">Skip to main content</a>
+            </div>
+        </div>
     </div>
-</div>
+
+    <!-- MASTHEAD -->
+    <header class="hp-masthead">
+        <div class="hp-wrap">
+            <a class="hp-brand" href="/">
+                <img class="emblem" src="~/Images/up-logo.png" alt="Government of Uttar Pradesh" width="64" height="64" />
+                <span>
+                    <strong>Directorate General of Medical &amp; Health Services</strong>
+                    <em>Government of Uttar Pradesh</em>
+                    <small>Laundry MIS &middot; Mechanized Laundry Services</small>
+                </span>
+            </a>
+            <div class="hp-actions">
+                <a class="hp-pill" asp-controller="Account" asp-action="Login"><i class="fa-solid fa-right-to-bracket"></i> Sign In</a>
+                <a class="hp-pill hp-pill-teal" asp-controller="Account" asp-action="Claim"><i class="fa-solid fa-key"></i> Register</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MENU -->
+    <nav class="hp-menu" id="hpMenu" aria-label="Main">
+        <div class="hp-wrap">
+            <button type="button" class="hp-burger" aria-expanded="false" aria-controls="hpMenuList">
+                <i class="fa-solid fa-bars"></i> Menu
+            </button>
+            <ul class="hp-menu-list" id="hpMenuList">
+                <li><a class="home" href="/" aria-label="Home"><i class="fa-solid fa-house"></i></a></li>
+                <li><a href="#leadership">Leadership</a></li>
+                <li><a href="#services">What it does</a></li>
+                <li><a href="#how">How it works</a></li>
+                <li class="hp-dd">
+                    <button type="button" aria-haspopup="true" aria-expanded="false">Sign In <i class="fa-solid fa-chevron-down"></i></button>
+                    <ul class="hp-dd-menu">
+                        <li><a asp-controller="Account" asp-action="Login" asp-route-roleId="2"><i class="fa-solid fa-hospital"></i> Hospital</a></li>
+                        <li><a asp-controller="Account" asp-action="Login" asp-route-roleId="3"><i class="fa-solid fa-truck-fast"></i> Provider (vendor)</a></li>
+                        <li><a asp-controller="Account" asp-action="Login" asp-route-roleId="1"><i class="fa-solid fa-user-shield"></i> Admin</a></li>
+                    </ul>
+                </li>
+                <li><a asp-controller="Account" asp-action="Claim">Register</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main id="main">
+
+        <!-- LEADERSHIP -->
+        <section class="hp-leaders-band" id="leadership" aria-label="Leadership">
+            <div class="hp-wrap">
+                <div class="hp-leaders">
+                    <article class="hp-leader">
+                        <img src="~/Images/leaders/cm.jpg" alt="Yogi Adityanath" width="140" height="140" loading="lazy" />
+                        <h3>Yogi Adityanath</h3>
+                        <p>Hon’ble Chief Minister<br />Government of U.P.</p>
+                    </article>
+                    <article class="hp-leader">
+                        <img src="~/Images/leaders/deputy-cm.jpg" alt="Shri Brajesh Pathak" width="140" height="140" loading="lazy" />
+                        <h3>Shri Brajesh Pathak</h3>
+                        <p>Hon’ble Deputy Chief Minister,<br />Medical Health &amp; Family Welfare Department, Uttar Pradesh</p>
+                    </article>
+                    <article class="hp-leader">
+                        <img src="~/Images/leaders/state-minister.jpg" alt="Shri Mayankeshwar Singh" width="140" height="140" loading="lazy" />
+                        <h3>Shri Mayankeshwar Singh</h3>
+                        <p>Hon’ble State Minister,<br />Parliamentary Affairs, Medical Education, Medical and Health, Family Welfare, Mother and Child Welfare</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- HERO -->
+        <section class="hp-hero">
+            <div class="hp-wrap">
+
+                <div>
+                    <span class="hp-chip">
+                        <i class="fa-solid fa-landmark"></i>
+                        Directorate General of Medical &amp; Health Services &middot; Uttar Pradesh
+                    </span>
+                    <h1>Mechanized laundry services, <span>tracked end to end</span></h1>
+                    <p class="hp-lead">
+                        One portal for district hospitals, laundry firms and the Directorate: linen pickup and
+                        delivery, weekly performance scores, monthly payments and invoices.
+                    </p>
+                    <div class="hp-cta">
+                        <a class="hp-btn hp-btn-light" asp-controller="Account" asp-action="Login">
+                            <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                        </a>
+                        <a class="hp-btn hp-btn-ghost" asp-controller="Account" asp-action="Claim">
+                            <i class="fa-solid fa-key"></i> Register with an activation code
+                        </a>
+                    </div>
+                </div>
+
+                <div class="hp-role-card">
+                    <h2>Sign in as</h2>
+                    <p>Choose your account type to continue.</p>
+
+                    <a class="hp-role" asp-controller="Account" asp-action="Login" asp-route-roleId="2">
+                        <span class="ic"><i class="fa-solid fa-hospital"></i></span>
+                        <span><strong>Hospital</strong><small>District hospitals</small></span>
+                        <i class="fa-solid fa-chevron-right go"></i>
+                    </a>
+                    <a class="hp-role" asp-controller="Account" asp-action="Login" asp-route-roleId="3">
+                        <span class="ic"><i class="fa-solid fa-truck-fast"></i></span>
+                        <span><strong>Provider</strong><small>Laundry firms (vendors)</small></span>
+                        <i class="fa-solid fa-chevron-right go"></i>
+                    </a>
+                    <a class="hp-role" asp-controller="Account" asp-action="Login" asp-route-roleId="1">
+                        <span class="ic"><i class="fa-solid fa-user-shield"></i></span>
+                        <span><strong>Admin</strong><small>Directorate</small></span>
+                        <i class="fa-solid fa-chevron-right go"></i>
+                    </a>
+
+                    <p class="hp-foot">First time here? <a asp-controller="Account" asp-action="Claim">Register with an activation code</a></p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- NUMBERS -->
+        <section class="hp-stats" aria-label="At a glance">
+            <div class="hp-wrap">
+                <div><strong>197</strong><span>District hospitals</span></div>
+                <div><strong>12</strong><span>Schedules (zones)</span></div>
+                <div><strong>4</strong><span>Laundry firms</span></div>
+            </div>
+        </section>
+
+        <!-- WHAT IT DOES -->
+        <section class="hp-section alt" id="services">
+            <div class="hp-wrap">
+                <div class="hp-head">
+                    <span class="kicker">What the portal does</span>
+                    <h2>Everything from the ward to the invoice</h2>
+                    <p>Each step is recorded once, so hospitals, firms and the Directorate all work from the same figures.</p>
+                </div>
+
+                <div class="hp-cards">
+                    <div class="hp-card">
+                        <div class="ic"><i class="fa-solid fa-boxes-packing"></i></div>
+                        <h3>Pickup &amp; delivery</h3>
+                        <p>Hospitals record the linen sent for wash; the firm accepts it and delivers it back, and the hospital verifies what returned.</p>
+                    </div>
+                    <div class="hp-card">
+                        <div class="ic"><i class="fa-solid fa-clipboard-check"></i></div>
+                        <h3>Weekly performance (WPR)</h3>
+                        <p>Every week the hospital scores the service on ten parameters. The monthly average decides the share of the bill that is paid.</p>
+                    </div>
+                    <div class="hp-card">
+                        <div class="ic"><i class="fa-solid fa-money-bill-wave"></i></div>
+                        <h3>Monthly payment</h3>
+                        <p>The payment is worked out from the WPR score and the bed strength, then approved by the admin.</p>
+                    </div>
+                    <div class="hp-card">
+                        <div class="ic"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                        <h3>Invoices</h3>
+                        <p>Once a payment is approved, the firm raises its invoice. Invoices can be viewed, printed and downloaded as PDF.</p>
+                    </div>
+                    <div class="hp-card">
+                        <div class="ic"><i class="fa-solid fa-chart-column"></i></div>
+                        <h3>Reports</h3>
+                        <p>Delivery summary, weekly and monthly delivery, pending linen and delivery aging, each for your own hospital or firm.</p>
+                    </div>
+                    <div class="hp-card">
+                        <div class="ic"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <h3>Warning letters</h3>
+                        <p>When a month’s score falls below 60 the hospital can issue a warning letter, and a PDF copy is kept with the record.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW IT WORKS -->
+        <section class="hp-section" id="how">
+            <div class="hp-wrap">
+                <div class="hp-head">
+                    <span class="kicker">How it works</span>
+                    <h2>One month, four steps</h2>
+                </div>
+
+                <div class="hp-steps">
+                    <div class="hp-step">
+                        <span class="who">Hospital</span>
+                        <h3>Send linen for wash</h3>
+                        <p>Record each pickup by ward and shift, with the quantity of every linen type.</p>
+                    </div>
+                    <div class="hp-step">
+                        <span class="who">Firm &amp; hospital</span>
+                        <h3>Deliver and verify</h3>
+                        <p>The firm accepts the pickup and delivers it back; the hospital checks and verifies the delivery.</p>
+                    </div>
+                    <div class="hp-step">
+                        <span class="who">Hospital &amp; admin</span>
+                        <h3>Score and pay</h3>
+                        <p>Weekly WPR scores set the monthly payment, which the admin approves.</p>
+                    </div>
+                    <div class="hp-step">
+                        <span class="who">Firm</span>
+                        <h3>Raise the invoice</h3>
+                        <p>For the approved payment, the firm generates its invoice.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="hp-footer">
+        <div class="hp-foot-main">
+            <div class="hp-wrap hp-foot-grid">
+
+                <div class="hp-foot-id">
+                    <div class="hp-foot-logos">
+                        <img src="~/Images/up-logo.png" alt="Government of Uttar Pradesh" width="104" height="104" />
+                        <i class="fa-solid fa-staff-snake" aria-hidden="true"></i>
+                    </div>
+                    <a class="hp-foot-btn" asp-controller="Account" asp-action="Login">
+                        <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                    </a>
+                </div>
+
+                <div>
+                    <h2 class="hp-foot-h">Quick Links</h2>
+                    <ul class="hp-foot-links">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="#leadership">Leadership</a></li>
+                        <li><a href="#services">What it does</a></li>
+                        <li><a href="#how">How it works</a></li>
+                        <li><a asp-controller="Account" asp-action="Login">Sign In</a></li>
+                        <li><a asp-controller="Account" asp-action="Claim">Register with an activation code</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h2 class="hp-foot-h">Get In Touch</h2>
+                    <ul class="hp-foot-contact">
+                        <li>
+                            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                            <span>Medical Health &amp; Family Welfare Department, Swasthya Bhawan, Lucknow<br />Off: 0522-2622625, 2623980</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                            <a href="tel:18001805145">1800-180-5145</a>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                            <a href="mailto:support@dgmhup.in">support@dgmhup.in</a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+        <div class="hp-foot-bar">
+            Laundry MIS &middot; Directorate General of Medical &amp; Health Services, Uttar Pradesh
+        </div>
+    </footer>
+
+    <a class="hp-totop" href="#" aria-label="Back to top" title="Back to top"><i class="fa-solid fa-arrow-up"></i></a>
+
+    <script>
+        (function () {
+            var menu = document.getElementById("hpMenu");
+
+            // Menu button on small screens
+            var burger = menu.querySelector(".hp-burger");
+            burger.addEventListener("click", function () {
+                var open = menu.classList.toggle("open");
+                burger.setAttribute("aria-expanded", open ? "true" : "false");
+            });
+
+            // Sign In drop-down
+            var dd = menu.querySelector(".hp-dd");
+            var ddBtn = dd.querySelector("button");
+            function closeDd() { dd.classList.remove("open"); ddBtn.setAttribute("aria-expanded", "false"); }
+            ddBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                var open = dd.classList.toggle("open");
+                ddBtn.setAttribute("aria-expanded", open ? "true" : "false");
+            });
+            document.addEventListener("click", closeDd);
+            document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDd(); });
+
+            // Back-to-top button appears after scrolling
+            var toTop = document.querySelector(".hp-totop");
+            function showTop() { toTop.classList.toggle("show", window.scrollY > 400); }
+            window.addEventListener("scroll", showTop, { passive: true });
+            showTop();
+            toTop.addEventListener("click", function (e) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+
+            // Text size (remembered on this browser)
+            var sizeBtns = document.querySelectorAll(".hp-textsize button");
+            var baseSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+            function setSize(pct) {
+                // 100 = the page's own size; the others are a share of it
+                document.documentElement.style.fontSize = pct === 100 ? "" : (baseSize * pct / 100) + "px";
+                sizeBtns.forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-size") === String(pct)); });
+                try { localStorage.setItem("hpTextSize", String(pct)); } catch (e) { }
+            }
+            sizeBtns.forEach(function (b) {
+                b.addEventListener("click", function () { setSize(+b.getAttribute("data-size")); });
+            });
+            try { var saved = localStorage.getItem("hpTextSize"); if (saved) setSize(+saved); } catch (e) { }
+        })();
+    </script>
+
+</body>
+</html>

@@ -27,9 +27,10 @@ namespace LaudaryMis.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(int roleId = 0)
         {
-            return View();
+            // The home page links straight to the Hospital / Provider tab (?roleId=2 / 3)
+            return View(roleId is 2 or 3 ? new LoginVM { RoleId = roleId } : null);
         }
 
         [HttpPost]
