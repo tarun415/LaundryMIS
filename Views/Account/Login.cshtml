@@ -5,6 +5,9 @@
     // Set when a signed-in tab was sent here: "switched" (another account
     // signed in on this browser) or "expired".
     var reason = Context.Request.Query["reason"].ToString();
+
+    // After a failed sign-in the page comes back with the role the person had chosen
+    var startRole = Model?.RoleId is 2 or 3 ? Model.RoleId : 1;
 }
 
 <!DOCTYPE html>
@@ -103,19 +106,19 @@
                 <!-- ROLE SELECTOR -->
                 <div class="role-selector" role="radiogroup" aria-label="Sign in as">
 
-                    <div class="role-btn selected" role="radio" tabindex="0" aria-checked="true" onclick="setRole(1, this)">
+                    <div class="role-btn @(startRole == 1 ? "selected" : "")" role="radio" tabindex="0" aria-checked="@(startRole == 1 ? "true" : "false")" onclick="setRole(1, this)">
                         <div class="role-icon"><i class="fa-solid fa-user-shield"></i></div>
                         <div class="role-label">Admin</div>
                         <div class="role-sub">Directorate</div>
                     </div>
 
-                    <div class="role-btn" role="radio" tabindex="0" aria-checked="false" onclick="setRole(2, this)">
+                    <div class="role-btn @(startRole == 2 ? "selected" : "")" role="radio" tabindex="0" aria-checked="@(startRole == 2 ? "true" : "false")" onclick="setRole(2, this)">
                         <div class="role-icon"><i class="fa-solid fa-hospital"></i></div>
                         <div class="role-label">Hospital</div>
                         <div class="role-sub">Facility</div>
                     </div>
 
-                    <div class="role-btn" role="radio" tabindex="0" aria-checked="false" onclick="setRole(3, this)">
+                    <div class="role-btn @(startRole == 3 ? "selected" : "")" role="radio" tabindex="0" aria-checked="@(startRole == 3 ? "true" : "false")" onclick="setRole(3, this)">
                         <div class="role-icon"><i class="fa-solid fa-truck-fast"></i></div>
                         <div class="role-label">Provider</div>
                         <div class="role-sub">Vendor</div>
@@ -123,41 +126,23 @@
 
                 </div>
 
-                <input type="hidden" id="RoleId" name="RoleId" value="1" />
+                <input type="hidden" id="RoleId" name="RoleId" value="@startRole" />
 
                 <!-- ADMIN -->
-                <div id="adminFields">
+                <div id="adminFields" style="@(startRole == 1 ? "" : "display:none;")">
                     <div class="login-field">
                         <label for="Username">Username</label>
                         <input type="text" id="Username" name="Username" autocomplete="username" placeholder="Enter your username" />
                     </div>
                 </div>
 
-                <!-- HOSPITAL -->
-                <div id="hospitalFields" style="display:none;">
+                <!-- HOSPITAL / PROVIDER -->
+                <div id="contactFields" style="@(startRole == 1 ? "display:none;" : "")">
                     <div class="login-field">
-                        <label for="DistrictId">District</label>
-                        <select id="DistrictId" name="DistrictId" onchange="loadHospitals(this.value)">
-                            <option value="">Select District</option>
-                        </select>
-                    </div>
-
-                    <div class="login-field">
-                        <label for="HospitalId">Hospital</label>
-                        <select id="HospitalId" name="HospitalId">
-                            <option value="">Select Hospital</option>
-                        </select>
-                        <div class="login-hint">Choose a district first to load its hospitals.</div>
-                    </div>
-                </div>
-
-                <!-- PROVIDER -->
-                <div id="providerFields" style="display:none;">
-                    <div class="login-field">
-                        <label for="ProviderId">Provider</label>
-                        <select id="ProviderId" name="ProviderId">
-                            <option value="">Select Provider</option>
-                        </select>
+                        <label for="LoginId">Mobile number or Email</label>
+                        <input type="text" id="LoginId" name="LoginId" value="@Model?.LoginId" maxlength="200"
+                               autocomplete="username" placeholder="10-digit mobile number or email" />
+                        <div class="login-hint">Use the mobile number or the email you registered with. Either one works.</div>
                     </div>
                 </div>
 
@@ -192,9 +177,6 @@
 
     <script>
 
-        let districtLoaded = false;
-        let providerLoaded = false;
-
         function setRole(roleId, el) {
 
             document.getElementById("RoleId").value = roleId;
@@ -211,21 +193,9 @@
                 if (e.type !== "hidden") e.value = "";
             });
 
-            document.getElementById("adminFields").style.display = "none";
-            document.getElementById("hospitalFields").style.display = "none";
-            document.getElementById("providerFields").style.display = "none";
-
-            if (roleId == 1) {
-                document.getElementById("adminFields").style.display = "block";
-            }
-            else if (roleId == 2) {
-                document.getElementById("hospitalFields").style.display = "block";
-                loadDistricts();
-            }
-            else if (roleId == 3) {
-                document.getElementById("providerFields").style.display = "block";
-                loadProviders();
-            }
+            // Admin signs in with a username; hospital and vendor with a mobile number or an email
+            document.getElementById("adminFields").style.display = roleId == 1 ? "block" : "none";
+            document.getElementById("contactFields").style.display = roleId == 1 ? "none" : "block";
         }
 
         // Keyboard support for the role radios
@@ -237,57 +207,6 @@
                 }
             });
         });
-
-        function loadDistricts() {
-            if (districtLoaded) return;
-
-            fetch('/User/GetDistricts')
-                .then(res => res.json())
-                .then(data => {
-                    let ddl = document.getElementById("DistrictId");
-                    ddl.length = 1;
-
-                    // Names come from self-registration, so build options
-                    // with text (never innerHTML).
-                    data.forEach(d => ddl.add(new Option(d.districtName, d.districtId)));
-
-                    districtLoaded = true;
-                });
-        }
-
-        function loadHospitals(districtId) {
-            fetch('/User/GetHospitalsByDistrict?districtId=' + encodeURIComponent(districtId))
-                .then(res => res.json())
-                .then(data => {
-                    let ddl = document.getElementById("HospitalId");
-                    ddl.length = 1;
-
-                    data.forEach(h => ddl.add(new Option(h.hospitalName, h.hospitalId)));
-                });
-        }
-
-        function loadProviders() {
-            if (providerLoaded) return;
-
-            fetch('/User/GetProviders')
-                .then(res => res.json())
-                .then(data => {
-                    let ddl = document.getElementById("ProviderId");
-                    ddl.length = 1;
-
-                    // Show the firm name too: two vendors can share a contact name.
-                    data.forEach(p => {
-                        const name = p.providerName || "";
-                        const firm = p.firmName || "";
-                        const label = firm && !name.toLowerCase().includes(firm.toLowerCase())
-                            ? `${name} (${firm})`
-                            : name || firm;
-                        ddl.add(new Option(label, p.providerId));
-                    });
-
-                    providerLoaded = true;
-                });
-        }
 
         // Password visibility
         document.getElementById("pwdToggle").addEventListener("click", function () {

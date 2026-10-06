@@ -82,6 +82,10 @@ builder.Services.AddScoped<IProviderProfileRepository, ProviderProfileRepository
 builder.Services.AddScoped<IProviderProfileService, ProviderProfileService>();
 builder.Services.AddScoped<IActivationCodeRepository, ActivationCodeRepository>();
 builder.Services.AddScoped<IActivationCodeService, ActivationCodeService>();
+// Mobile / email checks for registrations (plausible, unique, real email domain)
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<EmailDomainChecker>();
+builder.Services.AddScoped<IContactService, ContactService>();
 // 🔥 FIX (IMPORTANT)
 builder.Services.AddScoped<IDbConnection>(sp =>
 {
