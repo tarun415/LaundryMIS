@@ -17,11 +17,14 @@ namespace LaudaryMis.Controllers
         private readonly IWardService _wardservice;
         private readonly IPickUpService _pkservice;
         private readonly IDeliveryChallanService _delservice;
+        private readonly IAccessGuard _guard;
         public ProviderController(
             IDailyService service,
             IProviderService providerService,
-            IWPRService wprService, IHospitalService hosservice, IWardService wardservice, IPickUpService pkservice, IDeliveryChallanService delservice)
+            IWPRService wprService, IHospitalService hosservice, IWardService wardservice, IPickUpService pkservice, IDeliveryChallanService delservice,
+            IAccessGuard guard)
         {
+            _guard = guard;
             _service = service;
             _hosservice = hosservice;
             _ProviderService = providerService;
@@ -149,7 +152,9 @@ namespace LaudaryMis.Controllers
         [HttpGet]
         public async Task<JsonResult> GetProviders()
         {
-            var data = await _ProviderService.GetAll();
+            // A vendor only sees itself, not the other vendors
+            var providerId = GetProviderId();
+            var data = (await _ProviderService.GetAll()).Where(p => p.ProviderId == providerId);
             return Json(data);
         }
 
@@ -205,8 +210,11 @@ namespace LaudaryMis.Controllers
         #region New Development 
         public async Task<IActionResult> AcceptPickup(int id)
         {
-           
-            var data = await _pkservice.GetPickupList();
+            var providerId = GetProviderId();
+
+            var data = (await _pkservice.GetPickupList())
+                .Where(x => x.ProviderId == providerId)
+                .ToList();
             return View(data);
             // var providerId = GetProviderId();
             //var model =
@@ -225,6 +233,9 @@ namespace LaudaryMis.Controllers
         {
             try
             {
+                if (!await _guard.CanAccessPickupAsync(User, model.PickupId))
+                    return Json(new { success = false, message = "You are not allowed to accept this pickup." });
+
                 int userId = Convert.ToInt32(
      User.FindFirstValue(ClaimTypes.NameIdentifier));
 
@@ -250,6 +261,8 @@ namespace LaudaryMis.Controllers
         }
         public async Task<IActionResult> DeliveryChallan(int id)
         {
+            if (!await _guard.CanAccessPickupAsync(User, id)) return Forbid();
+
             var model =
                 await _delservice.GetPickupForDelivery(id);
 
@@ -261,6 +274,9 @@ namespace LaudaryMis.Controllers
         {
             try
             {
+                if (!await _guard.CanAccessPickupAsync(User, model.PickupId))
+                    return Json(new { success = false, message = "You are not allowed to deliver this pickup." });
+
                 var challanId =
                     await _delservice.SaveDelivery(model);
 
@@ -282,14 +298,19 @@ namespace LaudaryMis.Controllers
 
         public async Task<IActionResult> DeliveryList()
         {
-            var model =
-                await _delservice.GetDeliveryList();
+            var visible = await _guard.VisibleDeliveryIdsAsync(User);
+
+            var model = (await _delservice.GetDeliveryList())
+                .Where(x => visible == null || visible.Contains(x.DeliveryId))
+                .ToList();
 
             return View(model);
         }
         public async Task<IActionResult>
 DeliveryItems(int id)
         {
+            if (!await _guard.CanAccessDeliveryAsync(User, id)) return Forbid();
+
             var data =
                 await _delservice.GetDeliveryItems(id);
 

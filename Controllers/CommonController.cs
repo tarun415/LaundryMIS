@@ -1,4 +1,5 @@
-﻿using LaudaryMis.Services.Interfaces;
+﻿using LaudaryMis.Helpers;
+using LaudaryMis.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,8 +36,12 @@ namespace LaudaryMis.Controllers
         // =========================
 
         [HttpGet]
-        public async Task<JsonResult> GetProviders(int hospitalId)
+        public async Task<IActionResult> GetProviders(int hospitalId)
         {
+            // A hospital may list only its own vendors
+            if (!User.IsAdmin() && !(User.IsInRole("Hospital") && User.HospitalId() == hospitalId))
+                return Forbid();
+
             var data =
                 await _comservice
                     .GetProviderByHospital(hospitalId);
@@ -49,8 +54,12 @@ namespace LaudaryMis.Controllers
         // =========================
 
         [HttpGet]
-        public async Task<JsonResult> GetHospitals(int providerId)
+        public async Task<IActionResult> GetHospitals(int providerId)
         {
+            // A vendor may list only its own hospitals
+            if (!User.IsAdmin() && !(User.IsInRole("Provider") && User.ProviderId() == providerId))
+                return Forbid();
+
             var data =
                 await _comservice
                     .GetHospitalsByProvider(providerId);

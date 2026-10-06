@@ -1,4 +1,5 @@
-﻿using LaudaryMis.Models;
+﻿using LaudaryMis.Helpers;
+using LaudaryMis.Models;
 using LaudaryMis.Services;
 using LaudaryMis.ViewModels;
 using LaundryMIS.Models.LaudaryMis.Models;
@@ -29,12 +30,18 @@ namespace LaudaryMis.Controllers
     int? yearNo,
     string status)
         {
-            var result = await _invoiceService.GetInvoiceList(
+            // A hospital only lists its own invoices, whatever the query string says
+            if (User.IsInRole("Hospital"))
+                hospitalId = User.HospitalId() ?? -1;
+
+            var result = (await _invoiceService.GetInvoiceList(
                 agreementId,
                 hospitalId,
                 monthNo,
                 yearNo,
-                status);
+                status))
+                .Where(x => User.CanSee(x.HospitalId, x.ProviderId))
+                .ToList();
 
             return View(result);
         }
@@ -130,6 +137,9 @@ namespace LaudaryMis.Controllers
             {
                 return NotFound();
             }
+
+            if (!User.CanSee(invoice.HospitalId, invoice.ProviderId))
+                return Forbid();
 
             return View(invoice);
         }
@@ -295,6 +305,8 @@ namespace LaudaryMis.Controllers
         //}
         public async Task<IActionResult> PrintInvoice(int invoiceId)
         {
+            if (!await CanSeeInvoice(invoiceId)) return Forbid();
+
             var pdf = await _invoiceService.GenerateInvoicePdf(invoiceId);
 
             if (pdf == null)
@@ -317,6 +329,8 @@ namespace LaudaryMis.Controllers
         public async Task<IActionResult> DownloadInvoice(
 int invoiceId)
         {
+            if (!await CanSeeInvoice(invoiceId)) return Forbid();
+
             var document =
                 await _invoiceService
                 .GetInvoiceDocument(invoiceId);
@@ -340,6 +354,8 @@ int invoiceId)
         public async Task<IActionResult> PreviewInvoice(
 int invoiceId)
         {
+            if (!await CanSeeInvoice(invoiceId)) return Forbid();
+
             var document =
                 await _invoiceService
                 .GetInvoiceDocument(invoiceId);
@@ -362,6 +378,14 @@ int invoiceId)
             return PhysicalFile(
                 path,
                 "application/pdf");
+        }
+
+        // An invoice may be opened only by the hospital / vendor it belongs to (admin: any)
+        private async Task<bool> CanSeeInvoice(int invoiceId)
+        {
+            var invoice = await _invoiceService.GetInvoiceDetails(invoiceId);
+
+            return invoice != null && User.CanSee(invoice.HospitalId, invoice.ProviderId);
         }
 
         private bool IsOwnProvider(int providerId)

@@ -86,6 +86,8 @@ builder.Services.AddScoped<IActivationCodeService, ActivationCodeService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<EmailDomainChecker>();
 builder.Services.AddScoped<IContactService, ContactService>();
+// Owner checks for records opened by id (pickups, deliveries, agreements)
+builder.Services.AddScoped<IAccessGuard, AccessGuard>();
 // 🔥 FIX (IMPORTANT)
 builder.Services.AddScoped<IDbConnection>(sp =>
 {

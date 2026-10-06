@@ -9,11 +9,11 @@ namespace LaudaryMis.Repositories.Interfaces
         Task<IEnumerable<AgreementVM>> GetHospitalAgreements(int hospitalId);
 
         // WPR
-        Task<bool> WPRExistsAsync(int week, string month, int year, string staffName);
+        Task<bool> WPRExistsAsync(int hospitalId, int week, string month, int year, string staffName);
         Task<int> InsertWPRAsync(WeeklyPerformanceReport wpr);
         Task InsertWPRDetailsAsync(IEnumerable<WPRDetail> details);
 
-        Task<bool> CheckWeeklyVerification(int weekNo, int month, int year);
+        Task<bool> CheckWeeklyVerification(int hospitalId, int weekNo, int month, int year);
         Task<List<WeeklyPerformanceVM>> GetWeeklyPerformanceData(
      int agreementId,  int hospitalId,  int weekNo,  int month,  int year);
 
