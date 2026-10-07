@@ -65,7 +65,6 @@
             </button>
             <ul class="hp-menu-list" id="hpMenuList">
                 <li><a class="home" href="/" aria-label="Home"><i class="fa-solid fa-house"></i></a></li>
-                <li><a href="#leadership">Leadership</a></li>
                 <li><a href="#services">What it does</a></li>
                 <li><a href="#how">How it works</a></li>
                 <li class="hp-dd">
@@ -77,80 +76,117 @@
                     </ul>
                 </li>
                 <li><a asp-controller="Account" asp-action="Claim">Register</a></li>
+                <li><a href="#contact">Contact</a></li>
             </ul>
         </div>
     </nav>
 
     <main id="main">
 
-        <!-- LEADERSHIP -->
-        <section class="hp-leaders-band" id="leadership" aria-label="Leadership">
-            <div class="hp-wrap">
-                <div class="hp-leaders">
-                    <article class="hp-leader">
-                        <img src="~/Images/leaders/cm.jpg" alt="Yogi Adityanath" width="140" height="140" loading="lazy" />
-                        <h3>Yogi Adityanath</h3>
-                        <p>Hon’ble Chief Minister<br />Government of U.P.</p>
+        <!-- TOP: leaders | carousel | login -->
+        <section class="hp-top" id="leadership" aria-label="Leadership, highlights and sign in">
+            <div class="hp-wrap hp-top-grid">
+
+                <!-- LEADERS -->
+                <div class="hp-leaders-col">
+                    <article class="hp-leader-row">
+                        <img src="~/Images/leaders/cm.jpg" alt="Yogi Adityanath" width="96" height="112" loading="lazy" />
+                        <div>
+                            <h3>Yogi Adityanath</h3>
+                            <p>Hon’ble Chief Minister, Uttar Pradesh</p>
+                        </div>
                     </article>
-                    <article class="hp-leader">
-                        <img src="~/Images/leaders/deputy-cm.jpg" alt="Shri Brajesh Pathak" width="140" height="140" loading="lazy" />
-                        <h3>Shri Brajesh Pathak</h3>
-                        <p>Hon’ble Deputy Chief Minister,<br />Medical Health &amp; Family Welfare Department, Uttar Pradesh</p>
+                    <article class="hp-leader-row">
+                        <img src="~/Images/leaders/deputy-cm.jpg" alt="Shri Brajesh Pathak" width="96" height="112" loading="lazy" />
+                        <div>
+                            <h3>Shri Brajesh Pathak</h3>
+                            <p>Hon’ble Deputy Chief Minister, Medical Health &amp; Family Welfare Department, Uttar Pradesh</p>
+                        </div>
                     </article>
-                    <article class="hp-leader">
-                        <img src="~/Images/leaders/state-minister.jpg" alt="Shri Mayankeshwar Singh" width="140" height="140" loading="lazy" />
-                        <h3>Shri Mayankeshwar Singh</h3>
-                        <p>Hon’ble State Minister,<br />Parliamentary Affairs, Medical Education, Medical and Health, Family Welfare, Mother and Child Welfare</p>
+                    <article class="hp-leader-row">
+                        <img src="~/Images/leaders/state-minister.jpg" alt="Shri Mayankeshwar Singh" width="96" height="112" loading="lazy" />
+                        <div>
+                            <h3>Shri Mayankeshwar Singh</h3>
+                            <p>Hon’ble State Minister, Medical Health &amp; Family Welfare, Uttar Pradesh</p>
+                        </div>
                     </article>
                 </div>
-            </div>
-        </section>
 
-        <!-- HERO -->
-        <section class="hp-hero">
-            <div class="hp-wrap">
-
-                <div>
-                    <span class="hp-chip">
-                        <i class="fa-solid fa-landmark"></i>
-                        Directorate General of Medical &amp; Health Services &middot; Uttar Pradesh
-                    </span>
-                    <h1>Mechanized laundry services, <span>tracked end to end</span></h1>
-                    <p class="hp-lead">
-                        One portal for district hospitals, laundry firms and the Directorate: linen pickup and
-                        delivery, weekly performance scores, monthly payments and invoices.
-                    </p>
-                    <div class="hp-cta">
-                        <a class="hp-btn hp-btn-light" asp-controller="Account" asp-action="Login">
-                            <i class="fa-solid fa-right-to-bracket"></i> Sign In
-                        </a>
-                        <a class="hp-btn hp-btn-ghost" asp-controller="Account" asp-action="Claim">
-                            <i class="fa-solid fa-key"></i> Register with an activation code
-                        </a>
+                <!-- CAROUSEL -->
+                <div class="hp-carousel" id="hpCarousel" aria-roledescription="carousel" aria-label="Highlights">
+                    <div class="hp-slides">
+                        <div class="hp-slide s1 on" role="group" aria-roledescription="slide" aria-label="1 of 4">
+                            <i class="fa-solid fa-shirt hp-slide-ic" aria-hidden="true"></i>
+                            <span class="hp-slide-kicker">Directorate General of Medical &amp; Health Services &middot; U.P.</span>
+                            <h1>Mechanized laundry services, <span>tracked end to end</span></h1>
+                            <p>One portal for district hospitals, laundry firms and the Directorate.</p>
+                        </div>
+                        <div class="hp-slide s2" role="group" aria-roledescription="slide" aria-label="2 of 4">
+                            <i class="fa-solid fa-boxes-packing hp-slide-ic" aria-hidden="true"></i>
+                            <span class="hp-slide-kicker">Daily operations</span>
+                            <h2>Linen pickup <span>&amp; delivery</span></h2>
+                            <p>Hospitals record linen sent from each ward; the firm accepts it and delivers it back clean.</p>
+                        </div>
+                        <div class="hp-slide s3" role="group" aria-roledescription="slide" aria-label="3 of 4">
+                            <i class="fa-solid fa-clipboard-check hp-slide-ic" aria-hidden="true"></i>
+                            <span class="hp-slide-kicker">Every week</span>
+                            <h2>Weekly performance <span>review (WPR)</span></h2>
+                            <p>Ten parameters, scored 0–10. The monthly average decides the share of the bill that is paid.</p>
+                        </div>
+                        <div class="hp-slide s4" role="group" aria-roledescription="slide" aria-label="4 of 4">
+                            <i class="fa-solid fa-file-invoice-dollar hp-slide-ic" aria-hidden="true"></i>
+                            <span class="hp-slide-kicker">Every month</span>
+                            <h2>Payments <span>&amp; invoices</span></h2>
+                            <p>The hospital generates the payment, the admin approves it and the firm raises its invoice.</p>
+                        </div>
+                    </div>
+                    <button type="button" class="hp-car-nav prev" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button type="button" class="hp-car-nav next" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button>
+                    <div class="hp-car-dots" aria-label="Choose slide">
+                        <button type="button" class="on" aria-label="Slide 1"></button>
+                        <button type="button" aria-label="Slide 2"></button>
+                        <button type="button" aria-label="Slide 3"></button>
+                        <button type="button" aria-label="Slide 4"></button>
                     </div>
                 </div>
 
-                <div class="hp-role-card">
-                    <h2>Sign in as</h2>
-                    <p>Choose your account type to continue.</p>
+                <!-- LOGIN -->
+                <div class="hp-login" id="signin">
+                    <h2><i class="fa-solid fa-right-to-bracket"></i> Login</h2>
+                    <form method="post" asp-controller="Account" asp-action="Login" id="hpLoginForm" novalidate>
+                        @Html.AntiForgeryToken()
 
-                    <a class="hp-role" asp-controller="Account" asp-action="Login" asp-route-roleId="2">
-                        <span class="ic"><i class="fa-solid fa-hospital"></i></span>
-                        <span><strong>Hospital</strong><small>District hospitals</small></span>
-                        <i class="fa-solid fa-chevron-right go"></i>
-                    </a>
-                    <a class="hp-role" asp-controller="Account" asp-action="Login" asp-route-roleId="3">
-                        <span class="ic"><i class="fa-solid fa-truck-fast"></i></span>
-                        <span><strong>Provider</strong><small>Laundry firms (vendors)</small></span>
-                        <i class="fa-solid fa-chevron-right go"></i>
-                    </a>
-                    <a class="hp-role" asp-controller="Account" asp-action="Login" asp-route-roleId="1">
-                        <span class="ic"><i class="fa-solid fa-user-shield"></i></span>
-                        <span><strong>Admin</strong><small>Directorate</small></span>
-                        <i class="fa-solid fa-chevron-right go"></i>
-                    </a>
+                        <label for="hpRole">User type</label>
+                        <select id="hpRole" name="RoleId" required>
+                            <option value="" selected disabled>Please select user type</option>
+                            <option value="2">Hospital</option>
+                            <option value="3">Provider (vendor)</option>
+                            <option value="1">Admin</option>
+                        </select>
 
-                    <p class="hp-foot">First time here? <a asp-controller="Account" asp-action="Claim">Register with an activation code</a></p>
+                        <div id="hpUserWrap" hidden>
+                            <label for="hpUsername">Username</label>
+                            <input type="text" id="hpUsername" name="Username" autocomplete="username" placeholder="Enter your username" />
+                        </div>
+                        <div id="hpLoginIdWrap">
+                            <label for="hpLoginId">Mobile number or email</label>
+                            <input type="text" id="hpLoginId" name="LoginId" maxlength="200" autocomplete="username" placeholder="10-digit mobile number or email" />
+                        </div>
+
+                        <label for="hpPassword">Password</label>
+                        <div class="hp-pwd">
+                            <input type="password" id="hpPassword" name="Password" autocomplete="current-password" placeholder="Enter your password" required />
+                            <button type="button" id="hpPwdToggle" aria-label="Show password"><i class="fa-solid fa-eye"></i></button>
+                        </div>
+
+                        <p class="hp-login-err" id="hpLoginErr" role="alert" hidden></p>
+
+                        <div class="hp-login-btns">
+                            <button type="submit" class="hp-signin" id="hpSignIn">Sign In</button>
+                            <button type="reset" class="hp-reset">Reset</button>
+                        </div>
+                    </form>
+                    <p class="hp-login-foot">First time here? <a asp-controller="Account" asp-action="Claim">Register with an activation code</a></p>
                 </div>
 
             </div>
@@ -262,15 +298,15 @@
                     <h2 class="hp-foot-h">Quick Links</h2>
                     <ul class="hp-foot-links">
                         <li><a href="/">Home</a></li>
-                        <li><a href="#leadership">Leadership</a></li>
                         <li><a href="#services">What it does</a></li>
                         <li><a href="#how">How it works</a></li>
                         <li><a asp-controller="Account" asp-action="Login">Sign In</a></li>
                         <li><a asp-controller="Account" asp-action="Claim">Register with an activation code</a></li>
+                        <li><a href="#contact">Contact</a></li>
                     </ul>
                 </div>
 
-                <div>
+                <div id="contact">
                     <h2 class="hp-foot-h">Get In Touch</h2>
                     <ul class="hp-foot-contact">
                         <li>
@@ -307,6 +343,13 @@
                 var open = menu.classList.toggle("open");
                 burger.setAttribute("aria-expanded", open ? "true" : "false");
             });
+            // Close the small-screen menu after jumping to a section on this page
+            menu.querySelectorAll('.hp-menu-list a[href^="#"]').forEach(function (a) {
+                a.addEventListener("click", function () {
+                    menu.classList.remove("open");
+                    burger.setAttribute("aria-expanded", "false");
+                });
+            });
 
             // Sign In drop-down
             var dd = menu.querySelector(".hp-dd");
@@ -319,6 +362,61 @@
             });
             document.addEventListener("click", closeDd);
             document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDd(); });
+
+
+            // ---- Carousel
+            var car = document.getElementById("hpCarousel");
+            var slides = car.querySelectorAll(".hp-slide");
+            var dots = car.querySelectorAll(".hp-car-dots button");
+            var cur = 0, timer = null;
+            var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            function show(i) {
+                cur = (i + slides.length) % slides.length;
+                slides.forEach(function (s, k) { s.classList.toggle("on", k === cur); });
+                dots.forEach(function (d, k) { d.classList.toggle("on", k === cur); });
+            }
+            function stop() { if (timer) clearInterval(timer); timer = null; }
+            function play() { stop(); if (!reduce) timer = setInterval(function () { show(cur + 1); }, 5000); }
+            car.querySelector(".prev").addEventListener("click", function () { show(cur - 1); play(); });
+            car.querySelector(".next").addEventListener("click", function () { show(cur + 1); play(); });
+            dots.forEach(function (d, k) { d.addEventListener("click", function () { show(k); play(); }); });
+            car.addEventListener("mouseenter", stop);
+            car.addEventListener("mouseleave", play);
+            play();
+
+            // ---- Login: admin signs in with a username, hospital and vendor with a mobile number or email
+            var role = document.getElementById("hpRole");
+            var userWrap = document.getElementById("hpUserWrap");
+            var idWrap = document.getElementById("hpLoginIdWrap");
+            var err = document.getElementById("hpLoginErr");
+            role.addEventListener("change", function () {
+                var admin = role.value === "1";
+                userWrap.hidden = !admin;
+                idWrap.hidden = admin;
+                err.hidden = true;
+            });
+            document.getElementById("hpPwdToggle").addEventListener("click", function () {
+                var input = document.getElementById("hpPassword");
+                var showPwd = input.type === "password";
+                input.type = showPwd ? "text" : "password";
+                this.querySelector("i").className = showPwd ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+                this.setAttribute("aria-label", showPwd ? "Hide password" : "Show password");
+            });
+            var form = document.getElementById("hpLoginForm");
+            form.addEventListener("reset", function () {
+                setTimeout(function () { userWrap.hidden = true; idWrap.hidden = false; err.hidden = true; }, 0);
+            });
+            form.addEventListener("submit", function (e) {
+                var msg = "";
+                if (!role.value) msg = "Please select the user type.";
+                else if (role.value === "1" && !document.getElementById("hpUsername").value.trim()) msg = "Enter your username.";
+                else if (role.value !== "1" && !document.getElementById("hpLoginId").value.trim()) msg = "Enter your mobile number or email.";
+                else if (!document.getElementById("hpPassword").value) msg = "Enter your password.";
+                if (msg) { e.preventDefault(); err.textContent = msg; err.hidden = false; return; }
+                var btn = document.getElementById("hpSignIn");
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Signing in…';
+            });
 
             // Back-to-top button appears after scrolling
             var toTop = document.querySelector(".hp-totop");
