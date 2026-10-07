@@ -60,6 +60,9 @@
             color: var(--ink-3);
             letter-spacing: .04em;
         }
+
+        /* Desktop fit (fallback when scripts are off; the script below sets the exact value) */
+        @@media (min-width: 1200px) and (max-width: 1799px) { .login-box { zoom: .8; } }
     </style>
 </head>
 
@@ -176,6 +179,18 @@
     </div>
 
     <script>
+
+        // Desktop: scale the sign-in card to the screen width, as on the home page
+        // (80% on a 1536px laptop, 100% at 1920px). Phones and tablets keep full size.
+        (function () {
+            var box = document.querySelector(".login-box");
+            function fit() {
+                var w = window.innerWidth;
+                box.style.zoom = w >= 1200 ? String(Math.min(1, Math.max(0.8, w / 1920))) : "";
+            }
+            fit();
+            window.addEventListener("resize", fit);
+        })();
 
         function setRole(roleId, el) {
 
