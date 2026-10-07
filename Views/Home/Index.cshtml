@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
 </head>
 
-<body>
+<body class="hp-fit">
 
     <a class="hp-skip" href="#main">Skip to main content</a>
 
@@ -333,6 +333,18 @@
 
     <a class="hp-totop" href="#" aria-label="Back to top" title="Back to top"><i class="fa-solid fa-arrow-up"></i></a>
 
+    <script>
+        // Desktop: scale the whole page to the screen width, so a 1536px laptop shows it
+        // like a 1920px screen (80%). Phones and tablets are left at full size.
+        (function () {
+            function fit() {
+                var w = window.innerWidth;
+                document.body.style.zoom = w >= 1200 ? String(Math.min(1, Math.max(0.8, w / 1920))) : "";
+            }
+            fit();
+            window.addEventListener("resize", fit);
+        })();
+    </script>
     <script>
         (function () {
             var menu = document.getElementById("hpMenu");
