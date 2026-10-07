@@ -352,3 +352,6 @@
 .hp-util .hp-wrap, .hp-masthead .hp-wrap, .hp-menu .hp-wrap { max-width: 1440px; }
 #contact { scroll-margin-top: 90px; }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* Desktop fit (fallback when scripts are off; the page script sets the exact value) */
+@media (min-width: 1200px) and (max-width: 1799px) { body.hp-fit { zoom: .8; } }
