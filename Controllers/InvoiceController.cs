@@ -45,7 +45,7 @@ namespace LaudaryMis.Controllers
 
             return View(result);
         }
-        [Authorize(Roles = "Provider")]
+        [Authorize(Roles = "ServiceProvider")]
         public async Task<IActionResult> GenerateInvoice(
     int paymentId)
         {
@@ -70,7 +70,7 @@ namespace LaudaryMis.Controllers
             return View(model);
         }
         [HttpPost]
-        [Authorize(Roles = "Provider")]
+        [Authorize(Roles = "ServiceProvider")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GenerateInvoice(
     GenerateInvoiceVM model)

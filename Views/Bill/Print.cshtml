@@ -1,0 +1,132 @@
+@model LaudaryMis.ViewModels.BillVM
+
+@{
+    Layout = null;
+    var billNo = $"BILL/{Model.HospitalId}/{Model.BillingYear}{Model.BillingMonth:00}/V{Model.Version}";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Monthly Bill - @Model.HospitalName - @Model.MonthName</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #eceff3; font-family: "Segoe UI", Arial, Helvetica, sans-serif; color: #222; padding: 20px; }
+        .page { width: 210mm; min-height: 297mm; margin: auto; background: #fff; padding: 18mm 16mm; box-shadow: 0 0 18px rgba(0,0,0,.18); position: relative; }
+        .toolbar { width: 210mm; margin: 0 auto 12px; display: flex; gap: 8px; justify-content: flex-end; }
+        .toolbar a, .toolbar button { font: inherit; padding: 8px 16px; border-radius: 6px; border: 1px solid #0e7c7b; background: #0e7c7b; color: #fff; cursor: pointer; text-decoration: none; }
+        .toolbar a.light { background: #fff; color: #0e7c7b; }
+        .head { text-align: center; border-bottom: 3px double #0d4e96; padding-bottom: 10px; margin-bottom: 14px; }
+        .head h1 { font-size: 17px; color: #0d4e96; letter-spacing: .03em; }
+        .head h2 { font-size: 13px; font-weight: 600; margin-top: 3px; }
+        .head .title { margin-top: 10px; display: inline-block; font-size: 15px; font-weight: 700; border: 1.5px solid #0d4e96; padding: 4px 18px; border-radius: 4px; }
+        .revised { margin-top: 8px; font-size: 12px; font-weight: 700; color: #b3261e; }
+        table { width: 100%; border-collapse: collapse; }
+        .meta td { padding: 5px 8px; font-size: 12.5px; vertical-align: top; }
+        .meta td.k { width: 22%; color: #555; }
+        .meta td.v { width: 28%; font-weight: 600; }
+        h3 { font-size: 13px; margin: 16px 0 6px; color: #0d4e96; text-transform: uppercase; letter-spacing: .04em; }
+        .grid th, .grid td { border: 1px solid #b9c2cf; padding: 6px 9px; font-size: 12.5px; }
+        .grid th { background: #eef3f9; text-align: left; }
+        .grid td.num, .grid th.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .grid tr.total td { background: #e7f5ec; font-weight: 800; font-size: 13.5px; }
+        .note { margin-top: 14px; font-size: 11px; color: #555; line-height: 1.5; }
+        .sign { margin-top: 46px; display: flex; justify-content: space-between; font-size: 12px; }
+        .sign div { width: 40%; text-align: center; border-top: 1px solid #555; padding-top: 5px; }
+        @@media print {
+            body { background: #fff; padding: 0; }
+            .page { box-shadow: none; width: auto; min-height: 0; padding: 0; }
+            .toolbar { display: none; }
+            @@page { size: A4; margin: 14mm; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <a class="light" href="@Url.Action("MyBills", "Bill")">Back</a>
+        <button type="button" onclick="window.print()">Print</button>
+    </div>
+
+    <div class="page">
+
+        <div class="head">
+            <h1>Directorate General of Medical &amp; Health Services, Uttar Pradesh</h1>
+            <h2>Mechanized Laundry Services</h2>
+            <div class="title">MONTHLY BILL &mdash; @Model.MonthName.ToUpper()</div>
+            @if (Model.Version > 1)
+            {
+                <div class="revised">REVISED BILL (VERSION @Model.Version) &mdash; issued after dispute resolution</div>
+            }
+        </div>
+
+        <table class="meta">
+            <tr>
+                <td class="k">Bill no.</td><td class="v">@billNo</td>
+                <td class="k">Printed on</td><td class="v">@Model.PrintedAt.ToString("dd MMM yyyy, hh:mm tt")</td>
+            </tr>
+            <tr>
+                <td class="k">Hospital</td><td class="v">@Model.HospitalName</td>
+                <td class="k">District</td><td class="v">@Model.District</td>
+            </tr>
+            <tr>
+                <td class="k">Service provider</td><td class="v">@Model.ProviderName</td>
+                <td class="k">Contract</td><td class="v">@Model.ContractNo</td>
+            </tr>
+            <tr>
+                <td class="k">Sanctioned beds</td><td class="v">@Model.SanctionedBeds</td>
+                <td class="k">Rate per bed / year</td><td class="v">&#8377; @Model.RatePerBedPerYear.ToString("N2") (ex-GST)</td>
+            </tr>
+        </table>
+
+        <h3>Weekly performance (verified by CMS)</h3>
+        <table class="grid">
+            <thead>
+                <tr><th>Week</th><th class="num">Score (out of 100)</th><th class="num">Payment band</th><th>Verified on</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var w in Model.Weeks)
+                {
+                    <tr>
+                        <td>Week @w.Week</td>
+                        <td class="num">@w.TotalScore</td>
+                        <td class="num">@w.PaymentPercentage%</td>
+                        <td>@(w.VerifiedAt?.ToString("dd MMM yyyy") ?? "—")</td>
+                    </tr>
+                }
+                <tr class="total">
+                    <td>Average of @Model.WPRWeeksFound weeks</td>
+                    <td class="num">@Model.WPRAvgScore.ToString("N2")</td>
+                    <td class="num">@Model.PaymentBandPercent.ToString("0.##")%</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Calculation</h3>
+        <table class="grid">
+            <tbody>
+                <tr><td>Annual value (ex-GST)</td><td class="num">&#8377; @Model.AnnualValueExGST.ToString("N2")</td></tr>
+                <tr><td>Monthly gross bill (annual &divide; 12, ex-GST)</td><td class="num">&#8377; @Model.MonthlyGrossAmount.ToString("N2")</td></tr>
+                <tr><td>Payment as per WPR band (@Model.PaymentBandPercent.ToString("0.##")%) &mdash; base payable</td><td class="num">&#8377; @Model.BasePayableAmount.ToString("N2")</td></tr>
+                <tr><td>Add: GST (@Model.GSTPercent.ToString("0.##")%)</td><td class="num">+ &#8377; @Model.GSTAmount.ToString("N2")</td></tr>
+                <tr><td>Less: TDS (2% on base payable)</td><td class="num">&minus; &#8377; @Model.TDSAmount.ToString("N2")</td></tr>
+                <tr class="total"><td>NET PAYABLE</td><td class="num">&#8377; @Model.NetPayableAmount.ToString("N2")</td></tr>
+            </tbody>
+        </table>
+
+        <p class="note">
+            This bill is generated from the weekly performance reports that the hospital submitted and its CMS verified.
+            If you find a mistake, raise a dispute from the portal; a corrected bill will be issued once it is resolved.
+        </p>
+
+        <div class="sign">
+            <div>Service provider</div>
+            <div>Hospital CMS</div>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -62,6 +62,21 @@ namespace LaudaryMis.Controllers
             return RedirectToAction(nameof(WPREntry));
         }
 
+        // The hospital's own submitted WPRs and what the CMS has done with them (read only:
+        // a submitted WPR cannot be changed by the hospital)
+        [HttpGet]
+        [Authorize(Roles = "Hospital")]
+        public async Task<IActionResult> MyWprs(string? status, int? month, int? year)
+        {
+            if (status != WprStatus.Pending && status != WprStatus.Verified) status = null;
+
+            ViewBag.Status = status;
+            ViewBag.Month = month;
+            ViewBag.Year = year;
+
+            return View(await _wprService.GetListAsync(GetHospitalId(), null, status, month, year));
+        }
+
         [HttpGet("api/agreement/{agreementId}")]
         public async Task<IActionResult> GetAgreementDetails(int agreementId)
         {

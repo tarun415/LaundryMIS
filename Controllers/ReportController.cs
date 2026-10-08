@@ -34,7 +34,7 @@ namespace LaudaryMis.Controllers
         private (int? HospitalId, int? ProviderId) Scope() =>
             User.IsAdmin() ? (null, null)
             : User.IsInRole("Hospital") ? (User.HospitalId() ?? -1, null)
-            : User.IsInRole("Provider") ? (null, User.ProviderId() ?? -1)
+            : User.IsInRole("ServiceProvider") ? (null, User.ProviderId() ?? -1)
             : (-1, null);
 
         //Delivery Report for both provider and Hospital

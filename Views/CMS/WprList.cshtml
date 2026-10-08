@@ -1,0 +1,165 @@
+@model List<LaudaryMis.ViewModels.WprListItemVM>
+
+@{
+    ViewBag.Title = "WPR Verification";
+    string? status = ViewBag.Status as string;
+    int? month = ViewBag.Month as int?;
+    int? year = ViewBag.Year as int?;
+
+    // Months that still have a pending WPR, for the "verify the whole month" buttons
+    var pendingMonths = Model
+        .Where(w => w.Status == "Pending")
+        .GroupBy(w => new { w.Month, w.Year })
+        .Select(g => new { g.Key.Month, g.Key.Year, Count = g.Count() })
+        .OrderByDescending(x => x.Year).ThenByDescending(x => x.Month)
+        .ToList();
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+    <div class="ph-text">
+        <h1>WPR Verification</h1>
+        <p class="ph-sub">Review, edit and verify the weekly performance reports of your hospital</p>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="status">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">All</option>
+                    <option value="Pending" selected="@(status == "Pending")">Pending</option>
+                    <option value="Verified" selected="@(status == "Verified")">Verified</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="month">Month</label>
+                <select class="form-select" id="month" name="month">
+                    <option value="">All</option>
+                    @for (int m = 1; m <= 12; m++)
+                    {
+                        <option value="@m" selected="@(month == m)">@(new DateTime(2000, m, 1).ToString("MMMM"))</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="year">Year</label>
+                <input type="number" class="form-control" id="year" name="year" value="@year" min="2000" max="2100" placeholder="All" />
+            </div>
+            <div class="col-6 col-md-3">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
+                <a asp-action="WprList" class="btn btn-light">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (pendingMonths.Count > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="fa-solid fa-bolt text-teal"></i>
+            <span class="card-title">Verify a whole month</span>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Accept every pending WPR of a month as it stands. To change a score first, open that WPR instead.</p>
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var pm in pendingMonths)
+                {
+                    <form asp-action="VerifyMonth" method="post" class="js-confirm-month">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="month" value="@pm.Month" />
+                        <input type="hidden" name="year" value="@pm.Year" />
+                        <button type="submit" class="btn btn-outline-success"
+                                data-label="@(new DateTime(pm.Year, pm.Month, 1).ToString("MMMM yyyy"))" data-count="@pm.Count">
+                            <i class="fa-solid fa-check-double"></i>
+                            @(new DateTime(pm.Year, pm.Month, 1).ToString("MMMM yyyy")) (@pm.Count pending)
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="wprTable" class="table table-hover align-middle w-100">
+                <thead>
+                    <tr>
+                        <th data-priority="1">Month</th>
+                        <th data-priority="1">Week</th>
+                        <th data-priority="3">Vendor</th>
+                        <th data-priority="2" class="text-end">Score</th>
+                        <th data-priority="3" class="text-end">Payment</th>
+                        <th data-priority="2">Status</th>
+                        <th data-priority="4">Submitted</th>
+                        <th data-priority="1" class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var w in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold" data-order="@(w.Year * 100 + w.Month)">@w.MonthLabel</td>
+                            <td>Week @w.Week</td>
+                            <td>@w.ProviderName</td>
+                            <td class="text-end">@w.TotalScore / 100</td>
+                            <td class="text-end">@w.PaymentPercentage%</td>
+                            <td>
+                                @if (w.Status == "Verified")
+                                {
+                                    <span class="badge badge-ok"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-warn"><i class="fa-solid fa-hourglass-half"></i> Pending</span>
+                                }
+                                @if (w.LastEditedAt != null)
+                                {
+                                    <span class="badge badge-navy" title="Edited by CMS or admin on @w.LastEditedAt.Value.ToString("dd MMM yyyy")">edited</span>
+                                }
+                            </td>
+                            <td class="nowrap" data-order="@w.SubmittedAt.Ticks">@w.SubmittedAt.ToString("dd MMM yyyy")</td>
+                            <td class="text-end">
+                                <a asp-action="Review" asp-route-id="@w.Id" class="btn btn-sm @(w.Status == "Pending" ? "btn-primary" : "btn-light")">
+                                    <i class="fa-solid @(w.Status == "Pending" ? "fa-magnifying-glass" : "fa-eye")"></i>
+                                    @(w.Status == "Pending" ? "Review" : "View")
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            LMIS.initTable('#wprTable', { exportTitle: 'WPR Verification' });
+
+            $('.js-confirm-month').on('submit', function (e) {
+                var form = this;
+                if (form.dataset.confirmed === 'yes') return;
+                e.preventDefault();
+                var btn = form.querySelector('button');
+                LMIS.confirm({
+                    title: 'Verify ' + btn.dataset.count + ' WPR of ' + btn.dataset.label + '?',
+                    text: 'They will be accepted as submitted and can no longer be edited by you.',
+                    icon: 'question',
+                    confirmText: 'Yes, verify',
+                    danger: false
+                }).then(function (ok) {
+                    if (ok) { form.dataset.confirmed = 'yes'; form.submit(); }
+                });
+            });
+        });
+    </script>
+}

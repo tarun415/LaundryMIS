@@ -21,8 +21,8 @@ namespace LaudaryMis.Controllers
             {
                 var role = User.FindFirst(ClaimTypes.Role)?.Value;
 
-                if (role is "Admin" or "Hospital" or "Provider")
-                    return RedirectToAction("Dashboard", role);
+                if (role is "Admin" or "Hospital" or "ServiceProvider" or "CMS")
+                    return RedirectToAction("Dashboard", role == "ServiceProvider" ? "Provider" : role);
             }
 
             return View();

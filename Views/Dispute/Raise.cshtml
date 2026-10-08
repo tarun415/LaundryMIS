@@ -1,0 +1,130 @@
+@model LaudaryMis.ViewModels.RaiseDisputeVM
+
+@{
+    ViewBag.Title = "Raise Dispute";
+    int thisYear = DateTime.Today.Year;
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+    <div class="ph-text">
+        <h1>Raise a Bill Dispute</h1>
+        <p class="ph-sub">Tell us what is wrong with a bill you have printed. The hospital's CMS and the admin will see it.</p>
+    </div>
+    <div class="ph-actions">
+        <a asp-action="Mine" class="btn btn-light"><i class="fa-solid fa-list"></i> My disputes</a>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+<div class="row">
+    <div class="col-12 col-lg-8 col-xl-6">
+        <div class="card">
+            <div class="card-body">
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>@Html.ValidationSummary(false, "", new { @class = "d-inline" })</span>
+                    </div>
+                }
+
+                @if (Model.Hospitals.Count == 0)
+                {
+                    <p class="text-muted mb-0">You have no WPR yet, so there is no bill to dispute.</p>
+                }
+                else
+                {
+                    <form method="post" asp-action="Raise" id="disputeForm">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label" for="HospitalId">Hospital</label>
+                            <select class="form-select" id="HospitalId" name="HospitalId" required>
+                                @if (Model.Hospitals.Count > 1)
+                                {
+                                    <option value="">Select hospital</option>
+                                }
+                                @foreach (var h in Model.Hospitals)
+                                {
+                                    <option value="@h.Id" selected="@(Model.HospitalId == h.Id)">@h.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label" for="Year">Year</label>
+                                <select class="form-select" id="Year" name="Year" required>
+                                    @for (int y = thisYear; y >= thisYear - 3; y--)
+                                    {
+                                        <option value="@y" selected="@(Model.Year == y)">@y</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label" for="Month">Month</label>
+                                <select class="form-select" id="Month" name="Month" required>
+                                    <option value="">Select month</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-text mb-3" id="monthHint">Only months whose bill you have printed are listed.</div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="Remarks">What is the problem?</label>
+                            <textarea class="form-control" id="Remarks" name="Remarks" rows="5" maxlength="1000" required
+                                      placeholder="For example: the score of week 2 is lower than it should be because…">@Model.Remarks</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                            <i class="fa-solid fa-paper-plane"></i> Submit dispute
+                        </button>
+                    </form>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var hospital = document.getElementById('HospitalId');
+            var year = document.getElementById('Year');
+            var month = document.getElementById('Month');
+            var hint = document.getElementById('monthHint');
+            var submit = document.getElementById('submitBtn');
+            if (!hospital) return;
+
+            function load() {
+                month.innerHTML = '<option value="">Select month</option>';
+                submit.disabled = true;
+                if (!hospital.value || !year.value) return;
+
+                fetch('@Url.Action("PrintedMonths", "Dispute")?hospitalId=' + encodeURIComponent(hospital.value)
+                      + '&year=' + encodeURIComponent(year.value), { credentials: 'same-origin' })
+                    .then(function (r) { return r.json(); })
+                    .then(function (items) {
+                        items.forEach(function (m) {
+                            var o = document.createElement('option');
+                            o.value = m.month; o.textContent = m.label;
+                            if (String(m.month) === '@Model.Month') o.selected = true;
+                            month.appendChild(o);
+                        });
+                        hint.textContent = items.length
+                            ? 'Only months whose bill you have printed are listed.'
+                            : 'No month of this year has a printed bill that you can dispute (or a dispute is already open).';
+                        submit.disabled = items.length === 0;
+                    });
+            }
+
+            hospital.addEventListener('change', load);
+            year.addEventListener('change', load);
+            load();
+        })();
+    </script>
+}

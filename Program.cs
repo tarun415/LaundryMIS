@@ -60,8 +60,12 @@ builder.Services.AddScoped<IWardRepository, WardRepository>();
 builder.Services.AddScoped<IWardService, WardService>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<ILocationService, LocationService>();
-builder.Services.AddScoped<IMonthlyBillRepository, MonthlyBillRepository>();
-builder.Services.AddScoped<IMonthlyBillService, MonthlyBillService>();
+builder.Services.AddScoped<IBillRepository, BillRepository>();
+builder.Services.AddScoped<IBillService, BillService>();
+builder.Services.AddScoped<IDisputeRepository, DisputeRepository>();
+builder.Services.AddScoped<IDisputeService, DisputeService>();
+builder.Services.AddScoped<ICmsRepository, CmsRepository>();
+builder.Services.AddScoped<ICmsService, CmsService>();
 builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
 builder.Services.AddScoped<IDeliveryService, DeliveryService>();
 builder.Services.AddScoped<IPickUpRepository, PickUpRepository>();
@@ -108,6 +112,31 @@ RotativaConfiguration.Setup(
 app.UseRouting();
 
 app.UseAuthentication();
+
+// A CMS whose password the admin generated can do nothing but change it (or sign out)
+app.Use(async (context, next) =>
+{
+    var user = context.User;
+    if (user.Identity?.IsAuthenticated == true
+        && user.FindFirst("MustChangePassword")?.Value == "1")
+    {
+        var path = context.Request.Path;
+        bool allowed = path.StartsWithSegments("/Account/ChangePassword", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Account/Logout", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/Account/WhoAmI", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWithSegments("/css") || path.StartsWithSegments("/js")
+            || path.StartsWithSegments("/lib") || path.StartsWithSegments("/Images");
+
+        if (!allowed)
+        {
+            context.Response.Redirect("/Account/ChangePassword");
+            return;
+        }
+    }
+
+    await next();
+});
+
 app.UseAuthorization();
 
 app.MapControllerRoute(

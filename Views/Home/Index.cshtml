@@ -71,7 +71,8 @@
                     <button type="button" aria-haspopup="true" aria-expanded="false">Sign In <i class="fa-solid fa-chevron-down"></i></button>
                     <ul class="hp-dd-menu">
                         <li><a asp-controller="Account" asp-action="Login" asp-route-roleId="2"><i class="fa-solid fa-hospital"></i> Hospital</a></li>
-                        <li><a asp-controller="Account" asp-action="Login" asp-route-roleId="3"><i class="fa-solid fa-truck-fast"></i> Provider (vendor)</a></li>
+                        <li><a asp-controller="Account" asp-action="Login" asp-route-roleId="4"><i class="fa-solid fa-clipboard-user"></i> CMS</a></li>
+                        <li><a asp-controller="Account" asp-action="Login" asp-route-roleId="3"><i class="fa-solid fa-truck-fast"></i> Service Provider (vendor)</a></li>
                         <li><a asp-controller="Account" asp-action="Login" asp-route-roleId="1"><i class="fa-solid fa-user-shield"></i> Admin</a></li>
                     </ul>
                 </li>
@@ -160,13 +161,20 @@
                         <select id="hpRole" name="RoleId" required>
                             <option value="" selected disabled>Please select user type</option>
                             <option value="2">Hospital</option>
-                            <option value="3">Provider (vendor)</option>
+                            <option value="4">CMS</option>
+                            <option value="3">Service Provider (vendor)</option>
                             <option value="1">Admin</option>
                         </select>
 
                         <div id="hpUserWrap" hidden>
                             <label for="hpUsername">Username</label>
                             <input type="text" id="hpUsername" name="Username" autocomplete="username" placeholder="Enter your username" />
+                        </div>
+                        <div id="hpCmsWrap" hidden>
+                            <label for="hpDistrict">District</label>
+                            <select id="hpDistrict" name="DistrictId"><option value="">Select district</option></select>
+                            <label for="hpHospital">Hospital</label>
+                            <select id="hpHospital" name="HospitalId" disabled><option value="">Select the district first</option></select>
                         </div>
                         <div id="hpLoginIdWrap">
                             <label for="hpLoginId">Mobile number or email</label>
@@ -265,9 +273,9 @@
                         <p>The firm accepts the pickup and delivers it back; the hospital checks and verifies the delivery.</p>
                     </div>
                     <div class="hp-step">
-                        <span class="who">Hospital &amp; admin</span>
+                        <span class="who">Hospital, CMS &amp; admin</span>
                         <h3>Score and pay</h3>
-                        <p>Weekly WPR scores set the monthly payment, which the admin approves.</p>
+                        <p>The hospital submits the weekly WPR, its CMS verifies it, and the verified scores set the monthly payment, which the admin approves.</p>
                     </div>
                     <div class="hp-step">
                         <span class="who">Firm</span>
@@ -396,17 +404,52 @@
             car.addEventListener("mouseleave", play);
             play();
 
-            // ---- Login: admin signs in with a username, hospital and vendor with a mobile number or email
+            // ---- Login: admin signs in with a username, CMS by district + hospital,
+            //      hospital and vendor with a mobile number or email
             var role = document.getElementById("hpRole");
             var userWrap = document.getElementById("hpUserWrap");
             var idWrap = document.getElementById("hpLoginIdWrap");
+            var cmsWrap = document.getElementById("hpCmsWrap");
+            var district = document.getElementById("hpDistrict");
+            var hospital = document.getElementById("hpHospital");
             var err = document.getElementById("hpLoginErr");
-            role.addEventListener("change", function () {
-                var admin = role.value === "1";
-                userWrap.hidden = !admin;
-                idWrap.hidden = admin;
-                err.hidden = true;
+            var cmsLoaded = false;
+
+            function fill(sel, items, placeholder) {
+                sel.innerHTML = "";
+                var first = document.createElement("option");
+                first.value = ""; first.textContent = placeholder;
+                sel.appendChild(first);
+                items.forEach(function (it) {
+                    var o = document.createElement("option");
+                    o.value = it.id; o.textContent = it.name;
+                    sel.appendChild(o);
+                });
+            }
+            function loadCmsDistricts() {
+                if (cmsLoaded) return;
+                fetch("/Account/CmsDistricts", { credentials: "same-origin" })
+                    .then(function (r) { return r.json(); })
+                    .then(function (items) {
+                        cmsLoaded = true;
+                        fill(district, items, items.length ? "Select district" : "No CMS accounts yet");
+                    });
+            }
+            district.addEventListener("change", function () {
+                if (!district.value) { fill(hospital, [], "Select the district first"); hospital.disabled = true; return; }
+                fetch("/Account/CmsHospitals?districtId=" + encodeURIComponent(district.value), { credentials: "same-origin" })
+                    .then(function (r) { return r.json(); })
+                    .then(function (items) { fill(hospital, items, "Select hospital"); hospital.disabled = false; });
             });
+            function showFields() {
+                var v = role.value;
+                userWrap.hidden = v !== "1";
+                cmsWrap.hidden = v !== "4";
+                idWrap.hidden = v === "1" || v === "4";
+                if (v === "4") loadCmsDistricts();
+                err.hidden = true;
+            }
+            role.addEventListener("change", showFields);
             document.getElementById("hpPwdToggle").addEventListener("click", function () {
                 var input = document.getElementById("hpPassword");
                 var showPwd = input.type === "password";
@@ -416,13 +459,14 @@
             });
             var form = document.getElementById("hpLoginForm");
             form.addEventListener("reset", function () {
-                setTimeout(function () { userWrap.hidden = true; idWrap.hidden = false; err.hidden = true; }, 0);
+                setTimeout(function () { userWrap.hidden = true; cmsWrap.hidden = true; idWrap.hidden = false; fill(hospital, [], "Select the district first"); hospital.disabled = true; err.hidden = true; }, 0);
             });
             form.addEventListener("submit", function (e) {
                 var msg = "";
                 if (!role.value) msg = "Please select the user type.";
                 else if (role.value === "1" && !document.getElementById("hpUsername").value.trim()) msg = "Enter your username.";
-                else if (role.value !== "1" && !document.getElementById("hpLoginId").value.trim()) msg = "Enter your mobile number or email.";
+                else if (role.value === "4" && !hospital.value) msg = "Select the district and the hospital.";
+                else if (role.value !== "1" && role.value !== "4" && !document.getElementById("hpLoginId").value.trim()) msg = "Enter your mobile number or email.";
                 else if (!document.getElementById("hpPassword").value) msg = "Enter your password.";
                 if (msg) { e.preventDefault(); err.textContent = msg; err.hidden = false; return; }
                 var btn = document.getElementById("hpSignIn");

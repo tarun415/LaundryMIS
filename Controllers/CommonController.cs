@@ -57,7 +57,7 @@ namespace LaudaryMis.Controllers
         public async Task<IActionResult> GetHospitals(int providerId)
         {
             // A vendor may list only its own hospitals
-            if (!User.IsAdmin() && !(User.IsInRole("Provider") && User.ProviderId() == providerId))
+            if (!User.IsAdmin() && !(User.IsInRole("ServiceProvider") && User.ProviderId() == providerId))
                 return Forbid();
 
             var data =

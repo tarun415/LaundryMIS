@@ -32,6 +32,17 @@ namespace LaudaryMis.Services
             return await _repo.LoginProvider(loginId, password);
         }
 
+        public async Task<LoginResult?> LoginCms(int hospitalId, string password)
+        {
+            return await _repo.LoginCms(hospitalId, password);
+        }
+
+        public async Task<(bool Success, string Message)> ChangePasswordAsync(
+            int userId, string currentPassword, string newPassword)
+        {
+            return await _repo.ChangePasswordAsync(userId, currentPassword, newPassword);
+        }
+
         public async Task<LoginResult> RegisterHospital(RegisterVM model)
         {
             return await _repo.RegisterHospital(model);

@@ -1,0 +1,76 @@
+@model List<LaudaryMis.ViewModels.DisputeListItemVM>
+
+@{
+    bool isAdmin = User.IsInRole("Admin");
+    bool isVendor = User.IsInRole("ServiceProvider");
+    bool showHospital = !User.IsInRole("CMS");
+    bool showVendor = !isVendor;
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="disputeTable" class="table table-hover align-middle w-100">
+                <thead>
+                    <tr>
+                        <th data-priority="1">Bill month</th>
+                        @if (showHospital) { <th data-priority="2">Hospital</th> }
+                        @if (showVendor) { <th data-priority="3">Vendor</th> }
+                        <th data-priority="4">Dispute</th>
+                        <th data-priority="1">Status</th>
+                        <th data-priority="3">Raised</th>
+                        <th data-priority="5">Outcome</th>
+                        @if (isAdmin) { <th data-priority="1" class="text-end">Action</th> }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold" data-order="@(d.BillYear * 100 + d.BillMonth)">@d.MonthLabel</td>
+                            @if (showHospital) { <td>@d.HospitalName<div class="text-muted small">@d.DistrictName</div></td> }
+                            @if (showVendor) { <td>@d.ProviderName</td> }
+                            <td style="min-width:220px">@d.Remarks</td>
+                            <td><span class="badge @d.StatusBadge">@d.Status</span></td>
+                            <td class="nowrap" data-order="@d.RaisedAt.Ticks">@d.RaisedAt.ToString("dd MMM yyyy")</td>
+                            <td style="min-width:200px">
+                                @if (!d.IsOpen)
+                                {
+                                    <div>@d.ResolutionRemarks</div>
+                                    <div class="text-muted small">@d.ResolvedAt?.ToString("dd MMM yyyy")</div>
+                                    @if (d.HasLetter)
+                                    {
+                                        <a asp-controller="Dispute" asp-action="Letter" asp-route-id="@d.Id" target="_blank" class="small">
+                                            <i class="fa-solid fa-paperclip"></i> CMS letter
+                                        </a>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Waiting for the admin</span>
+                                }
+                            </td>
+                            @if (isAdmin)
+                            {
+                                <td class="text-end">
+                                    @if (d.IsOpen)
+                                    {
+                                        <a asp-controller="Dispute" asp-action="Resolve" asp-route-id="@d.Id" class="btn btn-sm btn-primary">
+                                            <i class="fa-solid fa-screwdriver-wrench"></i> Open
+                                        </a>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.LMIS && LMIS.initTable) LMIS.initTable('#disputeTable', { exportTitle: 'Bill Disputes' });
+    });
+</script>

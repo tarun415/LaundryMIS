@@ -1,0 +1,34 @@
+@model List<LaudaryMis.ViewModels.DisputeListItemVM>
+
+@{
+    ViewBag.Title = "Bill Disputes";
+    string? status = ViewBag.Status as string;
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+    <div class="ph-text">
+        <h1>Bill Disputes</h1>
+        <p class="ph-sub">Disputes raised by service providers, across all hospitals</p>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="status">Status</label>
+                <select class="form-select" id="status" name="status" onchange="this.form.submit()">
+                    <option value="">All</option>
+                    <option value="Open" selected="@(status == "Open")">Open</option>
+                    <option value="Resolved" selected="@(status == "Resolved")">Resolved</option>
+                    <option value="Rejected" selected="@(status == "Rejected")">Rejected</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<partial name="_DisputeTable" model="@Model" />

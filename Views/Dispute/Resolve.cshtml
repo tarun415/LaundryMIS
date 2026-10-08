@@ -1,0 +1,165 @@
+@model LaudaryMis.ViewModels.DisputeResolveVM
+
+@{
+    ViewBag.Title = "Resolve Dispute";
+    var d = Model.Dispute;
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+    <div class="ph-text">
+        <h1>Dispute &mdash; @d.MonthLabel</h1>
+        <p class="ph-sub">@d.HospitalName &middot; @d.ProviderName</p>
+    </div>
+    <div class="ph-actions">
+        <span class="badge @d.StatusBadge" style="font-size:.8rem;padding:7px 14px;">@d.Status</span>
+        <a asp-action="Index" class="btn btn-light"><i class="fa-solid fa-arrow-left"></i> All disputes</a>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+<div class="card mb-3">
+    <div class="card-header">
+        <i class="fa-solid fa-comment-dots text-teal"></i>
+        <span class="card-title">What the service provider says</span>
+        <span class="ms-auto text-muted small">Raised @d.RaisedAt.ToString("dd MMM yyyy, hh:mm tt")</span>
+    </div>
+    <div class="card-body">@d.Remarks</div>
+</div>
+
+@if (!d.IsOpen)
+{
+    <div class="alert alert-info">
+        <i class="fa-solid fa-lock"></i>
+        <span>This dispute is closed (@d.Status@(d.ResolvedAt != null ? " on " + d.ResolvedAt.Value.ToString("dd MMM yyyy") : "")).
+              @d.ResolutionRemarks
+              @if (d.HasLetter)
+              {
+                  <a asp-action="Letter" asp-route-id="@d.Id" target="_blank"><i class="fa-solid fa-paperclip"></i> CMS letter</a>
+              }
+        </span>
+    </div>
+}
+else
+{
+    <form method="post" asp-action="Resolve" enctype="multipart/form-data" id="resolveForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="DisputeId" value="@d.Id" />
+
+        <div class="alert alert-warning">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Change the scores that were wrong, attach the CMS letter and save. The WPR stays verified and
+                  the service provider can print the revised bill straight away. Every change is logged under your name.</span>
+        </div>
+
+        @if (Model.Weeks.Count == 0)
+        {
+            <div class="alert alert-danger">No WPR was found for this month.</div>
+        }
+
+        @for (int w = 0; w < Model.Weeks.Count; w++)
+        {
+            var wpr = Model.Weeks[w];
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="fa-solid fa-calendar-week text-teal"></i>
+                    <span class="card-title">Week @wpr.Week</span>
+                    <span class="ms-auto"><span class="badge badge-teal js-week-total" data-week="@w">@wpr.TotalScore / 100</span></span>
+                </div>
+                <div class="card-body p-0">
+                    <input type="hidden" name="Weeks[@w].Id" value="@wpr.Id" />
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <tbody>
+                                @for (int i = 0; i < wpr.Scores.Count; i++)
+                                {
+                                    var s = wpr.Scores[i];
+                                    <tr>
+                                        <td style="width:48px">@s.ParameterId</td>
+                                        <td>@s.ParameterName</td>
+                                        <td class="text-end" style="width:130px">
+                                            <input type="hidden" name="Weeks[@w].Scores[@i].ParameterId" value="@s.ParameterId" />
+                                            <input type="number" class="form-control form-control-sm text-end js-score d-inline-block"
+                                                   style="width:80px" name="Weeks[@w].Scores[@i].Score" value="@s.Score"
+                                                   data-original="@s.Score" data-week="@w" min="0" max="10" step="1" required />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fa-solid fa-file-circle-check text-teal"></i>
+                <span class="card-title">Close the dispute</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label" for="Remarks">What was corrected, and why <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="Remarks" name="Remarks" rows="3" maxlength="1000" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="Letter">CMS letter <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control" id="Letter" name="Letter" accept=".pdf,.jpg,.jpeg,.png" required />
+                    <div class="form-text">PDF, JPG or PNG, up to 5 MB.</div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-success" @(Model.Weeks.Count == 0 ? "disabled" : "")>
+                        <i class="fa-solid fa-check"></i> Save corrections &amp; resolve
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                        <i class="fa-solid fa-xmark"></i> The bill is correct &mdash; reject dispute
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa-solid fa-circle-xmark text-danger me-1"></i> Reject this dispute</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="Reject" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@d.Id" />
+                    <div class="modal-body">
+                        <label class="form-label" for="rejectRemarks">Reason <span class="text-danger">*</span></label>
+                        <textarea name="remarks" id="rejectRemarks" class="form-control" rows="3" maxlength="1000" required></textarea>
+                        <div class="form-text">The service provider will see this reason. No WPR is changed.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger"><i class="fa-solid fa-xmark"></i> Reject</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            var inputs = document.querySelectorAll('.js-score');
+            inputs.forEach(function (i) {
+                i.addEventListener('input', function () {
+                    var week = i.dataset.week, total = 0;
+                    document.querySelectorAll('.js-score[data-week="' + week + '"]').forEach(function (x) {
+                        var v = parseInt(x.value, 10); total += isNaN(v) ? 0 : v;
+                    });
+                    var badge = document.querySelector('.js-week-total[data-week="' + week + '"]');
+                    if (badge) badge.textContent = total + ' / 100';
+                });
+            });
+        })();
+    </script>
+}

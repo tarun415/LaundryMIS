@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace LaudaryMis.Controllers
 {
-    [Authorize(Roles = "Provider")]
+    [Authorize(Roles = "ServiceProvider")]
     public class ProviderController : Controller
     {
         private readonly IDailyService _service;

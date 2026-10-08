@@ -19,6 +19,14 @@ namespace LaudaryMis.Repositories.Interfaces
 
         Task<int> InsertWPREntryAsync(WPREntry entry);
 
+        // CMS review
+        Task<List<WprListItemVM>> GetWprListAsync(int? hospitalId, int? providerId, string? status, int? month, int? year);
+        Task<WprReviewVM?> GetWprReviewAsync(int id);
+        Task<(int Pending, int Verified)> GetStatusCountsAsync(int hospitalId);
+        Task<List<int>> GetPendingIdsAsync(int hospitalId, int month, int year);
+        Task ApplyEditAsync(WprEditCommand cmd);
+        Task<int> VerifyAsync(IEnumerable<int> ids, int hospitalId, int userId);
+
         Task<int> SaveWPRAsync(
     WeeklyPerformanceReport wpr,
     WPREntry entry,

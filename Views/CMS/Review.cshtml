@@ -1,0 +1,213 @@
+@model LaudaryMis.ViewModels.WprReviewVM
+
+@{
+    ViewBag.Title = "Review WPR";
+    bool editable = Model.IsPending;
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+    <div class="ph-text">
+        <h1>WPR &mdash; @Model.MonthLabel, Week @Model.Week</h1>
+        <p class="ph-sub">@Model.HospitalName @(string.IsNullOrEmpty(Model.ProviderName) ? "" : "· " + Model.ProviderName)</p>
+    </div>
+    <div class="ph-actions">
+        @if (Model.IsPending)
+        {
+            <span class="badge badge-warn" style="font-size:.8rem;padding:7px 14px;"><i class="fa-solid fa-hourglass-half"></i> Pending</span>
+        }
+        else
+        {
+            <span class="badge badge-ok" style="font-size:.8rem;padding:7px 14px;"><i class="fa-solid fa-circle-check"></i> Verified</span>
+        }
+        <a asp-action="WprList" asp-route-status="@(Model.IsPending ? "Pending" : null)" class="btn btn-light"><i class="fa-solid fa-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+@if (!editable)
+{
+    <div class="alert alert-info">
+        <i class="fa-solid fa-lock"></i>
+        <span>This WPR was verified@(Model.VerifiedAt != null ? " on " + Model.VerifiedAt.Value.ToString("dd MMM yyyy") : "") and is locked.
+              A change now needs a bill dispute, which only the admin can act on.</span>
+    </div>
+}
+
+<form method="post" asp-action="Review" id="reviewForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="Id" value="@Model.Id" />
+
+    <div class="row g-3">
+
+        <div class="col-12 col-xl-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-list-check text-teal"></i>
+                    <span class="card-title">Performance parameters</span>
+                    <span class="ms-auto text-muted small">@(editable ? "You can change a score (0 – 10)" : "Read only")</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width:48px">#</th>
+                                    <th>Parameter</th>
+                                    <th style="width:150px" class="text-end">Score (out of 10)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Scores.Count; i++)
+                                {
+                                    var s = Model.Scores[i];
+                                    <tr>
+                                        <td>@s.ParameterId</td>
+                                        <td>@s.ParameterName</td>
+                                        <td class="text-end">
+                                            <input type="hidden" name="Scores[@i].ParameterId" value="@s.ParameterId" />
+                                            @if (editable)
+                                            {
+                                                <input type="number" class="form-control form-control-sm text-end js-score d-inline-block"
+                                                       style="width:90px" name="Scores[@i].Score" value="@s.Score"
+                                                       data-original="@s.Score" min="0" max="10" step="1" required />
+                                            }
+                                            else
+                                            {
+                                                <input type="hidden" name="Scores[@i].Score" value="@s.Score" />
+                                                <strong>@s.Score</strong>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.HospitalRemarks))
+            {
+                <div class="card mt-3">
+                    <div class="card-header"><i class="fa-solid fa-comment-dots text-teal"></i><span class="card-title">Hospital's remarks</span></div>
+                    <div class="card-body">@Model.HospitalRemarks</div>
+                </div>
+            }
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-gauge-high text-teal"></i>
+                    <span class="card-title">Score</span>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-2">
+                        <div class="score-big" id="totalDisplay">@Model.TotalScore</div>
+                        <div class="score-sub">out of 100</div>
+                    </div>
+                    <div class="text-center mb-3">
+                        <span class="badge badge-teal" id="bandDisplay">@Model.PaymentPercentage% payment</span>
+                    </div>
+                    <div class="text-muted small text-center">
+                        Submitted @Model.SubmittedAt.ToString("dd MMM yyyy, hh:mm tt")
+                    </div>
+
+                    @if (editable)
+                    {
+                        <hr />
+                        <div class="mb-3">
+                            <label class="form-label" for="EditRemarks">Reason for the change <span class="text-danger" id="reasonStar" style="display:none">*</span></label>
+                            <textarea class="form-control" id="EditRemarks" name="EditRemarks" rows="3" maxlength="500"
+                                      placeholder="Needed only if you change a score…"></textarea>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="Action" value="verify" class="btn btn-success">
+                                <i class="fa-solid fa-check"></i> Verify &amp; Accept
+                            </button>
+                            <button type="submit" name="Action" value="save" class="btn btn-outline-primary">
+                                <i class="fa-solid fa-floppy-disk"></i> Save changes only
+                            </button>
+                        </div>
+                        <p class="text-muted small mt-3 mb-0">
+                            Once verified, the WPR is locked and the service provider can use it for the bill.
+                            Every change you make is logged.
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <i class="fa-solid fa-clock-rotate-left text-teal"></i>
+        <span class="card-title">Change log</span>
+    </div>
+    <div class="card-body">
+        @if (Model.EditLog.Count == 0)
+        {
+            <p class="text-muted mb-0">No score of this WPR was changed after the hospital submitted it.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr><th>When</th><th>By</th><th>Parameter</th><th class="text-end">Score</th><th class="text-end">Total</th><th>Reason</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var l in Model.EditLog)
+                        {
+                            <tr>
+                                <td class="nowrap">@l.EditedAt.ToString("dd MMM yyyy, hh:mm tt")</td>
+                                <td>@l.EditedByRole @(string.IsNullOrEmpty(l.EditedByName) ? "" : "(" + l.EditedByName + ")")</td>
+                                <td>@l.ParameterName</td>
+                                <td class="text-end">@(l.OldScore?.ToString() ?? "—") &rarr; <strong>@l.NewScore</strong></td>
+                                <td class="text-end">@(l.OldTotal?.ToString() ?? "—") &rarr; <strong>@l.NewTotal</strong></td>
+                                <td>@l.Remarks</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var inputs = document.querySelectorAll('.js-score');
+            if (!inputs.length) return;
+
+            function band(total) {
+                if (total <= 20) return 0;
+                if (total <= 40) return 40;
+                if (total <= 60) return 60;
+                if (total <= 70) return 80;
+                if (total <= 80) return 90;
+                return 100;
+            }
+
+            function recalc() {
+                var total = 0, changed = false;
+                inputs.forEach(function (i) {
+                    var v = parseInt(i.value, 10);
+                    if (isNaN(v)) v = 0;
+                    total += v;
+                    if (String(v) !== i.dataset.original) changed = true;
+                });
+                document.getElementById('totalDisplay').textContent = total;
+                document.getElementById('bandDisplay').textContent = band(total) + '% payment';
+                document.getElementById('reasonStar').style.display = changed ? 'inline' : 'none';
+                document.getElementById('EditRemarks').required = changed;
+            }
+
+            inputs.forEach(function (i) { i.addEventListener('input', recalc); });
+            recalc();
+        })();
+    </script>
+}
