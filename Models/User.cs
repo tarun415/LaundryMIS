@@ -19,5 +19,8 @@
         public bool IsActive { get; set; }
 
         public int RoleId { get; set; }
+
+        // True while the password is one the admin generated (CMS must change it at first sign-in)
+        public bool MustChangePassword { get; set; }
     }
 }

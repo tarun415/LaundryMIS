@@ -1,0 +1,107 @@
+@model List<LaudaryMis.ViewModels.WprListItemVM>
+
+@{
+    ViewBag.Title = "Submitted WPR";
+    string? status = ViewBag.Status as string;
+    int? month = ViewBag.Month as int?;
+    int? year = ViewBag.Year as int?;
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-list-check"></i></div>
+    <div class="ph-text">
+        <h1>Submitted WPR</h1>
+        <p class="ph-sub">A submitted WPR cannot be changed. Your CMS reviews and verifies it.</p>
+    </div>
+    <div class="ph-actions">
+        <a asp-action="WPREntry" class="btn btn-primary"><i class="fa-solid fa-plus"></i> New WPR</a>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="status">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">All</option>
+                    <option value="Pending" selected="@(status == "Pending")">Pending</option>
+                    <option value="Verified" selected="@(status == "Verified")">Verified</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="month">Month</label>
+                <select class="form-select" id="month" name="month">
+                    <option value="">All</option>
+                    @for (int m = 1; m <= 12; m++)
+                    {
+                        <option value="@m" selected="@(month == m)">@(new DateTime(2000, m, 1).ToString("MMMM"))</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="year">Year</label>
+                <input type="number" class="form-control" id="year" name="year" value="@year" min="2000" max="2100" placeholder="All" />
+            </div>
+            <div class="col-6 col-md-3">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
+                <a asp-action="MyWprs" class="btn btn-light">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="wprTable" class="table table-hover align-middle w-100">
+                <thead>
+                    <tr>
+                        <th data-priority="1">Month</th>
+                        <th data-priority="1">Week</th>
+                        <th data-priority="2" class="text-end">Score</th>
+                        <th data-priority="3" class="text-end">Payment</th>
+                        <th data-priority="1">Status</th>
+                        <th data-priority="3">Submitted</th>
+                        <th data-priority="4">Verified on</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var w in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold" data-order="@(w.Year * 100 + w.Month)">@w.MonthLabel</td>
+                            <td>Week @w.Week</td>
+                            <td class="text-end">@w.TotalScore / 100</td>
+                            <td class="text-end">@w.PaymentPercentage%</td>
+                            <td>
+                                @if (w.Status == "Verified")
+                                {
+                                    <span class="badge badge-ok"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-warn"><i class="fa-solid fa-hourglass-half"></i> Pending</span>
+                                }
+                                @if (w.LastEditedAt != null)
+                                {
+                                    <span class="badge badge-navy" title="The CMS or admin changed some scores">edited</span>
+                                }
+                            </td>
+                            <td class="nowrap" data-order="@w.SubmittedAt.Ticks">@w.SubmittedAt.ToString("dd MMM yyyy")</td>
+                            <td class="nowrap">@(w.VerifiedAt?.ToString("dd MMM yyyy") ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () { LMIS.initTable('#wprTable', { exportTitle: 'Submitted WPR' }); });
+    </script>
+}

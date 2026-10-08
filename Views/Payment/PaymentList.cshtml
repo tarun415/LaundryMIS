@@ -161,14 +161,14 @@
                                     </a>
                                     @if (item.InvoiceId == null)
                                     {
-                                        @if (User.IsInRole("Provider") && item.Status != "Approved")
+                                        @if (User.IsInRole("ServiceProvider") && item.Status != "Approved")
                                         {
                                             <span class="badge badge-navy" data-bs-toggle="tooltip"
                                                   title="The invoice can be created after the payment is approved">
                                                 Awaiting approval
                                             </span>
                                         }
-                                        else if (User.IsInRole("Provider"))
+                                        else if (User.IsInRole("ServiceProvider"))
                                         {
                                             <a asp-controller="Invoice"
                                                asp-action="GenerateInvoice"

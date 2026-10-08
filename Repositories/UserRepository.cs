@@ -196,6 +196,64 @@ namespace LaudaryMis.Repositories
             };
         }
 
+        // CMS signs in by hospital (one CMS login per hospital) and password
+        public async Task<LoginResult> LoginCms(int hospitalId, string password)
+        {
+            using var con = new SqlConnection(
+                _config.GetConnectionString("DefaultConnection"));
+
+            var candidates = (await con.QueryAsync<User>(@"
+                SELECT u.*, r.RoleName
+                FROM Tbl_Users u
+                INNER JOIN Tbl_Roles r ON u.RoleId = r.RoleId
+                WHERE u.RoleId = 4 AND u.IsActive = 1 AND u.HospitalId = @HospitalId",
+                new { HospitalId = hospitalId })).ToList();
+
+            var (user, refusal) = PickByPassword(candidates, password);
+            if (user == null)
+                return new LoginResult
+                {
+                    Success = false,
+                    Message = refusal!.Message == ContactLoginFailed
+                        ? "Incorrect hospital or password."
+                        : refusal.Message
+                };
+
+            if (PasswordHasher.NeedsRehash(user.PasswordHash))
+            {
+                await con.ExecuteAsync(
+                    "UPDATE Tbl_Users SET PasswordHash = @Hash WHERE UserId = @UserId",
+                    new { Hash = PasswordHasher.Hash(password), user.UserId });
+            }
+
+            return new LoginResult { Success = true, User = user };
+        }
+
+        public async Task<(bool Success, string Message)> ChangePasswordAsync(
+            int userId, string currentPassword, string newPassword)
+        {
+            using var con = new SqlConnection(
+                _config.GetConnectionString("DefaultConnection"));
+
+            var hash = await con.ExecuteScalarAsync<string?>(
+                "SELECT PasswordHash FROM Tbl_Users WHERE UserId = @userId AND IsActive = 1",
+                new { userId });
+
+            if (hash == null || !PasswordHasher.Verify(currentPassword, hash))
+                return (false, "The current password is incorrect.");
+
+            if (currentPassword == newPassword)
+                return (false, "The new password must be different from the current one.");
+
+            await con.ExecuteAsync(@"
+                UPDATE Tbl_Users
+                SET PasswordHash = @Hash, MustChangePassword = 0
+                WHERE UserId = @userId",
+                new { Hash = PasswordHasher.Hash(newPassword), userId });
+
+            return (true, "");
+        }
+
         private class ApprovalRow
         {
             public string? ApprovalStatus { get; set; }

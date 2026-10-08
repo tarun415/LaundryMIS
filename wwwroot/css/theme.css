@@ -1269,7 +1269,7 @@ tr.critical-row > td { background: rgba(253, 236, 235, .6) !important; }
     font-weight: 600;
 }
 
-.role-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 20px; }
+.role-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; margin-bottom: 20px; }
 
 .role-btn {
     padding: 13px 8px;
@@ -1498,3 +1498,59 @@ tr.critical-row > td { background: rgba(253, 236, 235, .6) !important; }
 /* Auto-added serial number column (see LMIS.initTable) */
 .lmis-serial { width: 52px; white-space: nowrap; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 th.lmis-serial { color: inherit; }
+
+/* -------------------------------------------------------------------------
+   Sticky table header + scrollbar (see js/table-sticky.js): a copy of a wide
+   table's scrollbar pinned to the bottom of the window while the real one is
+   still below the visible screen.
+   ---------------------------------------------------------------------- */
+.sticky-hscroll {
+    position: fixed;
+    bottom: 0;
+    z-index: 1020;
+    height: 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: none;
+    background: rgba(255, 255, 255, .92);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -2px 8px rgba(11, 31, 58, .08);
+}
+.sticky-hscroll.show { display: block; }
+.sticky-hscroll > div { height: 1px; }
+
+@media print {
+    .sticky-hscroll { display: none !important; }
+}
+
+/* Copy of a table header, pinned under the top bar while its rows scroll past */
+.sticky-thead {
+    position: fixed;
+    z-index: 1019;
+    display: none;
+    overflow: hidden;
+    pointer-events: auto;
+    box-shadow: 0 3px 8px rgba(11, 31, 58, .12);
+}
+.sticky-thead.show { display: block; }
+.sticky-thead table { border-collapse: separate; border-spacing: 0; }
+/* The header copy is sized from the real header cells' measured widths, padding included */
+.sticky-thead table, .sticky-thead th { box-sizing: border-box !important; }
+@media print {
+    .sticky-thead { display: none !important; }
+}
+
+/* -------------------------------------------------------------------------
+   Sidebar open / close button (also on desktop). On a phone the sidebar slides
+   over the page (rules in the responsive section); on a desktop it makes room.
+   ---------------------------------------------------------------------- */
+.topbar-toggle { display: inline-flex; }
+
+@media (min-width: 992px) {
+    .app-sidebar { transition: margin-left .24s ease, opacity .2s ease; }
+    body.sidebar-collapsed .app-sidebar {
+        margin-left: calc(-1 * var(--sidebar-w));
+        opacity: 0;
+        pointer-events: none;
+    }
+}

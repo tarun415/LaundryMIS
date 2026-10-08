@@ -1,0 +1,112 @@
+@model List<LaudaryMis.ViewModels.WprListItemVM>
+
+@{
+    ViewBag.Title = "WPR Status";
+    string? status = ViewBag.Status as string;
+    int? hospitalId = ViewBag.HospitalId as int?;
+    int? month = ViewBag.Month as int?;
+    int? year = ViewBag.Year as int?;
+    var hospitals = ViewBag.Hospitals as List<LaudaryMis.ViewModels.OptionVM> ?? new();
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+    <div class="ph-text">
+        <h1>WPR Status</h1>
+        <p class="ph-sub">Weekly performance reports of your hospitals. Your bill uses only the verified ones.</p>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="hospitalId">Hospital</label>
+                <select class="form-select" id="hospitalId" name="hospitalId">
+                    <option value="">All</option>
+                    @foreach (var h in hospitals)
+                    {
+                        <option value="@h.Id" selected="@(hospitalId == h.Id)">@h.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="status">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">All</option>
+                    <option value="Pending" selected="@(status == "Pending")">Pending</option>
+                    <option value="Verified" selected="@(status == "Verified")">Verified</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="month">Month</label>
+                <select class="form-select" id="month" name="month">
+                    <option value="">All</option>
+                    @for (int m = 1; m <= 12; m++)
+                    {
+                        <option value="@m" selected="@(month == m)">@(new DateTime(2000, m, 1).ToString("MMMM"))</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="year">Year</label>
+                <input type="number" class="form-control" id="year" name="year" value="@year" min="2000" max="2100" placeholder="All" />
+            </div>
+            <div class="col-6 col-md-3">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
+                <a asp-action="WprStatus" class="btn btn-light">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="wprTable" class="table table-hover align-middle w-100">
+                <thead>
+                    <tr>
+                        <th data-priority="1">Hospital</th>
+                        <th data-priority="1">Month</th>
+                        <th data-priority="1">Week</th>
+                        <th data-priority="2" class="text-end">Score</th>
+                        <th data-priority="3" class="text-end">Payment</th>
+                        <th data-priority="1">Status</th>
+                        <th data-priority="4">Verified on</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var w in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@w.HospitalName</td>
+                            <td data-order="@(w.Year * 100 + w.Month)">@w.MonthLabel</td>
+                            <td>Week @w.Week</td>
+                            <td class="text-end">@w.TotalScore / 100</td>
+                            <td class="text-end">@w.PaymentPercentage%</td>
+                            <td>
+                                @if (w.Status == "Verified")
+                                {
+                                    <span class="badge badge-ok"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-warn"><i class="fa-solid fa-hourglass-half"></i> Pending</span>
+                                }
+                            </td>
+                            <td class="nowrap">@(w.VerifiedAt?.ToString("dd MMM yyyy") ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () { LMIS.initTable('#wprTable', { exportTitle: 'WPR Status' }); });
+    </script>
+}

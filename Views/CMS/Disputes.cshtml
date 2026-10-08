@@ -1,0 +1,18 @@
+@model List<LaudaryMis.ViewModels.DisputeListItemVM>
+
+@{
+    ViewBag.Title = "Bill Disputes";
+    string? status = ViewBag.Status as string;
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+    <div class="ph-text">
+        <h1>Bill Disputes</h1>
+        <p class="ph-sub">Disputes raised by the service provider on your hospital's bills. Only the admin can correct a WPR.</p>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+<partial name="_DisputeTable" model="@Model" />

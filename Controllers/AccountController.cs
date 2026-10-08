@@ -16,10 +16,12 @@ namespace LaudaryMis.Controllers
         private readonly LoginAttemptTracker _attempts;
         private readonly IActivationCodeService _activation;
         private readonly IContactService _contact;
+        private readonly ICmsService _cms;
 
         public AccountController(IUserService service, LoginAttemptTracker attempts,
-            IActivationCodeService activation, IContactService contact)
+            IActivationCodeService activation, IContactService contact, ICmsService cms)
         {
+            _cms = cms;
             _service = service;
             _attempts = attempts;
             _activation = activation;
@@ -30,7 +32,7 @@ namespace LaudaryMis.Controllers
         public IActionResult Login(int roleId = 0)
         {
             // The home page links straight to the Hospital / Provider tab (?roleId=2 / 3)
-            return View(roleId is 2 or 3 ? new LoginVM { RoleId = roleId } : null);
+            return View(roleId is 2 or 3 or 4 ? new LoginVM { RoleId = roleId } : null);
         }
 
         [HttpPost]
@@ -51,12 +53,20 @@ namespace LaudaryMis.Controllers
                 }
             }
 
+            // CMS signs in by picking the district, then the hospital, and typing the password
+            if (model.RoleId == 4 && (model.HospitalId is null or <= 0))
+            {
+                ModelState.AddModelError("", "Select the district and the hospital.");
+                return View(model);
+            }
+
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var account = model.RoleId switch
             {
                 1 => "admin:" + (model.Username ?? "").Trim().ToLowerInvariant(),
                 2 => "hospital:" + loginId,
                 3 => "provider:" + loginId,
+                4 => "cms:" + model.HospitalId,
                 _ => "other"
             };
 
@@ -73,6 +83,7 @@ namespace LaudaryMis.Controllers
                 1 => await _service.Login(model.Username ?? "", model.Password, model.RoleId),
                 2 => await _service.LoginHospital(loginId!, model.Password),
                 3 => await _service.LoginProvider(loginId!, model.Password),
+                4 => await _service.LoginCms(model.HospitalId!.Value, model.Password),
                 _ => null
             };
 
@@ -93,7 +104,11 @@ namespace LaudaryMis.Controllers
 
             var roleName = await SignInUser(user!, model.RoleId);
 
-            return RedirectToAction("Dashboard", roleName);
+            // A password the admin generated must be changed before anything else
+            if (user!.MustChangePassword)
+                return RedirectToAction(nameof(ChangePassword));
+
+            return RedirectToAction("Dashboard", DashboardController(roleName));
         }
 
         // ──────────────────────────────────────────────────────
@@ -166,7 +181,7 @@ namespace LaudaryMis.Controllers
             var roleName = await SignInUser(result.User, model.RoleId);
 
             TempData["Success"] = "Registration complete. Welcome to Laundry MIS!";
-            return RedirectToAction("Dashboard", roleName);
+            return RedirectToAction("Dashboard", DashboardController(roleName));
         }
 
         // ──────────────────────────────────────────────────────
@@ -256,7 +271,7 @@ namespace LaudaryMis.Controllers
             var roleName = await SignInUser(result.User, model.RoleId);
 
             TempData["Success"] = "Registration complete. Welcome to Laundry MIS!";
-            return RedirectToAction("Dashboard", roleName);
+            return RedirectToAction("Dashboard", DashboardController(roleName));
         }
 
         // Derive a canonical role from the RoleId that was actually used to
@@ -271,7 +286,8 @@ namespace LaudaryMis.Controllers
             {
                 1 => "Admin",
                 2 => "Hospital",
-                3 => "Provider",
+                3 => "ServiceProvider",
+                4 => "CMS",
                 _ => user.RoleName ?? ""
             };
 
@@ -281,7 +297,8 @@ namespace LaudaryMis.Controllers
                 new Claim(ClaimTypes.Name, user.FullName ?? ""),
                 new Claim(ClaimTypes.Role, roleName),
                 new Claim("HospitalId", user.HospitalId?.ToString() ?? ""),
-                new Claim("ProviderId", user.ProviderId?.ToString() ?? "")
+                new Claim("ProviderId", user.ProviderId?.ToString() ?? ""),
+                new Claim("MustChangePassword", user.MustChangePassword ? "1" : "0")
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -291,6 +308,52 @@ namespace LaudaryMis.Controllers
                 new ClaimsPrincipal(identity));
 
             return roleName;
+        }
+
+        // The vendor's dashboard lives in ProviderController
+        private static string DashboardController(string roleName) =>
+            roleName == "ServiceProvider" ? "Provider" : roleName;
+
+        // CMS sign-in dropdowns: only districts / hospitals that have a CMS login
+        [HttpGet]
+        public async Task<IActionResult> CmsDistricts() =>
+            Json(await _cms.GetLoginDistrictsAsync());
+
+        [HttpGet]
+        public async Task<IActionResult> CmsHospitals(int districtId) =>
+            Json(await _cms.GetLoginHospitalsAsync(districtId));
+
+        // Change password (forced for a CMS whose password the admin generated)
+        [Authorize]
+        [HttpGet]
+        public IActionResult ChangePassword() => View(new ChangePasswordVM());
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordVM model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+                return RedirectToAction(nameof(Login));
+
+            var (ok, message) = await _service.ChangePasswordAsync(userId, model.CurrentPassword, model.NewPassword);
+            if (!ok)
+            {
+                ModelState.AddModelError("", message);
+                return View(model);
+            }
+
+            // Re-issue the sign-in without the "must change" flag
+            var claims = User.Claims.Where(c => c.Type != "MustChangePassword").ToList();
+            claims.Add(new Claim("MustChangePassword", "0"));
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+
+            TempData["Success"] = "Your password has been changed.";
+            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+            return RedirectToAction("Dashboard", DashboardController(role));
         }
 
         // Lets an already-rendered page detect that the auth cookie now belongs

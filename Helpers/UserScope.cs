@@ -20,7 +20,7 @@ namespace LaudaryMis.Helpers
             if (user.IsInRole("Hospital"))
                 return hospitalId > 0 && user.HospitalId() == hospitalId;
 
-            if (user.IsInRole("Provider"))
+            if (user.IsInRole("ServiceProvider"))
                 return providerId > 0 && user.ProviderId() == providerId;
 
             return false;

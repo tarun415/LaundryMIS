@@ -16,25 +16,58 @@ namespace LaudaryMis.Controllers
         private readonly IAgreementService _agreementService;
         private readonly IWardService _wardService;
         private readonly ILocationService _locationService;
+        private readonly ICmsService _cmsService;
 
         public AdminController(
             IHospitalService service,
             IProviderService providerService,
             IAgreementService agreementService,
             IWardService wardService,
-            ILocationService locationService)
+            ILocationService locationService,
+            ICmsService cmsService)
         {
             _service = service;
             _providerService = providerService;
             _agreementService = agreementService;
             _wardService = wardService;
             _locationService = locationService;
+            _cmsService = cmsService;
         }
 
         public IActionResult Dashboard()
         {
             return View();
         }
+
+        #region CMS accounts
+        // Every hospital has one CMS login; the admin generates (or resets) its password
+        [HttpGet]
+        public async Task<IActionResult> CmsAccounts(int? districtId)
+        {
+            ViewBag.DistrictId = districtId;
+            ViewBag.Districts = await _cmsService.GetDistrictsAsync();
+            return View(await _cmsService.GetAccountsAsync(districtId));
+        }
+
+        // Returns the new password once; it is stored hashed and cannot be shown again
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GenerateCmsPassword(int hospitalId)
+        {
+            var (ok, passwordOrMessage) = await _cmsService.GeneratePasswordAsync(hospitalId);
+            return ok
+                ? Json(new { success = true, password = passwordOrMessage })
+                : Json(new { success = false, message = passwordOrMessage });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetCmsActive(int hospitalId, bool isActive)
+        {
+            var ok = await _cmsService.SetActiveAsync(hospitalId, isActive);
+            return Json(new { success = ok });
+        }
+        #endregion
 
         #region Hospital
         // LIST

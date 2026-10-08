@@ -28,7 +28,7 @@ namespace LaudaryMis.Controllers
         // ──────────────────────────────────────────────────────
 
         [HttpGet]
-        [Authorize(Roles = "Provider")]
+        [Authorize(Roles = "ServiceProvider")]
         public async Task<IActionResult> Index()
         {
             var profile = await _service.GetProfileAsync(GetProviderId());
@@ -38,7 +38,7 @@ namespace LaudaryMis.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Provider")]
+        [Authorize(Roles = "ServiceProvider")]
         public async Task<IActionResult> Save(ProviderProfileVM model)
         {
             // Provider hamesha login se, form se nahi
@@ -79,7 +79,7 @@ namespace LaudaryMis.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Provider")]
+        [Authorize(Roles = "ServiceProvider")]
         public async Task<IActionResult> Upload(
             string documentType, string? documentNo, DateTime? validTill, IFormFile? file)
         {
@@ -132,7 +132,7 @@ namespace LaudaryMis.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Provider")]
+        [Authorize(Roles = "ServiceProvider")]
         public async Task<IActionResult> DeleteDocument(int id)
         {
             var ok = await _service.DeleteDocumentAsync(id, GetProviderId());
@@ -154,7 +154,7 @@ namespace LaudaryMis.Controllers
             if (doc == null) return NotFound();
 
             bool allowed = User.IsInRole("Admin")
-                || (User.IsInRole("Provider") && GetClaimInt("ProviderId") == doc.ProviderId);
+                || (User.IsInRole("ServiceProvider") && GetClaimInt("ProviderId") == doc.ProviderId);
             if (!allowed) return Forbid();
 
             var path = Path.Combine(ProviderFolder(doc.ProviderId), Path.GetFileName(doc.FileName));

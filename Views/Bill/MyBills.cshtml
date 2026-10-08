@@ -1,0 +1,122 @@
+@model List<LaudaryMis.ViewModels.BillMonthVM>
+
+@{
+    ViewBag.Title = "My Bills";
+    var printLog = ViewBag.PrintLog as List<LaudaryMis.ViewModels.BillPrintLogVM> ?? new();
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-file-invoice"></i></div>
+    <div class="ph-text">
+        <h1>My Bills</h1>
+        <p class="ph-sub">The monthly bill is ready once every week of the month is verified by the hospital's CMS</p>
+    </div>
+    <div class="ph-actions">
+        <a asp-controller="Dispute" asp-action="Raise" class="btn btn-outline-primary">
+            <i class="fa-solid fa-scale-balanced"></i> Raise dispute
+        </a>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="billTable" class="table table-hover align-middle w-100">
+                <thead>
+                    <tr>
+                        <th data-priority="1">Hospital</th>
+                        <th data-priority="1">Month</th>
+                        <th data-priority="3">Weeks verified</th>
+                        <th data-priority="3" class="text-end">WPR score</th>
+                        <th data-priority="2" class="text-end">Net payable</th>
+                        <th data-priority="2">Status</th>
+                        <th data-priority="1" class="text-end">Bill</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@b.HospitalName</td>
+                            <td data-order="@(b.Year * 100 + b.Month)">@b.MonthLabel</td>
+                            <td>@b.VerifiedWeeks of @b.ExpectedWeeks@(b.PendingWeeks > 0 ? $" ({b.PendingWeeks} pending)" : "")</td>
+                            <td class="text-end">@(b.AvgScore?.ToString("N2") ?? "—")</td>
+                            <td class="text-end nowrap">@(b.IsReady && b.NetPayableAmount != null ? "₹ " + b.NetPayableAmount.Value.ToString("N2") : "—")</td>
+                            <td>
+                                @if (!b.IsReady)
+                                {
+                                    <span class="badge badge-warn"><i class="fa-solid fa-hourglass-half"></i> Waiting for verification</span>
+                                }
+                                else if (b.HasOpenDispute)
+                                {
+                                    <span class="badge badge-danger"><i class="fa-solid fa-scale-balanced"></i> Dispute open</span>
+                                }
+                                else if (b.Version > 1 && !b.CurrentVersionPrinted)
+                                {
+                                    <span class="badge badge-info"><i class="fa-solid fa-rotate"></i> Revised bill (v@(b.Version)) ready</span>
+                                }
+                                else if (b.CurrentVersionPrinted)
+                                {
+                                    <span class="badge badge-ok"><i class="fa-solid fa-print"></i> Printed@(b.Version > 1 ? $" (v{b.Version})" : "")</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-ok"><i class="fa-solid fa-circle-check"></i> Ready</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (b.IsReady)
+                                {
+                                    <a asp-action="Print" asp-route-hospitalId="@b.HospitalId" asp-route-month="@b.Month" asp-route-year="@b.Year"
+                                       target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fa-solid fa-print"></i> Print bill
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (printLog.Count > 0)
+{
+    <div class="card mt-3">
+        <div class="card-header">
+            <i class="fa-solid fa-clock-rotate-left text-teal"></i>
+            <span class="card-title">Print history</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr><th>Printed on</th><th>Hospital</th><th>Month</th><th>Version</th><th class="text-end">WPR score</th><th class="text-end">Net payable</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var l in printLog)
+                        {
+                            <tr>
+                                <td class="nowrap">@l.PrintedAt.ToString("dd MMM yyyy, hh:mm tt")</td>
+                                <td>@l.HospitalName</td>
+                                <td>@l.MonthLabel</td>
+                                <td>@(l.Version == 1 ? "Original" : "Revised v" + l.Version)</td>
+                                <td class="text-end">@l.WPRAvgScore.ToString("N2")</td>
+                                <td class="text-end nowrap">₹ @l.NetPayableAmount.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(function () { LMIS.initTable('#billTable', { exportTitle: 'My Bills' }); });
+    </script>
+}

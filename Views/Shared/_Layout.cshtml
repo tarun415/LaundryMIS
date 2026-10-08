@@ -45,6 +45,10 @@
 </head>
 
 <body>
+    <script>
+        // Restore the desktop sidebar choice before the page paints (no flash)
+        try { if (window.innerWidth >= 992 && localStorage.getItem("sidebarCollapsed") === "1") document.body.classList.add("sidebar-collapsed"); } catch (e) { }
+    </script>
 
     <!-- ================= TOP BAR ================= -->
     <header class="app-topbar">
@@ -67,7 +71,7 @@
                 <div class="user-avatar">@initials</div>
                 <div class="user-meta">
                     <div class="user-name">@displayName</div>
-                    <div class="role-tag">@roleClaim</div>
+                    <div class="role-tag">@(roleClaim == "ServiceProvider" ? "Service Provider" : roleClaim)</div>
                 </div>
             </div>
 
@@ -114,6 +118,7 @@
 
     <!-- Shared helpers: DataTable defaults, toasts, confirm dialogs -->
     <script src="~/js/app.js" asp-append-version="true"></script>
+    <script src="~/js/table-sticky.js" asp-append-version="true"></script>
     <script>
         // Anti-forgery token for AJAX/fetch POSTs (sent as a request header).
         window.CSRF_TOKEN = "@csrfToken";
@@ -137,7 +142,9 @@
                 Providers:  '@Url.Action("Providers", "Admin")',
                 Wards:      '@Url.Action("Wards", "Admin")',
                 Payments:   '@Url.Action("PaymentList", "Payment")',
-                Activation: '@Url.Action("Index", "ActivationCode")'
+                Activation: '@Url.Action("Index", "ActivationCode")',
+                CmsAccounts: '@Url.Action("CmsAccounts", "Admin")',
+                Disputes:   '@Url.Action("Index", "Dispute")'
             },
             hospital: {
                 dashboard:             '@Url.Action("Dashboard", "Hospital")',
@@ -149,7 +156,8 @@
                 DeliveryAgingReport:   '@Url.Action("DeliveryAgingReport", "Report")',
                 GeneratePayment:       '@Url.Action("GeneratePayment", "Payment")',
                 PaymentList:           '@Url.Action("PaymentList", "Payment")',
-                WarningLetterList:     '@Url.Action("WarningLetterList", "WarningLetter")'
+                WarningLetterList:     '@Url.Action("WarningLetterList", "WarningLetter")',
+                MyWprs:                '@Url.Action("MyWprs", "WPR")'
             },
             provider: {
                 dashboard:             '@Url.Action("Dashboard", "Provider")',
@@ -161,7 +169,17 @@
                 GenerateInvoice:       '@Url.Action("PaymentList", "Payment")',
                 InvoiceList:           '@Url.Action("InvoiceList", "Invoice")',
                 WarningLetterList:     '@Url.Action("WarningLetterList", "WarningLetter")',
-                Profile:               '@Url.Action("Index", "ProviderProfile")'
+                Profile:               '@Url.Action("Index", "ProviderProfile")',
+                WprStatus:             '@Url.Action("WprStatus", "Bill")',
+                MyBills:               '@Url.Action("MyBills", "Bill")',
+                RaiseDispute:          '@Url.Action("Raise", "Dispute")',
+                MyDisputes:            '@Url.Action("Mine", "Dispute")'
+            },
+            cms: {
+                dashboard:  '@Url.Action("Dashboard", "CMS")',
+                WprList:    '@Url.Action("WprList", "CMS")',
+                Disputes:   '@Url.Action("Disputes", "CMS")',
+                ChangePassword: '@Url.Action("ChangePassword", "Account")'
             }
         };
 
@@ -175,7 +193,9 @@
                 { id: "wards",      icon: "fa-bed",             label: "Wards",      route: routes.admin.Wards },
                 { id: "agreements", icon: "fa-file-signature",  label: "Agreements", route: routes.admin.Agreements },
                 { id: "activation", icon: "fa-key",             label: "Activation Codes", route: routes.admin.Activation },
+                { id: "cmsaccounts", icon: "fa-clipboard-user", label: "CMS Accounts", route: routes.admin.CmsAccounts },
                 { section: "Finance" },
+                { id: "disputes",   icon: "fa-scale-balanced",  label: "Bill Disputes", route: routes.admin.Disputes },
                 { id: "payments",   icon: "fa-money-bill-wave", label: "Payments",   route: routes.admin.Payments }
             ],
             Hospital: [
@@ -184,6 +204,7 @@
                 { section: "Operations" },
                 { id: "CreatePickUp", icon: "fa-boxes-packing",   label: "Pickup Linen",  route: routes.hospital.CreatePickUp },
                 { id: "WPREntry",     icon: "fa-clipboard-check", label: "WPR Entry",     route: routes.hospital.WPREntry },
+                { id: "MyWprs",       icon: "fa-list-check",      label: "Submitted WPR", route: routes.hospital.MyWprs },
                 { section: "Reports" },
                 { id: "DeliverySummary",       icon: "fa-chart-column",  label: "Delivery Report",  route: routes.hospital.DeliverySummary },
                 { id: "WeeklyDeliveryReport",  icon: "fa-calendar-week", label: "Weekly Delivery",  route: routes.hospital.WeeklyDeliveryReport },
@@ -195,7 +216,17 @@
                 { section: "Compliance" },
                 { id: "WarningLetterList", icon: "fa-triangle-exclamation", label: "Warning Letters", route: routes.hospital.WarningLetterList }
             ],
-            Provider: [
+            CMS: [
+                { section: "Overview" },
+                { id: "dashboard", icon: "fa-gauge-high", label: "Dashboard", route: routes.cms.dashboard },
+                { section: "Verification" },
+                { id: "WprList", icon: "fa-clipboard-check", label: "WPR Verification", route: routes.cms.WprList },
+                { section: "Billing" },
+                { id: "Disputes", icon: "fa-scale-balanced", label: "Bill Disputes", route: routes.cms.Disputes },
+                { section: "Account" },
+                { id: "ChangePassword", icon: "fa-key", label: "Change Password", route: routes.cms.ChangePassword }
+            ],
+            ServiceProvider: [
                 { section: "Overview" },
                 { id: "dashboard", icon: "fa-gauge-high", label: "Dashboard", route: routes.provider.dashboard },
                 { section: "Operations" },
@@ -206,6 +237,10 @@
                 { id: "MonthlyDeliveryReport", icon: "fa-calendar-days",  label: "Monthly Delivery", route: routes.provider.MonthlyDeliveryReport },
                 { id: "DeliveryAgingReport",   icon: "fa-hourglass-half", label: "Delivery Aging",   route: routes.provider.DeliveryAgingReport },
                 { section: "Billing" },
+                { id: "WprStatus",       icon: "fa-clipboard-check",     label: "WPR Status",       route: routes.provider.WprStatus },
+                { id: "MyBills",         icon: "fa-file-invoice",        label: "My Bills (Print)", route: routes.provider.MyBills },
+                { id: "RaiseDispute",    icon: "fa-scale-balanced",      label: "Raise Dispute",    route: routes.provider.RaiseDispute },
+                { id: "MyDisputes",      icon: "fa-list",                label: "My Disputes",      route: routes.provider.MyDisputes },
                 { id: "GenerateInvoice", icon: "fa-file-invoice-dollar", label: "Generate Invoice", route: routes.provider.GenerateInvoice },
                 { id: "InvoiceList",     icon: "fa-file-invoice",        label: "Invoice List",     route: routes.provider.InvoiceList },
                 { section: "Compliance" },
@@ -257,13 +292,37 @@
                 var backdrop = document.getElementById("sidebarBackdrop");
                 if (!toggle || !nav || !backdrop) return;
 
+                var DESKTOP = 992;
+                function isDesktop() { return window.innerWidth >= DESKTOP; }
+
+                // Phone / tablet: the sidebar slides over the page
                 function close() {
                     nav.classList.remove("open");
                     backdrop.classList.remove("show");
+                    if (!isDesktop()) toggle.setAttribute("aria-expanded", "false");
+                }
+
+                // Desktop: the sidebar is open or closed, and the choice is remembered on this browser
+                function setCollapsed(collapsed) {
+                    document.body.classList.toggle("sidebar-collapsed", collapsed);
+                    toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+                    toggle.title = collapsed ? "Open the menu" : "Close the menu";
+                    try { localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0"); } catch (e) { }
+                    // Tables are now wider or narrower
+                    window.setTimeout(function () { window.dispatchEvent(new Event("resize")); }, 260);
+                }
+
+                if (isDesktop()) {
+                    setCollapsed(document.body.classList.contains("sidebar-collapsed"));
+                } else {
                     toggle.setAttribute("aria-expanded", "false");
                 }
 
                 toggle.addEventListener("click", function () {
+                    if (isDesktop()) {
+                        setCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+                        return;
+                    }
                     var isOpen = nav.classList.toggle("open");
                     backdrop.classList.toggle("show", isOpen);
                     toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
@@ -271,7 +330,12 @@
 
                 backdrop.addEventListener("click", close);
                 document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
-                window.addEventListener("resize", function () { if (window.innerWidth >= 992) close(); });
+                window.addEventListener("resize", function () {
+                    if (isDesktop()) {
+                        close();
+                        toggle.setAttribute("aria-expanded", document.body.classList.contains("sidebar-collapsed") ? "false" : "true");
+                    }
+                });
             }
 
             document.addEventListener("DOMContentLoaded", function () {

@@ -34,7 +34,7 @@ public class PaymentController : Controller
         // Hospital / Provider sirf apni payments dekhein; Admin filter chuna sakta hai
         if (User.IsInRole("Hospital"))
             hospitalId = GetClaimId("HospitalId");
-        else if (User.IsInRole("Provider"))
+        else if (User.IsInRole("ServiceProvider"))
             providerId = GetClaimId("ProviderId");
         else if (!User.IsInRole("Admin"))
             return Forbid();
@@ -318,7 +318,7 @@ public class PaymentController : Controller
         if (User.IsInRole("Hospital"))
             return User.FindFirst("HospitalId")?.Value == payment.HospitalId.ToString();
 
-        if (User.IsInRole("Provider"))
+        if (User.IsInRole("ServiceProvider"))
             return User.FindFirst("ProviderId")?.Value == payment.ProviderId.ToString();
 
         return false;

@@ -1,0 +1,148 @@
+@model List<LaudaryMis.ViewModels.CmsAccountVM>
+
+@{
+    ViewBag.Title = "CMS Accounts";
+    var districts = ViewBag.Districts as List<LaudaryMis.ViewModels.OptionVM> ?? new();
+    int? districtId = ViewBag.DistrictId as int?;
+    var withLogin = Model.Count(x => x.HasAccount);
+}
+
+<div class="page-header">
+    <div class="ph-icon"><i class="fa-solid fa-clipboard-user"></i></div>
+    <div class="ph-text">
+        <h1>CMS Accounts</h1>
+        <p class="ph-sub">One CMS login per hospital &middot; @withLogin of @Model.Count have a login</p>
+    </div>
+</div>
+
+<partial name="_Alerts" />
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="districtId">District</label>
+                <select class="form-select" id="districtId" name="districtId" onchange="this.form.submit()">
+                    <option value="">All districts</option>
+                    @foreach (var d in districts)
+                    {
+                        <option value="@d.Id" selected="@(districtId == d.Id)">@d.Name</option>
+                    }
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>The password is shown only once, when you generate it, and cannot be looked up later &mdash; give it to the CMS right away.
+                  The CMS must change it at the first sign-in. Generating again replaces the old password.</span>
+        </div>
+
+        <div class="table-responsive">
+            <table id="cmsTable" class="table table-hover align-middle w-100">
+                <thead>
+                    <tr>
+                        <th data-priority="2">District</th>
+                        <th data-priority="1">Hospital</th>
+                        <th data-priority="2">Login</th>
+                        <th data-priority="1" class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model)
+                    {
+                        <tr>
+                            <td>@a.DistrictName</td>
+                            <td class="fw-semibold">@a.HospitalName</td>
+                            <td>
+                                @if (!a.HasAccount)
+                                {
+                                    <span class="badge badge-navy">No login yet</span>
+                                }
+                                else if (!a.IsActive)
+                                {
+                                    <span class="badge badge-danger">Disabled</span>
+                                }
+                                else if (a.MustChangePassword)
+                                {
+                                    <span class="badge badge-warn">Temporary password</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-ok">Active</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="action-group justify-content-end">
+                                    <button type="button" class="btn btn-sm btn-primary"
+                                            data-id="@a.HospitalId" data-name="@a.HospitalName" data-has="@(a.HasAccount ? "1" : "0")"
+                                            onclick="generatePassword(this)">
+                                        <i class="fa-solid fa-key"></i> @(a.HasAccount ? "Reset password" : "Create login")
+                                    </button>
+                                    @if (a.HasAccount)
+                                    {
+                                        <button type="button" class="btn btn-sm @(a.IsActive ? "btn-outline-danger" : "btn-outline-success")"
+                                                onclick="setActive(@a.HospitalId, @(a.IsActive ? "false" : "true"))">
+                                            <i class="fa-solid @(a.IsActive ? "fa-ban" : "fa-circle-check")"></i> @(a.IsActive ? "Disable" : "Enable")
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            LMIS.initTable('#cmsTable', { exportTitle: 'CMS Accounts' });
+        });
+
+        function generatePassword(btn) {
+            var hospitalId = btn.dataset.id;
+            var name = btn.dataset.name;
+            var hasAccount = btn.dataset.has === '1';
+            LMIS.confirm({
+                title: hasAccount ? 'Reset the CMS password?' : 'Create the CMS login?',
+                text: hasAccount
+                    ? 'The current password of ' + name + ' stops working.'
+                    : 'A login and a temporary password will be created for ' + name + '.',
+                confirmText: 'Yes, generate',
+                danger: false
+            }).then(function (ok) {
+                if (!ok) return;
+                $.post('@Url.Action("GenerateCmsPassword", "Admin")', { hospitalId: hospitalId }, function (res) {
+                    if (!res.success) { LMIS.alert('Could not generate', res.message || 'Please try again.', 'error'); return; }
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Password for ' + LMIS.esc(name),
+                        html: '<p class="mb-2">Note it down now &mdash; it cannot be shown again.</p>'
+                            + '<div style="font-family:monospace;font-size:1.4rem;font-weight:700;letter-spacing:.06em;user-select:all;padding:10px;border:1px dashed #999;border-radius:6px">'
+                            + LMIS.esc(res.password) + '</div>',
+                        confirmButtonText: 'Copy and close',
+                        confirmButtonColor: '#0e7c7b'
+                    }).then(function () {
+                        if (navigator.clipboard) navigator.clipboard.writeText(res.password).catch(function () {});
+                        location.reload();
+                    });
+                }).fail(function () {
+                    LMIS.alert('Could not generate', 'Could not reach the server.', 'error');
+                });
+            });
+        }
+
+        function setActive(hospitalId, isActive) {
+            $.post('@Url.Action("SetCmsActive", "Admin")', { hospitalId: hospitalId, isActive: isActive }, function () {
+                location.reload();
+            });
+        }
+    </script>
+}

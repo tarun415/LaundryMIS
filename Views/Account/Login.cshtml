@@ -7,7 +7,7 @@
     var reason = Context.Request.Query["reason"].ToString();
 
     // After a failed sign-in the page comes back with the role the person had chosen
-    var startRole = Model?.RoleId is 2 or 3 ? Model.RoleId : 1;
+    var startRole = Model?.RoleId is 2 or 3 or 4 ? Model.RoleId : 1;
 }
 
 <!DOCTYPE html>
@@ -115,6 +115,12 @@
                         <div class="role-sub">Directorate</div>
                     </div>
 
+                    <div class="role-btn @(startRole == 4 ? "selected" : "")" role="radio" tabindex="0" aria-checked="@(startRole == 4 ? "true" : "false")" onclick="setRole(4, this)">
+                        <div class="role-icon"><i class="fa-solid fa-clipboard-user"></i></div>
+                        <div class="role-label">CMS</div>
+                        <div class="role-sub">Chief Medical Superintendent</div>
+                    </div>
+
                     <div class="role-btn @(startRole == 2 ? "selected" : "")" role="radio" tabindex="0" aria-checked="@(startRole == 2 ? "true" : "false")" onclick="setRole(2, this)">
                         <div class="role-icon"><i class="fa-solid fa-hospital"></i></div>
                         <div class="role-label">Hospital</div>
@@ -123,7 +129,7 @@
 
                     <div class="role-btn @(startRole == 3 ? "selected" : "")" role="radio" tabindex="0" aria-checked="@(startRole == 3 ? "true" : "false")" onclick="setRole(3, this)">
                         <div class="role-icon"><i class="fa-solid fa-truck-fast"></i></div>
-                        <div class="role-label">Provider</div>
+                        <div class="role-label">Service Provider</div>
                         <div class="role-sub">Vendor</div>
                     </div>
 
@@ -140,7 +146,24 @@
                 </div>
 
                 <!-- HOSPITAL / PROVIDER -->
-                <div id="contactFields" style="@(startRole == 1 ? "display:none;" : "")">
+                <!-- CMS: district -> hospital -->
+                <div id="cmsFields" style="@(startRole == 4 ? "" : "display:none;")">
+                    <div class="login-field">
+                        <label for="DistrictId">District</label>
+                        <select id="DistrictId" name="DistrictId" class="form-select" data-selected="@Model?.DistrictId">
+                            <option value="">Select district</option>
+                        </select>
+                    </div>
+                    <div class="login-field">
+                        <label for="HospitalId">Hospital</label>
+                        <select id="HospitalId" name="HospitalId" class="form-select" data-selected="@Model?.HospitalId" disabled>
+                            <option value="">Select the district first</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- HOSPITAL / PROVIDER -->
+                <div id="contactFields" style="@(startRole is 1 or 4 ? "display:none;" : "")">
                     <div class="login-field">
                         <label for="LoginId">Mobile number or Email</label>
                         <input type="text" id="LoginId" name="LoginId" value="@Model?.LoginId" maxlength="200"
@@ -208,10 +231,64 @@
                 if (e.type !== "hidden") e.value = "";
             });
 
-            // Admin signs in with a username; hospital and vendor with a mobile number or an email
+            // Admin signs in with a username, CMS by district + hospital;
+            // hospital and vendor with a mobile number or an email
             document.getElementById("adminFields").style.display = roleId == 1 ? "block" : "none";
-            document.getElementById("contactFields").style.display = roleId == 1 ? "none" : "block";
+            document.getElementById("cmsFields").style.display = roleId == 4 ? "block" : "none";
+            document.getElementById("contactFields").style.display = (roleId == 2 || roleId == 3) ? "block" : "none";
+
+            if (roleId == 4) loadCmsDistricts();
         }
+
+        // ── CMS: district -> hospital dropdowns ──
+        var cmsDistrictsLoaded = false;
+
+        function fillSelect(sel, items, placeholder, selected) {
+            sel.innerHTML = "";
+            var first = document.createElement("option");
+            first.value = ""; first.textContent = placeholder;
+            sel.appendChild(first);
+            items.forEach(function (it) {
+                var o = document.createElement("option");
+                o.value = it.id; o.textContent = it.name;
+                if (selected && String(it.id) === String(selected)) o.selected = true;
+                sel.appendChild(o);
+            });
+        }
+
+        function loadCmsDistricts() {
+            var sel = document.getElementById("DistrictId");
+            var hosp = document.getElementById("HospitalId");
+            if (cmsDistrictsLoaded) { return; }
+            fetch("/Account/CmsDistricts", { credentials: "same-origin" })
+                .then(function (r) { return r.json(); })
+                .then(function (items) {
+                    cmsDistrictsLoaded = true;
+                    fillSelect(sel, items, items.length ? "Select district" : "No CMS accounts yet", sel.dataset.selected);
+                    if (sel.value) loadCmsHospitals(sel.value, hosp.dataset.selected);
+                });
+        }
+
+        function loadCmsHospitals(districtId, selected) {
+            var hosp = document.getElementById("HospitalId");
+            if (!districtId) {
+                fillSelect(hosp, [], "Select the district first");
+                hosp.disabled = true;
+                return;
+            }
+            fetch("/Account/CmsHospitals?districtId=" + encodeURIComponent(districtId), { credentials: "same-origin" })
+                .then(function (r) { return r.json(); })
+                .then(function (items) {
+                    fillSelect(hosp, items, "Select hospital", selected);
+                    hosp.disabled = false;
+                });
+        }
+
+        document.getElementById("DistrictId").addEventListener("change", function () {
+            loadCmsHospitals(this.value, null);
+        });
+
+        if (@(startRole == 4 ? "true" : "false")) loadCmsDistricts();
 
         // Keyboard support for the role radios
         document.querySelectorAll(".role-btn").forEach(btn => {

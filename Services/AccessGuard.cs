@@ -133,7 +133,7 @@ namespace LaudaryMis.Services
             if (user.IsInRole("Hospital") && user.HospitalId() is int hospitalId)
                 return await IdsAsync(hospitalSql, hospitalId);
 
-            if (user.IsInRole("Provider") && user.ProviderId() is int providerId)
+            if (user.IsInRole("ServiceProvider") && user.ProviderId() is int providerId)
                 return await IdsAsync(providerSql, providerId);
 
             return new HashSet<int>();

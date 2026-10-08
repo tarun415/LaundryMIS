@@ -355,5 +355,171 @@ VALUES
                 throw;
             }
         }
+
+        // ══════════════════════════════════════════════════════
+        // CMS REVIEW
+        // ══════════════════════════════════════════════════════
+
+        public async Task<List<WprListItemVM>> GetWprListAsync(
+            int? hospitalId, int? providerId, string? status, int? month, int? year)
+        {
+            const string sql = @"
+                SELECT w.Id, w.HospitalId, h.HospitalName, p.ProviderName,
+                       w.Week, TRY_CAST(w.Month AS INT) AS Month, w.Year,
+                       w.TotalScore, w.PaymentPercentage, w.Status,
+                       w.SubmittedAt, w.VerifiedAt, w.LastEditedAt
+                FROM WeeklyPerformanceReport w
+                JOIN tbl_Hospitals h ON h.HospitalId = w.HospitalId
+                LEFT JOIN tbl_Providers p ON p.ProviderId = w.ProviderId
+                WHERE (@hospitalId IS NULL OR w.HospitalId = @hospitalId)
+                  AND (@providerId IS NULL OR w.ProviderId = @providerId)
+                  AND (@status     IS NULL OR w.Status     = @status)
+                  AND (@month      IS NULL OR TRY_CAST(w.Month AS INT) = @month)
+                  AND (@year       IS NULL OR w.Year       = @year)
+                ORDER BY w.Year DESC, TRY_CAST(w.Month AS INT) DESC, w.Week DESC, w.Id DESC";
+
+            using var conn = CreateConnection();
+            return (await conn.QueryAsync<WprListItemVM>(sql,
+                new { hospitalId, providerId, status, month, year })).ToList();
+        }
+
+        public async Task<WprReviewVM?> GetWprReviewAsync(int id)
+        {
+            using var conn = CreateConnection();
+
+            var vm = await conn.QueryFirstOrDefaultAsync<WprReviewVM>(@"
+                SELECT w.Id, w.HospitalId, h.HospitalName, p.ProviderName,
+                       w.Week, TRY_CAST(w.Month AS INT) AS Month, w.Year,
+                       w.TotalScore, w.PaymentPercentage, w.Status,
+                       w.Remarks AS HospitalRemarks, w.SubmittedAt, w.VerifiedAt
+                FROM WeeklyPerformanceReport w
+                JOIN tbl_Hospitals h ON h.HospitalId = w.HospitalId
+                LEFT JOIN tbl_Providers p ON p.ProviderId = w.ProviderId
+                WHERE w.Id = @id", new { id });
+            if (vm == null) return null;
+
+            vm.Scores = (await conn.QueryAsync<WprScoreVM>(@"
+                SELECT ParameterId, ParameterName, Score
+                FROM WPRDetail WHERE WPRId = @id ORDER BY ParameterId", new { id })).ToList();
+
+            vm.EditLog = (await conn.QueryAsync<WprEditLogVM>(@"
+                SELECT l.ParameterName, l.OldScore, l.NewScore, l.OldTotal, l.NewTotal,
+                       ISNULL(u.FullName, '') AS EditedByName, l.EditedByRole, l.EditedAt, l.Remarks
+                FROM WPREditLog l
+                LEFT JOIN Tbl_Users u ON u.UserId = l.EditedBy
+                WHERE l.WPRId = @id
+                ORDER BY l.EditedAt DESC, l.Id DESC", new { id })).ToList();
+
+            return vm;
+        }
+
+        public async Task<(int Pending, int Verified)> GetStatusCountsAsync(int hospitalId)
+        {
+            using var conn = CreateConnection();
+            var row = await conn.QuerySingleAsync(@"
+                SELECT ISNULL(SUM(CASE WHEN Status = 'Pending'  THEN 1 ELSE 0 END), 0) AS Pending,
+                       ISNULL(SUM(CASE WHEN Status = 'Verified' THEN 1 ELSE 0 END), 0) AS Verified
+                FROM WeeklyPerformanceReport
+                WHERE HospitalId = @hospitalId", new { hospitalId });
+            return ((int)row.Pending, (int)row.Verified);
+        }
+
+        public async Task<List<int>> GetPendingIdsAsync(int hospitalId, int month, int year)
+        {
+            using var conn = CreateConnection();
+            return (await conn.QueryAsync<int>(@"
+                SELECT Id FROM WeeklyPerformanceReport
+                WHERE HospitalId = @hospitalId AND Status = 'Pending'
+                  AND TRY_CAST(Month AS INT) = @month AND Year = @year",
+                new { hospitalId, month, year })).ToList();
+        }
+
+        // Saves the changed scores, the new total, a log row per changed score, and keeps the
+        // WPREntries copy of the week (total + grade) in step.
+        public async Task ApplyEditAsync(WprEditCommand cmd)
+        {
+            using var conn = CreateConnection();
+            conn.Open();
+            using var tran = conn.BeginTransaction();
+
+            try
+            {
+                foreach (var c in cmd.Changes)
+                {
+                    int rows = await conn.ExecuteAsync(@"
+                        UPDATE WPRDetail SET Score = @NewScore
+                        WHERE WPRId = @WprId AND ParameterId = @ParameterId",
+                        new { cmd.WprId, c.ParameterId, c.NewScore }, tran);
+
+                    if (rows == 0)
+                        await conn.ExecuteAsync(@"
+                            INSERT INTO WPRDetail (WPRId, ParameterId, ParameterName, Score)
+                            VALUES (@WprId, @ParameterId, @ParameterName, @NewScore)",
+                            new
+                            {
+                                cmd.WprId, c.ParameterId, c.NewScore,
+                                // WPRDetail.ParameterName holds 50 characters
+                                ParameterName = c.ParameterName.Length > 50 ? c.ParameterName[..50] : c.ParameterName
+                            }, tran);
+
+                    await conn.ExecuteAsync(@"
+                        INSERT INTO WPREditLog
+                            (WPRId, ParameterId, ParameterName, OldScore, NewScore, OldTotal, NewTotal,
+                             EditedBy, EditedByRole, EditedAt, Remarks, DisputeId)
+                        VALUES
+                            (@WprId, @ParameterId, @ParameterName, @OldScore, @NewScore, @OldTotal, @NewTotal,
+                             @EditorId, @EditorRole, GETDATE(), @Remarks, @DisputeId)",
+                        new
+                        {
+                            cmd.WprId, c.ParameterId, c.ParameterName, c.OldScore, c.NewScore,
+                            cmd.OldTotal, cmd.NewTotal, cmd.EditorId, cmd.EditorRole, cmd.Remarks, cmd.DisputeId
+                        }, tran);
+                }
+
+                await conn.ExecuteAsync(@"
+                    UPDATE WeeklyPerformanceReport
+                    SET TotalScore = @NewTotal, PaymentPercentage = @NewPercentage,
+                        LastEditedBy = @EditorId, LastEditedAt = GETDATE()
+                    WHERE Id = @WprId",
+                    new { cmd.NewTotal, cmd.NewPercentage, cmd.EditorId, cmd.WprId }, tran);
+
+                var keys = await conn.QuerySingleAsync(@"
+                    SELECT AgreementId, HospitalId, Week, Month, Year
+                    FROM WeeklyPerformanceReport WHERE Id = @WprId",
+                    new { cmd.WprId }, tran);
+
+                await conn.ExecuteAsync(@"
+                    UPDATE WPREntries
+                    SET TotalScore = @NewTotal, PerformanceGrade = @NewGrade
+                    WHERE AgreementId = @AgreementId AND HospitalId = @HospitalId
+                      AND WeekNo = @Week AND MonthNo = TRY_CAST(@Month AS INT) AND YearNo = @Year",
+                    new
+                    {
+                        cmd.NewTotal, cmd.NewGrade,
+                        AgreementId = (int)keys.AgreementId, HospitalId = (int)keys.HospitalId,
+                        Week = (int)keys.Week, Month = (string)keys.Month, Year = (int)keys.Year
+                    }, tran);
+
+                tran.Commit();
+            }
+            catch
+            {
+                tran.Rollback();
+                throw;
+            }
+        }
+
+        public async Task<int> VerifyAsync(IEnumerable<int> ids, int hospitalId, int userId)
+        {
+            var list = ids.ToList();
+            if (list.Count == 0) return 0;
+
+            using var conn = CreateConnection();
+            return await conn.ExecuteAsync(@"
+                UPDATE WeeklyPerformanceReport
+                SET Status = 'Verified', VerifiedBy = @userId, VerifiedAt = GETDATE()
+                WHERE Id IN @list AND HospitalId = @hospitalId AND Status = 'Pending'",
+                new { list, hospitalId, userId });
+        }
     }
 }
