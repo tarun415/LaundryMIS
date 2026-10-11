@@ -77,6 +77,7 @@
                     </ul>
                 </li>
                 <li><a asp-controller="Account" asp-action="Claim">Register</a></li>
+                <li><a href="#manuals">User Manual</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
         </div>
@@ -116,25 +117,29 @@
                 <!-- CAROUSEL -->
                 <div class="hp-carousel" id="hpCarousel" aria-roledescription="carousel" aria-label="Highlights">
                     <div class="hp-slides">
-                        <div class="hp-slide s1 on" role="group" aria-roledescription="slide" aria-label="1 of 4">
+                        <div class="hp-slide sv on" role="group" aria-roledescription="slide" aria-label="1 of 5">
+                            <video class="hp-slide-video" src="~/media/hospital-laundry.mp4" poster="~/media/hospital-laundry-poster.jpg"
+                                   muted playsinline preload="auto" aria-label="Video: how hospital linen is collected, washed in the hospital laundry, pressed and brought back to the ward"></video>
+                        </div>
+                        <div class="hp-slide s1" role="group" aria-roledescription="slide" aria-label="2 of 5">
                             <i class="fa-solid fa-shirt hp-slide-ic" aria-hidden="true"></i>
                             <span class="hp-slide-kicker">Directorate General of Medical &amp; Health Services &middot; U.P.</span>
                             <h1>Mechanized laundry services, <span>tracked end to end</span></h1>
                             <p>One portal for district hospitals, laundry firms and the Directorate.</p>
                         </div>
-                        <div class="hp-slide s2" role="group" aria-roledescription="slide" aria-label="2 of 4">
+                        <div class="hp-slide s2" role="group" aria-roledescription="slide" aria-label="3 of 5">
                             <i class="fa-solid fa-boxes-packing hp-slide-ic" aria-hidden="true"></i>
                             <span class="hp-slide-kicker">Daily operations</span>
                             <h2>Linen pickup <span>&amp; delivery</span></h2>
                             <p>Hospitals record linen sent from each ward; the firm accepts it and delivers it back clean.</p>
                         </div>
-                        <div class="hp-slide s3" role="group" aria-roledescription="slide" aria-label="3 of 4">
+                        <div class="hp-slide s3" role="group" aria-roledescription="slide" aria-label="4 of 5">
                             <i class="fa-solid fa-clipboard-check hp-slide-ic" aria-hidden="true"></i>
                             <span class="hp-slide-kicker">Every week</span>
                             <h2>Weekly performance <span>review (WPR)</span></h2>
                             <p>Ten parameters, scored 0–10. The monthly average decides the share of the bill that is paid.</p>
                         </div>
-                        <div class="hp-slide s4" role="group" aria-roledescription="slide" aria-label="4 of 4">
+                        <div class="hp-slide s4" role="group" aria-roledescription="slide" aria-label="5 of 5">
                             <i class="fa-solid fa-file-invoice-dollar hp-slide-ic" aria-hidden="true"></i>
                             <span class="hp-slide-kicker">Every month</span>
                             <h2>Payments <span>&amp; invoices</span></h2>
@@ -148,6 +153,7 @@
                         <button type="button" aria-label="Slide 2"></button>
                         <button type="button" aria-label="Slide 3"></button>
                         <button type="button" aria-label="Slide 4"></button>
+                        <button type="button" aria-label="Slide 5"></button>
                     </div>
                 </div>
 
@@ -286,6 +292,47 @@
             </div>
         </section>
 
+        <!-- USER MANUALS -->
+        <section class="hp-section alt" id="manuals">
+            <div class="hp-wrap">
+                <div class="hp-head">
+                    <span class="kicker">User manuals</span>
+                    <h2>Step-by-step guides for every role</h2>
+                    <p>Download the manual for your login, in English or Hindi.</p>
+                </div>
+
+                <div class="hp-cards">
+                    <div class="hp-card hp-manual">
+                        <div class="ic"><i class="fa-solid fa-clipboard-user"></i></div>
+                        <h3>CMS</h3>
+                        <p>Verifying weekly WPRs, correcting scores and viewing bill disputes.</p>
+                        <div class="hp-manual-links">
+                            <a href="~/manuals/CMS_User_Manual_English.pdf" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf"></i> English</a>
+                            <a href="~/manuals/CMS_User_Manual_Hindi.pdf" target="_blank" rel="noopener" lang="hi"><i class="fa-solid fa-file-pdf"></i> हिंदी</a>
+                        </div>
+                    </div>
+                    <div class="hp-card hp-manual">
+                        <div class="ic"><i class="fa-solid fa-hospital"></i></div>
+                        <h3>Hospital</h3>
+                        <p>Linen pickups, delivery checks, weekly WPR, payments and warning letters.</p>
+                        <div class="hp-manual-links">
+                            <a href="~/manuals/Hospital_User_Manual_English.pdf" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf"></i> English</a>
+                            <a href="~/manuals/Hospital_User_Manual_Hindi.pdf" target="_blank" rel="noopener" lang="hi"><i class="fa-solid fa-file-pdf"></i> हिंदी</a>
+                        </div>
+                    </div>
+                    <div class="hp-card hp-manual">
+                        <div class="ic"><i class="fa-solid fa-truck-fast"></i></div>
+                        <h3>Service Provider</h3>
+                        <p>Accepting pickups, delivery challans, monthly bill, disputes and invoices.</p>
+                        <div class="hp-manual-links">
+                            <a href="~/manuals/Service_Provider_User_Manual_English.pdf" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf"></i> English</a>
+                            <a href="~/manuals/Service_Provider_User_Manual_Hindi.pdf" target="_blank" rel="noopener" lang="hi"><i class="fa-solid fa-file-pdf"></i> हिंदी</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <footer class="hp-footer">
@@ -310,6 +357,7 @@
                         <li><a href="#how">How it works</a></li>
                         <li><a asp-controller="Account" asp-action="Login">Sign In</a></li>
                         <li><a asp-controller="Account" asp-action="Claim">Register with an activation code</a></li>
+                        <li><a href="#manuals">User Manual</a></li>
                         <li><a href="#contact">Contact</a></li>
                     </ul>
                 </div>
@@ -340,6 +388,34 @@
     </footer>
 
     <a class="hp-totop" href="#" aria-label="Back to top" title="Back to top"><i class="fa-solid fa-arrow-up"></i></a>
+
+    <!-- IMPORTANT NOTICE (opens on page load) -->
+    <dialog class="hp-notice" id="hpNotice" aria-labelledby="hpNoticeTitle" lang="hi">
+        <div class="hp-notice-head">
+            <span class="hp-notice-badge"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i> महत्वपूर्ण सूचना</span>
+            <button type="button" class="hp-notice-x" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="hp-notice-body">
+            <h2 id="hpNoticeTitle">पोर्टल से सम्बंधित किसी भी जानकारी/शिकायत के लिए संपर्क करें:</h2>
+            <ul class="hp-notice-list">
+                <li>
+                    <span class="ic"><i class="fa-solid fa-headset" aria-hidden="true"></i></span>
+                    <span><strong>Technical Helpline</strong><a href="tel:+919599297453">95992 97453</a></span>
+                </li>
+                <li>
+                    <span class="ic"><i class="fa-solid fa-phone-volume" aria-hidden="true"></i></span>
+                    <span><strong>Emergency Contact Number</strong><a href="tel:+918299361252">82993 61252</a></span>
+                </li>
+                <li>
+                    <span class="ic"><i class="fa-solid fa-envelope" aria-hidden="true"></i></span>
+                    <span><strong>Email</strong><a href="mailto:tarun.singh@appventurez.com">tarun.singh@appventurez.com</a></span>
+                </li>
+            </ul>
+        </div>
+        <div class="hp-notice-foot">
+            <button type="button" class="hp-notice-ok" data-close>ठीक है</button>
+        </div>
+    </dialog>
 
     <script>
         // Desktop: scale the whole page to the screen width, so a 1536px laptop shows it
@@ -391,18 +467,34 @@
             var cur = 0, timer = null;
             var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
             function show(i) {
+                var was = cur;
                 cur = (i + slides.length) % slides.length;
+                if (video && cur !== was) {
+                    if (onVideo()) video.currentTime = 0; else video.pause();
+                }
                 slides.forEach(function (s, k) { s.classList.toggle("on", k === cur); });
                 dots.forEach(function (d, k) { d.classList.toggle("on", k === cur); });
             }
+            // the video slide plays its clip once from the start, then the carousel moves on
+            var video = car.querySelector(".hp-slide-video");
+            function onVideo() { return video && slides[cur].contains(video); }
             function stop() { if (timer) clearInterval(timer); timer = null; }
-            function play() { stop(); if (!reduce) timer = setInterval(function () { show(cur + 1); }, 5000); }
+            function play() {
+                stop();
+                if (reduce) return;
+                if (onVideo()) { video.play().catch(function () { timer = setTimeout(function () { show(cur + 1); play(); }, 5000); }); return; }
+                timer = setInterval(function () { show(cur + 1); }, 5000);
+            }
+            if (video) video.addEventListener("ended", function () { if (onVideo()) { show(cur + 1); play(); } });
             car.querySelector(".prev").addEventListener("click", function () { show(cur - 1); play(); });
             car.querySelector(".next").addEventListener("click", function () { show(cur + 1); play(); });
             dots.forEach(function (d, k) { d.addEventListener("click", function () { show(k); play(); }); });
-            car.addEventListener("mouseenter", stop);
+            car.addEventListener("mouseenter", function () { stop(); if (video) video.pause(); });
             car.addEventListener("mouseleave", play);
-            play();
+            // the notice popup opens on load: start the clip once it is closed, so it is seen from the start
+            var notice0 = document.getElementById("hpNotice");
+            if (notice0 && notice0.showModal) notice0.addEventListener("close", function () { if (video) video.currentTime = 0; play(); }, { once: true });
+            else play();
 
             // ---- Login: admin signs in with a username, CMS by district + hospital,
             //      hospital and vendor with a mobile number or email
@@ -497,6 +589,17 @@
                 b.addEventListener("click", function () { setSize(+b.getAttribute("data-size")); });
             });
             try { var saved = localStorage.getItem("hpTextSize"); if (saved) setSize(+saved); } catch (e) { }
+
+            // Important notice: shown every time the home page opens
+            var notice = document.getElementById("hpNotice");
+            if (notice && notice.showModal) {
+                notice.querySelectorAll("[data-close]").forEach(function (b) {
+                    b.addEventListener("click", function () { notice.close(); });
+                });
+                // click on the dark backdrop closes it too
+                notice.addEventListener("click", function (e) { if (e.target === notice) notice.close(); });
+                notice.showModal();
+            }
         })();
     </script>
 
