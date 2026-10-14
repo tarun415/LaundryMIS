@@ -117,29 +117,25 @@
                 <!-- CAROUSEL -->
                 <div class="hp-carousel" id="hpCarousel" aria-roledescription="carousel" aria-label="Highlights">
                     <div class="hp-slides">
-                        <div class="hp-slide sv on" role="group" aria-roledescription="slide" aria-label="1 of 5">
-                            <video class="hp-slide-video" src="~/media/hospital-laundry.mp4" poster="~/media/hospital-laundry-poster.jpg"
-                                   muted playsinline preload="auto" aria-label="Video: how hospital linen is collected, washed in the hospital laundry, pressed and brought back to the ward"></video>
-                        </div>
-                        <div class="hp-slide s1" role="group" aria-roledescription="slide" aria-label="2 of 5">
+                        <div class="hp-slide s1 on" role="group" aria-roledescription="slide" aria-label="1 of 4">
                             <i class="fa-solid fa-shirt hp-slide-ic" aria-hidden="true"></i>
                             <span class="hp-slide-kicker">Directorate General of Medical &amp; Health Services &middot; U.P.</span>
                             <h1>Mechanized laundry services, <span>tracked end to end</span></h1>
                             <p>One portal for district hospitals, laundry firms and the Directorate.</p>
                         </div>
-                        <div class="hp-slide s2" role="group" aria-roledescription="slide" aria-label="3 of 5">
+                        <div class="hp-slide s2" role="group" aria-roledescription="slide" aria-label="2 of 4">
                             <i class="fa-solid fa-boxes-packing hp-slide-ic" aria-hidden="true"></i>
                             <span class="hp-slide-kicker">Daily operations</span>
                             <h2>Linen pickup <span>&amp; delivery</span></h2>
                             <p>Hospitals record linen sent from each ward; the firm accepts it and delivers it back clean.</p>
                         </div>
-                        <div class="hp-slide s3" role="group" aria-roledescription="slide" aria-label="4 of 5">
+                        <div class="hp-slide s3" role="group" aria-roledescription="slide" aria-label="3 of 4">
                             <i class="fa-solid fa-clipboard-check hp-slide-ic" aria-hidden="true"></i>
                             <span class="hp-slide-kicker">Every week</span>
                             <h2>Weekly performance <span>review (WPR)</span></h2>
                             <p>Ten parameters, scored 0–10. The monthly average decides the share of the bill that is paid.</p>
                         </div>
-                        <div class="hp-slide s4" role="group" aria-roledescription="slide" aria-label="5 of 5">
+                        <div class="hp-slide s4" role="group" aria-roledescription="slide" aria-label="4 of 4">
                             <i class="fa-solid fa-file-invoice-dollar hp-slide-ic" aria-hidden="true"></i>
                             <span class="hp-slide-kicker">Every month</span>
                             <h2>Payments <span>&amp; invoices</span></h2>
@@ -153,7 +149,6 @@
                         <button type="button" aria-label="Slide 2"></button>
                         <button type="button" aria-label="Slide 3"></button>
                         <button type="button" aria-label="Slide 4"></button>
-                        <button type="button" aria-label="Slide 5"></button>
                     </div>
                 </div>
 
@@ -467,34 +462,22 @@
             var cur = 0, timer = null;
             var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
             function show(i) {
-                var was = cur;
                 cur = (i + slides.length) % slides.length;
-                if (video && cur !== was) {
-                    if (onVideo()) video.currentTime = 0; else video.pause();
-                }
                 slides.forEach(function (s, k) { s.classList.toggle("on", k === cur); });
                 dots.forEach(function (d, k) { d.classList.toggle("on", k === cur); });
             }
-            // the video slide plays its clip once from the start, then the carousel moves on
-            var video = car.querySelector(".hp-slide-video");
-            function onVideo() { return video && slides[cur].contains(video); }
             function stop() { if (timer) clearInterval(timer); timer = null; }
             function play() {
                 stop();
                 if (reduce) return;
-                if (onVideo()) { video.play().catch(function () { timer = setTimeout(function () { show(cur + 1); play(); }, 5000); }); return; }
                 timer = setInterval(function () { show(cur + 1); }, 5000);
             }
-            if (video) video.addEventListener("ended", function () { if (onVideo()) { show(cur + 1); play(); } });
             car.querySelector(".prev").addEventListener("click", function () { show(cur - 1); play(); });
             car.querySelector(".next").addEventListener("click", function () { show(cur + 1); play(); });
             dots.forEach(function (d, k) { d.addEventListener("click", function () { show(k); play(); }); });
-            car.addEventListener("mouseenter", function () { stop(); if (video) video.pause(); });
+            car.addEventListener("mouseenter", stop);
             car.addEventListener("mouseleave", play);
-            // the notice popup opens on load: start the clip once it is closed, so it is seen from the start
-            var notice0 = document.getElementById("hpNotice");
-            if (notice0 && notice0.showModal) notice0.addEventListener("close", function () { if (video) video.currentTime = 0; play(); }, { once: true });
-            else play();
+            play();
 
             // ---- Login: admin signs in with a username, CMS by district + hospital,
             //      hospital and vendor with a mobile number or email

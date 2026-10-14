@@ -343,10 +343,6 @@
 .hp-slide.s2 { background: linear-gradient(135deg, #0b2a4a 0%, #13507a 60%, #1a6f99 100%); }
 .hp-slide.s3 { background: linear-gradient(135deg, #3d1f06 0%, #8a3d06 55%, var(--hp-orange-btn) 100%); }
 .hp-slide.s4 { background: linear-gradient(135deg, #2b0a1e 0%, var(--hp-maroon) 60%, #a3173f 100%); }
-.hp-slide.sv { padding: 0; background: var(--hp-teal-900); }
-.hp-slide-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-/* the clip is drawn for the desktop carousel (about 1.55 : 1); on other sizes show it whole */
-@media (max-width: 1199px) { .hp-slide-video { object-fit: contain; } }
 .hp-slide-ic { position: absolute; right: 40px; bottom: 34px; font-size: 9rem; opacity: .13; pointer-events: none; }
 .hp-slide-kicker { margin-bottom: 12px; font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: var(--hp-orange-soft); }
 .hp-slide h1, .hp-slide h2 { position: relative; margin: 0 0 14px; max-width: 560px; font-size: 2.2rem; font-weight: 700; line-height: 1.15; color: #fff; }
