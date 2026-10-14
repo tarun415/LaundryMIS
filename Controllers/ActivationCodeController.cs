@@ -6,8 +6,8 @@ using System.Security.Claims;
 
 namespace LaudaryMis.Controllers
 {
-    // Admin issues one-time activation codes to hospitals and vendors that are
-    // already on the tender list, so they can register themselves.
+    // Admin issues one-time activation codes to vendors that are already on the
+    // tender list, so they can register themselves. Hospitals do not need a code.
     [Authorize(Roles = "Admin")]
     public class ActivationCodeController : Controller
     {
@@ -19,7 +19,7 @@ namespace LaudaryMis.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string type = "Hospital")
+        public async Task<IActionResult> Index(string type = "Provider")
         {
             type = NormalizeType(type);
             return View(new ActivationIndexVM
@@ -58,8 +58,8 @@ namespace LaudaryMis.Controllers
             return View("Issued", new ActivationIssuedVM { EntityType = type, Codes = codes });
         }
 
-        private static string NormalizeType(string? type) =>
-            string.Equals(type, "Provider", StringComparison.OrdinalIgnoreCase) ? "Provider" : "Hospital";
+        // Hospitals register without a code, so codes are issued to vendors only
+        private static string NormalizeType(string? type) => "Provider";
 
         private int GetUserId() =>
             int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;

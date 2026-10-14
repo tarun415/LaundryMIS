@@ -156,7 +156,7 @@ namespace LaudaryMis.Repositories
         // Register with a code: attach a login to the listed hospital / vendor
         // ──────────────────────────────────────────────────────
         public async Task<ClaimResult> ClaimAsync(
-            string entityType, int entityId, string codeHash,
+            string entityType, int entityId, string? codeHash,
             string phone, string email, string passwordHash)
         {
             using var con = new SqlConnection(_connStr);
@@ -167,9 +167,11 @@ namespace LaudaryMis.Repositories
             {
                 bool isHospital = entityType == "Hospital";
 
-                // The entity must exist, be approved and have no login yet
+                // The entity must exist, be approved and have no login yet.
+                // The hospital row is locked so two people cannot register the same hospital at once
+                // (a vendor is protected the same way by the lock on its code row below).
                 string entitySql = isHospital
-                    ? $@"SELECT h.HospitalName AS Name FROM tbl_Hospitals h
+                    ? $@"SELECT h.HospitalName AS Name FROM tbl_Hospitals h WITH (UPDLOCK, ROWLOCK)
                          WHERE h.HospitalId = @entityId AND h.IsActive = 1 AND h.ApprovalStatus = 'Approved'
                            AND NOT {HospitalHasLogin}"
                     : $@"SELECT COALESCE(NULLIF(p.FirmName, ''), p.ProviderName) AS Name FROM tbl_Providers p
@@ -180,14 +182,16 @@ namespace LaudaryMis.Repositories
                 if (name == null)
                     return Fail(tran, "An account already exists for this hospital / firm. Please sign in.");
 
-                // Lock the code row so two people cannot use it at once
-                var codeId = await con.ExecuteScalarAsync<int?>(@"
-                    SELECT Id FROM ActivationCodes WITH (UPDLOCK, ROWLOCK)
-                    WHERE EntityType = @entityType AND EntityId = @entityId AND CodeHash = @codeHash
-                      AND IsActive = 1 AND UsedOn IS NULL",
-                    new { entityType, entityId, codeHash }, tran);
+                // Vendor only: lock the code row so two people cannot use it at once
+                int? codeId = null;
+                if (!isHospital)
+                    codeId = await con.ExecuteScalarAsync<int?>(@"
+                        SELECT Id FROM ActivationCodes WITH (UPDLOCK, ROWLOCK)
+                        WHERE EntityType = @entityType AND EntityId = @entityId AND CodeHash = @codeHash
+                          AND IsActive = 1 AND UsedOn IS NULL",
+                        new { entityType, entityId, codeHash }, tran);
 
-                if (codeId == null)
+                if (!isHospital && codeId == null)
                 {
                     tran.Rollback();
                     return new ClaimResult
@@ -237,9 +241,10 @@ namespace LaudaryMis.Repositories
                         "UPDATE tbl_Providers SET Phone = @phone WHERE ProviderId = @entityId",
                         new { phone, entityId }, tran);
 
-                await con.ExecuteAsync(
-                    "UPDATE ActivationCodes SET UsedOn = GETDATE(), UsedByUserId = @userId WHERE Id = @codeId",
-                    new { userId = user.UserId, codeId }, tran);
+                if (codeId != null)
+                    await con.ExecuteAsync(
+                        "UPDATE ActivationCodes SET UsedOn = GETDATE(), UsedByUserId = @userId WHERE Id = @codeId",
+                        new { userId = user.UserId, codeId }, tran);
 
                 tran.Commit();
                 return new ClaimResult { Success = true, User = user };

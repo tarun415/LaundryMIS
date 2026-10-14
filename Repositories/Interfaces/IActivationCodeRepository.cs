@@ -15,8 +15,9 @@ namespace LaudaryMis.Repositories.Interfaces
         Task<List<NameOption>> GetUnclaimedHospitalsAsync(int districtId);
         Task<List<NameOption>> GetUnclaimedProvidersAsync();
 
+        // codeHash is null for a hospital (no activation code needed)
         Task<ClaimResult> ClaimAsync(
-            string entityType, int entityId, string codeHash,
+            string entityType, int entityId, string? codeHash,
             string phone, string email, string passwordHash);
     }
 }
