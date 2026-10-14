@@ -35,13 +35,21 @@ namespace LaudaryMis.Services
             if (entityId is null or <= 0)
                 return new ClaimResult { Message = isHospital ? "Select your hospital." : "Select your firm." };
 
-            if (!ActivationCodeHelper.LooksValid(model.Code))
-                return new ClaimResult { BadCode = true, Message = "An activation code has 10 characters (for example K7M49-QXD2P)." };
+            // Hospitals register without a code; vendors still need the one DGMH issued
+            string? codeHash = null;
+            if (!isHospital)
+            {
+                if (string.IsNullOrWhiteSpace(model.Code))
+                    return new ClaimResult { Message = "Enter the activation code." };
+                if (!ActivationCodeHelper.LooksValid(model.Code))
+                    return new ClaimResult { BadCode = true, Message = "An activation code has 10 characters (for example K7M49-QXD2P)." };
+                codeHash = ActivationCodeHelper.Hash(model.Code);
+            }
 
             return await _repo.ClaimAsync(
                 isHospital ? "Hospital" : "Provider",
                 entityId.Value,
-                ActivationCodeHelper.Hash(model.Code),
+                codeHash,
                 model.Phone,
                 model.Email.Trim(),
                 PasswordHasher.Hash(model.Password));

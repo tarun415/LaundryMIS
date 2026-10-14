@@ -44,9 +44,9 @@ namespace LaudaryMis.ViewModels
         public int? HospitalId { get; set; }
         public int? ProviderId { get; set; }
 
-        [Required(ErrorMessage = "Enter the activation code.")]
+        // Only a vendor needs an activation code; a hospital registers without one.
         [StringLength(30)]
-        public string Code { get; set; } = string.Empty;
+        public string? Code { get; set; }
 
         [Required(ErrorMessage = "Enter the mobile number.")]
         [RegularExpression(@"^[6-9]\d{9}$", ErrorMessage = "Enter a valid 10-digit mobile number.")]

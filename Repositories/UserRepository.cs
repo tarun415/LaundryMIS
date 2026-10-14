@@ -311,7 +311,7 @@ namespace LaudaryMis.Repositories
                     new { model.DistrictId, HospitalName = model.HospitalName!.Trim() }, tran);
 
                 if (duplicate > 0)
-                    return Fail(tran, "A hospital with this name is already on the tender list for this district. Do not create a new account: open 'Register' from the Login page, choose your hospital and enter the activation code DGMH gave you.");
+                    return Fail(tran, "A hospital with this name is already on the tender list for this district. Do not create a new account: open 'Register' from the Login page and choose your district and hospital (no activation code is needed).");
 
                 var hospitalId = await con.ExecuteScalarAsync<int>(@"
                     INSERT INTO Tbl_Hospitals

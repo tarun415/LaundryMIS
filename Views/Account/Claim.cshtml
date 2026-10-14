@@ -69,7 +69,7 @@
             <div class="login-logo">
                 <div class="emblem"><i class="fa-solid fa-key"></i></div>
                 <h1>Register &middot; Laundry MIS</h1>
-                <p>Create your account with an activation code</p>
+                <p>Create your account for a hospital / firm on the tender list</p>
             </div>
 
             <form method="post" asp-action="Claim" id="claimForm" novalidate>
@@ -87,9 +87,13 @@
                     </div>
                 }
 
-                <div class="claim-note">
-                    Your hospital / firm is already on the tender list. DGMH should have sent you an <strong>activation code</strong>.
-                    Choose your name, enter the code and set your email / password.
+                <div class="claim-note" id="noteHospital" style="@(isHospital ? "" : "display:none;")">
+                    Your hospital is already on the tender list. Choose your district and hospital,
+                    then set your mobile, email and password. No activation code is needed.
+                </div>
+                <div class="claim-note" id="noteProvider" style="@(!isHospital ? "" : "display:none;")">
+                    Your firm is already on the tender list. DGMH should have sent you an <strong>activation code</strong>.
+                    Choose your firm, enter the code and set your email / password.
                 </div>
 
                 <!-- ROLE SELECTOR -->
@@ -141,12 +145,13 @@
                             <option value="">Select Firm</option>
                         </select>
                     </div>
-                </div>
 
-                <div class="login-field">
-                    <label asp-for="Code">Activation code</label>
-                    <input asp-for="Code" class="code-input" maxlength="14" autocomplete="off" spellcheck="false" placeholder="XXXXX-XXXXX" />
-                    <span class="field-err d-block" asp-validation-for="Code"></span>
+                    <!-- Only vendors need an activation code -->
+                    <div class="login-field">
+                        <label asp-for="Code">Activation code</label>
+                        <input asp-for="Code" class="code-input" maxlength="14" autocomplete="off" spellcheck="false" placeholder="XXXXX-XXXXX" />
+                        <span class="field-err d-block" asp-validation-for="Code"></span>
+                    </div>
                 </div>
 
                 <div class="reg-row">
@@ -252,6 +257,8 @@
 
             document.getElementById("hospitalFields").style.display = roleId == 2 ? "" : "none";
             document.getElementById("providerFields").style.display = roleId == 3 ? "" : "none";
+            document.getElementById("noteHospital").style.display = roleId == 2 ? "" : "none";
+            document.getElementById("noteProvider").style.display = roleId == 3 ? "" : "none";
 
             if (roleId == 2) loadDistricts(); else loadProviders();
         }

@@ -26,8 +26,8 @@
     <div class="ph-text">
         <h1>Activation Codes</h1>
         <p class="ph-sub">
-            @(isHospital ? "Hospitals" : "Vendors") on the tender list create their own account with these codes.
-            A code works only once and is never shown to Admin again.
+            Vendors on the tender list create their own account with these codes.
+            A code works only once and is never shown to Admin again. Hospitals register without a code.
         </p>
     </div>
     <div class="ph-actions">
@@ -45,19 +45,6 @@
         }
     </div>
 </div>
-
-<ul class="nav nav-pills mb-3">
-    <li class="nav-item">
-        <a class="nav-link @(isHospital ? "active" : "")" asp-action="Index" asp-route-type="Hospital">
-            <i class="fa-solid fa-hospital"></i> Hospitals
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link @(!isHospital ? "active" : "")" asp-action="Index" asp-route-type="Provider">
-            <i class="fa-solid fa-truck-fast"></i> Vendors
-        </a>
-    </li>
-</ul>
 
 <div class="row g-3 mb-3">
     <div class="col-4">
@@ -143,7 +130,7 @@
                     <i class="fa-solid fa-key"></i> Issue a new code for the selected rows
                 </button>
                 <span class="small text-muted">
-                    Issuing a new code disables that hospital's / firm's previous unused code.
+                    Issuing a new code disables that firm's previous unused code.
                     Rows whose account already exists have no checkbox.
                 </span>
             </div>

@@ -135,8 +135,9 @@ namespace LaudaryMis.Controllers
         public async Task<IActionResult> Claim(ClaimVM model)
         {
             // Doosre role ke chhupe hue fields ko na save karo
+            // Hospital ke liye activation code nahi lagta
             if (model.RoleId == 3) { model.HospitalId = null; model.DistrictId = null; }
-            else model.ProviderId = null;
+            else { model.ProviderId = null; model.Code = null; }
 
             if (!ModelState.IsValid)
                 return View(model);
